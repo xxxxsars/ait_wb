@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load staticfiles %}}
+
+{% block js %}
+    <style>
+
+
+        h3 {
+            text-align: center;
+        }
+
+
+    </style>
+{% endblock %}
+
+
+
+{% block body %}
+
+    <h3>Upload Test Case</h3>
+    {% if form.errors %}
+        {% for field in form %}
+            {% for error in field.errors %}
+                <div class="alert alert-danger">
+                    <strong>{{ error|escape }}</strong>
+                </div>
+            {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+            <div class="alert alert-danger">
+                <strong>{{ error|escape }}</strong>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if susessful %}
+        <div class="alert alert-success">
+           <strong> {{ susessful }}</strong>
+        </div>
+    {% endif %}
+
+
+
+    <form enctype="multipart/form-data" method="post" action="">{% csrf_token %}
+
+        <label for="id">ID：</label>{{ form.task_id }}
+        <label for="script">Script：</label>{{ form.script_name }}
+        <label for="descript">Description：</label>{{ form.description }}
+        <label for="exec_time">Exec Time：</label>{{ form.exec_time }}
+        <label for="argument">Argument：</label>{{ form.argument }}
+
+        <label for="upload">Upload Zip file：</label>
+        <div class="input-group">
+            <div class="custom-file">
+                {{ form.file }}
+                <label class="custom-file-label" for="inputGroupFile04">Only allow Zip file</label>
+            </div>
+        </div>
+        <br>
+        <button class="btn btn-secondary" type="submit">Submit</button>
+
+
+    </form>
+
+{% endblock %}
