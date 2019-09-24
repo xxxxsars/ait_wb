@@ -20,14 +20,18 @@ def update_index(request):
     if request.method == 'POST':
         form = QueryTestCaseForm(request.POST)
 
-        # if task_id == "" and script_name == "":
-        #     error = "Your must be provide ID or Script Name to inquire data."
-        #
+
+
+        task_id = request.POST["task_id"]
+        script_name = request.POST["script_name"]
+
+
+        if task_id == "" and script_name == "":
+            error = "Your must be provide ID or Script Name to inquire data."
+
 
         if form.is_valid():
-            task_id = request.POST["task_id"]
-            script_name = request.POST["script_name"]
-            # primary query codition is script_name
+            # primary query condition is script_name
             if script_name != "":
                 datas = Upload_TestCase.objects.filter(script_name=script_name)
 
@@ -48,16 +52,23 @@ def modify_testCase(request, format=None):
         obj = Upload_TestCase.objects.get(script_name=script_name)
         serialzer = ModifySerializer(obj, data=request.data)
 
-        if serialzer.is_valid():
-            handle_uploaded_file(request.FILES['file'], script_name)
 
+        # check zip file
+        handle_update_file(request.FILES['file'], script_name)
+
+
+        # check others parameters
+        if serialzer.is_valid():
             serialzer.save()
+
+
             return redirect("script_update")
 
         return Response(serialzer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-def handle_uploaded_file(f,script_name):
+# handle_update_file will remove all unzip folder
+def handle_update_file(f,script_name):
     source_zip = 'upload_folder/'+f.name
 
     with open(source_zip, 'wb+') as destination:
