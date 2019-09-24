@@ -8,7 +8,8 @@
     <link type="text/css" rel="stylesheet" href="{% static "bower_components/bootstrap/dist/css/bootstrap.min.css" %}">
 
     <!--import js path-->
-    <script src="{% static "bower_components/jquery/src/jquery.js" %}"></script>
+    <script src="{% static "bower_components/jquery/dist/jquery.min.js" %}"></script>
+    <script src="{% static "bower_components/jquery/dist/jquery.slim.min.js" %}"></script>
     <script src={% static "bower_components/bootstrap/dist/js/bootstrap.min.js" %}></script>
     <!--extend css -->
     {% block css %}{% endblock %}
@@ -28,7 +29,7 @@
         <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav">
+        <ul class="navbar-nav mr-auto">
             <li class="nav-item">
                 <a class="nav-link" href="{% url "script_upload" %}">Upload</a>
             </li>
@@ -38,6 +39,8 @@
         </ul>
     </div>
 </nav>
+
+
 <div class="container">
     {% block body %}Pleas extend body block {% endblock %}
 </div>
