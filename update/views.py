@@ -46,7 +46,7 @@ def update_index(request,message=None):
 
 
     if message!=None:
-        if re.match(r".+no valid.+", message):
+        if re.match(r".+(no valid.+|.+error).+", message):
             is_error =True
 
 
@@ -61,23 +61,26 @@ def modify_testCase(request, format=None):
         obj = Upload_TestCase.objects.get(script_name=script_name)
         serialzer = ModifySerializer(obj, data=request.data)
 
-        try:
-            # check zip file
-            handle_update_file(request.FILES['file'], script_name)
-        except Exception:
-            message = "Upload file is no valid zip file."
-            return redirect("redirect_update",message)
+        # check zip file
+        if  "file" in request.FILES:
+            try:
+                handle_update_file(request.FILES['file'], script_name)
+            except Exception:
+                message = "Upload file is no valid zip file."
+                return redirect("redirect_update",message)
 
 
         # check others parameters
         if serialzer.is_valid():
             serialzer.save()
-
             message = "Modify TestCase successfully!"
-
             return redirect("redirect_update",message)
 
-        return Response(serialzer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+        # if data not valid return error and redirect to update page
+        message = "Your modify data had some error."
+        return redirect("redirect_update", message)
 
 
 # handle_update_file will remove all unzip folder
