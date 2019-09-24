@@ -44,8 +44,8 @@ def handle_uploaded_file(f,script_name):
     path = os.path.dirname(os.path.abspath(__file__))
 
     if platform.system() =="Windows":
-        source_zip = path + r'\upload_folder\\' + f.name
-        unzip_path = path +r'\upload_folder\\'
+        source_zip = path + '\\upload_folder\\' + f.name
+        unzip_path = path +'\\upload_folder\\'
 
     else:
         source_zip = 'upload_folder/'+f.name

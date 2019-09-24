@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
-import zipfile,os,shutil,platform
+import zipfile,os,shutil,platform,re
 
 from update.forms import *
 from update.serializer import *
@@ -15,8 +15,9 @@ from upload.models import *
 
 # Create your views here.
 
+# when redirect will show message to update page
+def update_index(request,message=None):
 
-def update_index(request):
     if request.method == 'POST':
         form = QueryTestCaseForm(request.POST)
 
@@ -39,8 +40,16 @@ def update_index(request):
                 datas = Upload_TestCase.objects.filter(task_id=task_id)
 
             return render(request, "modify.html", locals())
+
     else:
         form = QueryTestCaseForm()
+
+
+    if message!=None:
+        if re.match(r".+no valid.+", message):
+            is_error =True
+
+
 
     return render(request, "update.html", locals())
 
@@ -52,17 +61,21 @@ def modify_testCase(request, format=None):
         obj = Upload_TestCase.objects.get(script_name=script_name)
         serialzer = ModifySerializer(obj, data=request.data)
 
-
-        # check zip file
-        handle_update_file(request.FILES['file'], script_name)
+        try:
+            # check zip file
+            handle_update_file(request.FILES['file'], script_name)
+        except Exception:
+            message = "Upload file is no valid zip file."
+            return redirect("redirect_update",message)
 
 
         # check others parameters
         if serialzer.is_valid():
             serialzer.save()
 
+            message = "Modify TestCase successfully!"
 
-            return redirect("script_update")
+            return redirect("redirect_update",message)
 
         return Response(serialzer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -89,7 +102,6 @@ def handle_update_file(f,script_name):
         shutil.rmtree(unzip_path+script_name)
     except Exception:
         pass
-
 
     with zipfile.ZipFile(source_zip, 'r') as zip_ref:
         zip_ref.extractall(unzip_path+script_name)
