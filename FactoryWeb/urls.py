@@ -21,9 +21,10 @@ from .error_views import *
 from django.views.static import serve
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    url('admin/', admin.site.urls),
     url(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
-    path("testCase/",include("upload.urls")),
+    url("testCase/",include("upload.urls")),
+    url("testCase/",include(("update.urls")))
 
 
 ]

@@ -1,5 +1,6 @@
 *.sqlite3
 .idea
+upload_folder/*
 
 # Created by https://www.gitignore.io
 

@@ -26,11 +26,6 @@
                 </div>
             {% endfor %}
         {% endfor %}
-        {% for error in form.non_field_errors %}
-            <div class="alert alert-danger">
-                <strong>{{ error|escape }}</strong>
-            </div>
-        {% endfor %}
     {% endif %}
 
     {% if susessful %}
@@ -44,7 +39,7 @@
     <form enctype="multipart/form-data" method="post" action="">{% csrf_token %}
 
         <label for="id">ID：</label>{{ form.task_id }}
-        <label for="script">Script：</label>{{ form.script_name }}
+        <label for="script">Script Name：</label>{{ form.script_name }}
         <label for="descript">Description：</label>{{ form.description }}
         <label for="exec_time">Exec Time：</label>{{ form.exec_time }}
         <label for="argument">Argument：</label>{{ form.argument }}

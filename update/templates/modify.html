@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block css %}
+    <style>
+        h3 {
+            text-align: center;
+        }
+
+    </style>
+{% endblock %}
+
+{% block body %}
+    <h3>Modify TeseCase</h3>
+
+
+    <form enctype="multipart/form-data" method="POST" action={% url "script_modify" %}>{% csrf_token %}
+        {% for data in datas %}
+            ID：<input  name="task_id" type="text" class="form-control" value={{ data.task_id }}  readonly="readonly" >
+
+            Script Name：<input name="script_name" type="text" class="form-control" value={{ data.script_name }}  readonly="readonly" >
+
+            Description：<input name="description" type="text" class="form-control" value={{ data.description }}>
+
+            Exec Time：<input name="exec_time" type="text" class="form-control" value={{ data.exec_time }}>
+
+            Argument：<input type="text" name="argument" class="form-control" value={{ data.argument }}>
+
+            <label for="upload">Upload Zip file：</label>
+            <div class="input-group">
+                <div class="custom-file">
+                    <input type="file" name="file" class="custom-file-input" id="inputGroupFile04" required="">
+                    <label class="custom-file-label" for="inputGroupFile04">Only allow Zip file</label>
+                </div>
+            </div>
+        {% endfor %}
+
+        <br>
+        <input type="submit" class="btn btn-secondary" formmethod="post" value="Modify">
+    </form>
+
+
+
+
+
+    <form action="{% url "script_update" %}">
+        <input type="submit" value="<- Back to Query"/>
+    </form>
+{% endblock %}
