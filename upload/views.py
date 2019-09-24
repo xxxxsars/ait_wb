@@ -3,7 +3,8 @@ from upload.forms import *
 from upload.models import *
 import os
 import zipfile
-import shutil
+import platform
+
 # Create your views here.
 
 def upload_index(request):
@@ -40,8 +41,17 @@ def upload_index(request):
 
 
 def handle_uploaded_file(f,script_name):
+    path = os.path.dirname(os.path.abspath(__file__))
 
-    source_zip = 'upload_folder/'+f.name
+    if platform.system() =="Windows":
+        source_zip = path + r'\upload_folder\\' + f.name
+        unzip_path = path +r'\upload_folder\\'
+
+    else:
+        source_zip = 'upload_folder/'+f.name
+        unzip_path = 'upload_folder/'
+
+
 
     with open(source_zip, 'wb+') as destination:
         for chunk in f.chunks():
@@ -50,7 +60,7 @@ def handle_uploaded_file(f,script_name):
 
 
     with zipfile.ZipFile(source_zip, 'r') as zip_ref:
-        zip_ref.extractall('upload_folder/'+script_name)
+        zip_ref.extractall(unzip_path+script_name)
 
     # remove zip file
     os.remove(source_zip)

@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
-import zipfile,os,shutil
+import zipfile,os,shutil,platform
 
 from update.forms import *
 from update.serializer import *
@@ -69,7 +69,15 @@ def modify_testCase(request, format=None):
 
 # handle_update_file will remove all unzip folder
 def handle_update_file(f,script_name):
-    source_zip = 'upload_folder/'+f.name
+    path = os.path.dirname(os.path.abspath(__file__))
+
+    if platform.system() =="Windows":
+        source_zip = path + r'\upload_folder\\' + f.name
+        unzip_path = path +r'\upload_folder\\'
+
+    else:
+        source_zip = 'upload_folder/'+f.name
+        unzip_path = 'upload_folder/'
 
     with open(source_zip, 'wb+') as destination:
         for chunk in f.chunks():
@@ -78,12 +86,12 @@ def handle_update_file(f,script_name):
 
     # remove old script file
     try:
-        shutil.rmtree('upload_folder/'+script_name)
+        shutil.rmtree(unzip_path+script_name)
     except Exception:
         pass
 
 
     with zipfile.ZipFile(source_zip, 'r') as zip_ref:
-        zip_ref.extractall('upload_folder/'+script_name)
+        zip_ref.extractall(unzip_path+script_name)
 
     os.remove(source_zip)
