@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load staticfiles %}}
 
-{% block js %}
+{% block css %}
     <style>
 
 
@@ -13,6 +13,47 @@
     </style>
 {% endblock %}
 
+
+
+{% block js %}
+    <script>
+        $(document).ready(function () {
+
+            var max_fields = 19;
+            var rowCount = $("#argument_info input[name='argument']").length;
+
+
+            $("#add_argument").click(function () {
+                var info = $("#argument_info").clone();
+                info.find('input').val('');
+                if (rowCount < max_fields) {
+                    $("#new_argument").append(info);
+                    $("#new_argument").css({
+                        "border": "1px solid #9d9d9d",
+                        "border-radius": "4px",
+                        "padding": "10px"
+                    });
+                    rowCount +=1;
+                }
+                else {
+                    alert("Max argument is 20!")
+                }
+            });
+
+            $("#remove_argument").click(function (e) {
+                rowCount -= 1;
+                if (rowCount <= 0) {
+                    $("#new_argument").css({"border": "", "border-radius": "", "padding": ""});
+                }
+
+                for (var i = 0; i < 2; i++) {
+                    $("#new_argument input").last().remove();
+                    $("#new_argument label").last().remove();
+                }
+            });
+        })
+    </script>
+{% endblock %}
 
 
 {% block body %}
@@ -30,31 +71,51 @@
 
     {% if susessful %}
         <div class="alert alert-success">
-           <strong> {{ susessful }}</strong>
+            <strong> {{ susessful }}</strong>
         </div>
     {% endif %}
 
 
 
+    {% if error_message %}
+        <div class="alert alert-danger">
+            <strong> {{ error_message }}</strong>
+        </div>
+    {% endif %}
+
+
     <form enctype="multipart/form-data" method="post" action="">{% csrf_token %}
 
-        <label for="id">ID：</label>{{ form.task_id }}
-        <label for="script">Script Name：</label>{{ form.script_name }}
-        <label for="descript">Description：</label>{{ form.description }}
-        <label for="exec_time">Exec Time：</label>{{ form.exec_time }}
-        <label for="argument">Argument：</label>{{ form.argument }}
-
+        <label for="id">ID：</label>{{ u.task_id }}
+        <label for="script">Script Name：</label>{{ u.script_name }}
+        <label for="exec_time">Exec Time：</label>{{ u.exec_time }}
         <label for="upload">Upload Zip file：</label>
         <div class="input-group">
             <div class="custom-file">
-                {{ form.file }}
+                {{ u.file }}
                 <label class="custom-file-label" for="inputGroupFile04">Only allow Zip file</label>
             </div>
         </div>
+
+
+        <div id="argument_info">
+            <label for="argument">Argument：</label> {{ a.argument }}
+            <label for="description">Description：</label>{{ a.description }}
+        </div>
+
+
         <br>
+        <button class="btn btn-light" type="button" id="add_argument">Add Argument</button>
+        <button class="btn btn-light" type="button" id="remove_argument">Remove Argument</button>
+        <div id="new_argument">
+
+        </div>
+        <br>
+
         <button class="btn btn-secondary" type="submit">Submit</button>
 
 
     </form>
+
 
 {% endblock %}

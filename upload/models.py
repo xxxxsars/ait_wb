@@ -4,13 +4,20 @@ from django.db import models
 
 
 class Upload_TestCase(models.Model):
-    task_id =  models.CharField(max_length=255,unique=True)
+    task_id =  models.CharField(max_length=255,unique=True,primary_key=True)
     script_name =  models.CharField(max_length=255,unique=True)
-    description =  models.CharField(max_length=255)
     exec_time =  models.IntegerField()
-    argument =  models.CharField(max_length=255)
 
+    class Meta:
+        db_table = "task_case"
+
+
+
+class Arguments(models.Model):
+    task_id= models.ForeignKey(Upload_TestCase,on_delete=models.CASCADE)
+    argument = models.CharField(max_length=255)
+    description=  models.CharField(max_length=255)
 
 
     class Meta:
-        db_table = "up_testcase"
+        db_table = "arguments"
