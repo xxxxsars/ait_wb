@@ -100,11 +100,27 @@ def handle_update_file(f,script_name):
             destination.write(chunk)
 
 
+    # check vaild zip file
+    try:
+        zip_file = zipfile.ZipFile(source_zip)
+        ret = zip_file.testzip()
+
+    except Exception:
+        os.remove(source_zip)
+        raise Exception("Upload file is no valid zip file.")
+
+    if ret is not None:
+        os.remove(source_zip)
+        raise Exception("Upload file is no valid zip file.")
+
+
+
     # remove old script file
     try:
         shutil.rmtree(unzip_path+script_name)
     except Exception:
         pass
+
 
     with zipfile.ZipFile(source_zip, 'r') as zip_ref:
         zip_ref.extractall(unzip_path+script_name)
