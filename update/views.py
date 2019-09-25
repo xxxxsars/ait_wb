@@ -105,15 +105,12 @@ def handle_update_file(f,script_name):
         zip_file = zipfile.ZipFile(source_zip)
         ret = zip_file.testzip()
 
+        if ret is not None:
+            raise Exception("not valid zip")
+
     except Exception:
         os.remove(source_zip)
         raise Exception("Upload file is no valid zip file.")
-
-    if ret is not None:
-        os.remove(source_zip)
-        raise Exception("Upload file is no valid zip file.")
-
-
 
     # remove old script file
     try:
