@@ -34,10 +34,13 @@ def update_index(request,message=None):
         if form.is_valid():
             # primary query condition is script_name
             if script_name != "":
-                datas = Upload_TestCase.objects.filter(script_name=script_name)
+                task_info = Upload_TestCase.objects.get(script_name=script_name)
+                args = Arguments.objects.filter(task_id=task_info)
 
             elif task_id != "":
-                datas = Upload_TestCase.objects.filter(task_id=task_id)
+                task_info = Upload_TestCase.objects.get(task_id=task_id)
+                args = Arguments.objects.filter(task_id=task_info)
+
 
             return render(request, "modify.html", locals())
 

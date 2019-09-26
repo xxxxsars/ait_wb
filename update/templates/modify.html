@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load staticfiles %}
 
 {% block css %}
     <style>
@@ -6,7 +7,21 @@
             text-align: center;
         }
 
+        .tooltip-inner {
+            text-align: left;
+        }
     </style>
+{% endblock %}
+
+
+{% block js %}
+    <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
+
+    <script>
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+    </script>
 {% endblock %}
 
 {% block body %}
@@ -14,30 +29,29 @@
 
 
     <form enctype="multipart/form-data" method="POST" action={% url "script_modify" %}>{% csrf_token %}
-        {% for data in datas %}
-            ID：<input name="task_id" type="text" class="form-control" value={{ data.task_id }}  readonly="readonly">
 
-            Script Name：<input name="script_name" type="text" class="form-control"
-                               value={{ data.script_name }}  readonly="readonly">
+        ID：<input name="task_id" type="text" class="form-control" value={{ task_info.task_id }}  readonly="readonly">
 
-            Description：<input name="description" type="text" class="form-control" value={{ data.description }}>
+        Script Name：<input name="script_name" type="text" class="form-control"
+                           value={{ task_info.script_name }}  readonly="readonly">
 
-            Exec Time：<input name="exec_time" type="text" class="form-control" value={{ data.exec_time }}>
+        Exec Time：<input name="exec_time" type="text" class="form-control" value={{ task_info.exec_time }}>
 
-            Argument：<input type="text" name="argument" class="form-control" value={{ data.argument }}>
 
-            <label for="upload">Upload Zip file：</label>
-            <div class="input-group">
-                <div class="custom-file">
-                    <input type="file" name="file" class="custom-file-input" id="customFileLang" lang="zn">
-                    <label class="custom-file-label" for="customFileLang">Only allow Zip file</label>
-                </div>
+        <label for="upload">Upload Zip file：</label>
+        <div class="input-group">
+            <div class="custom-file">
+                <input type="file" name="file" class="custom-file-input" id="customFileLang" lang="zn">
+                <label class="custom-file-label" for="customFileLang">Only allow Zip file</label>
             </div>
+        </div>
 
 
 
-
-
+        {% for arg in args %}
+            Argument [{{ arg.argument }}]：
+            <input type="text" name="argument" class="form-control" data-toggle="tooltip" data-placement="left"
+                   title="{{ arg.description }}">
         {% endfor %}
 
         <br>
@@ -49,6 +63,6 @@
 
 
     <form action="{% url "script_update" %}">
-        <input  type="submit" value="<- Back to Query"/>
+        <input type="submit" value="<- Back to Query"/>
     </form>
 {% endblock %}
