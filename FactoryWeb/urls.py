@@ -23,9 +23,9 @@ from django.views.static import serve
 urlpatterns = [
     url('admin/', admin.site.urls),
     url(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
-    url("testCase/",include("upload.urls")),
-    url("testCase/",include(("update.urls")))
-
+    url("^testCase/",include("upload.urls")),
+    url("^testCase/",include("update.urls")),
+    url("^$", include("list.urls"))  #index page
 
 ]
 

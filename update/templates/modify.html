@@ -15,14 +15,18 @@
 
 
 {% block js %}
-    <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
-
     <script>
         $(function () {
             $('[data-toggle="tooltip"]').tooltip()
         })
     </script>
 {% endblock %}
+
+
+{% block head %}
+     <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
+{% endblock %}
+
 
 {% block body %}
     <h3>Modify TeseCase</h3>

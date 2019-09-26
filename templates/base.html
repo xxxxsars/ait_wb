@@ -11,10 +11,13 @@
     <script src="{% static "bower_components/jquery/dist/jquery.min.js" %}"></script>
     <script src="{% static "bower_components/jquery/dist/jquery.slim.min.js" %}"></script>
     <script src={% static "bower_components/bootstrap/dist/js/bootstrap.min.js" %}></script>
+
     <!--extend css -->
     {% block css %}{% endblock %}
-    <!--extend js path-->
+    <!--extend js -->
     {% block js %}{% endblock %}
+     <!--extend js/css path-->
+    {% block head %}{% endblock %}
 
 
 </head>
@@ -23,7 +26,7 @@
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#">Factory Line Web Page</a>
+    <a class="navbar-brand" href="{% url "script_list" %}">Factory Line Web Page</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>

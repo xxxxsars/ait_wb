@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse,HttpResponseNotFound
 from django.shortcuts import render, redirect
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -84,6 +84,7 @@ def modify_testCase(request, format=None):
         # if data not valid return error and redirect to update page
         message = "Your modify data had some error."
         return redirect("redirect_update", message)
+
 
 
 # handle_update_file will remove all unzip folder

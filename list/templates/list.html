@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+
+{% block head %}
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/datatables.net-dt/css/jquery.dataTables.min.css" %}">
+    <script src={% static "bower_components/datatables.net/js/jquery.dataTables.min.js" %}></script>
+
+
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/datatables.net-dt/css/select.dataTables.min.css" %}">
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/datatables.net-dt/css/query.dataTables.min.css" %}">
+
+
+    <script src={% static "bower_components/datatables.net/js/dataTables.select.min.js" %}></script>
+
+
+
+{% endblock %}
+
+
+{% block js %}
+    <script>
+        $(document).ready(function () {
+
+
+
+            var rows_selected = [];
+
+            $('#task-table').DataTable({
+                {#"dom": '<"top"i>rt<"bottom"flp><"clear">',#}
+                "autoWidth": true,
+                "searching": false,
+
+                columnDefs: [{
+                    orderable: true,
+                    className: 'select-checkbox',
+                    targets: 0,
+
+                }],
+                select: {
+                    style: 'os',
+                    selector: 'td:first-child'
+                },
+                order: [[1, 'asc']],
+
+            });
+
+
+            //Delete buttons
+            $('.dt-delete').each(function () {
+                $(this).on('click', function (evt) {
+                    $this = $(this);
+                    var dtRow = $this.parents('tr');
+                    if (confirm("Are you sure to delete this row?")) {
+                        var table = $('#task-table').DataTable();
+                        table.row(dtRow[0].rowIndex - 1).remove().draw(false);
+                    }
+                });
+            });
+
+
+
+            $('#myModal').on('hidden.bs.modal', function (evt) {
+                $('.modal .modal-body').empty();
+            });
+        });
+    </script>
+{% endblock %}
+
+
+{% block body %}
+
+    <form enctype="multipart/form-data" method="post" action="">{% csrf_token %}
+        <input class="btn btn-secondary" type="submit" value="Query">
+        <table id="task-table" class="hover" style="width:100%">
+            <thead>
+            <tr>
+                <th></th>
+                <th>TasK ID</th>
+                <th>Script Name</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for data in  datas %}
+                <tr id="{{ data.task_id }}">
+                    <td></td>
+                    <td>{{ data.task_id }}</td>
+                    <td>{{ data.script_name }}</td>
+                    <td>
+                        <div align="center">
+                            <button type="button" class="btn btn-danger btn-xs dt-delete">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot>
+            <tr>
+                <th></th>
+                <th>TasK ID</th>
+                <th>Script Name</th>
+                <th></th>
+            </tr>
+            </tfoot>
+        </table>
+
+    </form>
+{% endblock %}
