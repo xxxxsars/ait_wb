@@ -24,10 +24,11 @@ class UploadFileForm(forms.Form):
             raise forms.ValidationError("Your ID not match the ID rules.")
 
 
-    # def clean_script_name(self):
-    #     script_name = self.cleaned_data['script_name']
-    #     if Upload_TestCase.objects.filter(script_name=script_name).count():
-    #         raise forms.ValidationError("Your Script Name cannot be repeated.Please Update it.")
+    def clean_task_case_name(self):
+        task_case_name = self.cleaned_data['task_case_name']
+
+        if  Upload_TestCase.objects.filter(task_case_name= task_case_name).count():
+            raise forms.ValidationError("Your TestCase Name cannot be repeated.Please Update it.")
 
 
     def clean_file(self):
@@ -50,3 +51,8 @@ class UploadFileForm(forms.Form):
 class ArgumentForm(forms.Form):
     argument = forms.CharField(max_length=255,widget=forms.TextInput(attrs={'class' : 'form-control'}))
     description=  forms.CharField(max_length=255,widget=forms.TextInput(attrs={'class' : 'form-control'}))
+
+    def clean_argument(self):
+        argument = self.cleaned_data['argument']
+        if re.search(r"\s",argument)!=None:
+            raise forms.ValidationError("Your arguments cannot contain spaces.")

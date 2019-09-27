@@ -11,14 +11,12 @@ import platform
 def upload_index(request):
 
     if request.method == 'POST':
-        print(request.POST)
-
         a = ArgumentForm(request.POST)
         u = UploadFileForm(request.POST, request.FILES)
 
 
 
-        if u.is_valid():
+        if u.is_valid() and a.is_valid():
             id = request.POST["task_id"]
             task_case_name = request.POST["task_case_name"]
             task_case_descript = request.POST["task_case_description"]
