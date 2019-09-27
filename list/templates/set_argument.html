@@ -26,7 +26,7 @@
 {% endblock %}
 
 {% block head %}
-     <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
+    <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
 {% endblock %}
 
 
@@ -44,23 +44,28 @@
     </ul>
 
 
-
-
-
+         <form enctype="multipart/form-data" method="post" action="">{% csrf_token %}
 
     <div class="tab-content" id="myTabContent">
+
+
+
         {% for id in task_ids %}
             <div class="tab-pane fade" id="T{{ id }}" role="tabpanel" aria-labelledby="profile-tab">
                 {% for infos   in arg_dict|lookup:id|get_list %}
                     Argument [ {{ infos |lookup:"argument" }}]：
-                    <input type="text" name="argument" class="form-control" data-toggle="tooltip" data-placement="left"
+                    <input type="text" name="arg_{{ id }}_{{  infos |lookup:"argument"}}" class="form-control" data-toggle="tooltip" data-placement="left"
                            title=" {{ infos |lookup:"description" }}">
 
                 {% endfor %}
 
             </div>
         {% endfor %}
+
+
     </div>
+         <button class="btn btn-secondary" type="submit">Submit</button>
 
 
+    </form>
 {% endblock %}

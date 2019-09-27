@@ -7,10 +7,7 @@ def lookup(value, arg):
     return value[arg]
 
 
-
 def get_list(value):
-
-    print(list(value))
     return list(value)
 
 register.filter('lookup',lookup)

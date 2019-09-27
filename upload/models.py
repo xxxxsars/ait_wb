@@ -5,7 +5,7 @@ from django.db import models
 
 class Upload_TestCase(models.Model):
     task_id =  models.CharField(max_length=255,unique=True,primary_key=True)
-    script_name =  models.CharField(max_length=255,unique=True)
+    script_name =  models.CharField(max_length=255)
     exec_time =  models.IntegerField()
 
     class Meta:
@@ -21,3 +21,5 @@ class Arguments(models.Model):
 
     class Meta:
         db_table = "arguments"
+
+        unique_together = (('task_id', 'argument'),)
