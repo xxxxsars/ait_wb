@@ -33,7 +33,7 @@
                         "border-radius": "4px",
                         "padding": "10px"
                     });
-                    rowCount +=1;
+                    rowCount += 1;
                 }
                 else {
                     alert("Max argument is 20!")
@@ -51,7 +51,62 @@
                     $("#new_argument label").last().remove();
                 }
             });
-        })
+
+
+            $("#submit").click(function (e) {
+                console.log("IN");
+                //很重要必須要有這行才不會使用form的post送出去reflash
+                e.preventDefault();
+                //抓取csrftoken以及要送出的data field
+                var csrftoken = getCookie('csrftoken');
+                var username = $("#input").val();
+
+                console.log(username);
+
+
+                //這邊就是ajax的用法將網址導向當前網址，並於data放置想要傳送的資料
+                $.ajax({
+                    url: window.location.href, // the endpoint,commonly same url
+                    type: "POST",
+                    data: {
+                        csrfmiddlewaretoken: csrftoken,
+                        username: username
+                    },
+
+                    //處理成功時會做的動作，這邊將username值夾到result上 json資料為抓取dj處理的資料
+                    success: function (json) {
+                        console.log(json); // another sanity check
+                        $("#result").text('btn post' + json['username'] + '!');
+
+                    },
+
+                    //處理失敗時會做的動作
+                    error: function (xhr, errmsg, err) {
+                        console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                    }
+                });
+            });
+        });
+
+
+        //這是官方給的抓取csrftoken的範例因為在django必須送出一個csrftoken的data透過ajax送出的post只能自行抓取data去送出
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+
     </script>
 {% endblock %}
 
@@ -119,5 +174,16 @@
 
 
 
+
+    <form class="form-signin" method="POST">
+        {% csrf_token %}
+        <h2 class="form-signin-heading">Enter Details</h2>
+        <label for="input" class="sr-only">Username</label>
+        <input type="text" id="input" class="form-control" placeholder="Username" required autofocus>
+
+        <button id="submit" class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+    </form>
+
+    <p id="result"></p>
 
 {% endblock %}

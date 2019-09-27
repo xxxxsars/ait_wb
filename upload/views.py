@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.http import JsonResponse
 from upload.forms import *
 from upload.models import *
 import os
@@ -10,6 +11,11 @@ import platform
 def upload_index(request):
 
     if request.method == 'POST':
+        if request.is_ajax():
+            print("in",request.POST)
+            username=request.POST.get("username")
+            data = {"username":username}
+            return JsonResponse(data)
 
         a = ArgumentForm(request.POST)
         u = UploadFileForm(request.POST, request.FILES)
