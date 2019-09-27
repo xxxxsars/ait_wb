@@ -34,6 +34,7 @@
                         "padding": "10px"
                     });
                     rowCount += 1;
+
                 }
                 else {
                     alert("Max argument is 20!")
@@ -41,15 +42,19 @@
             });
 
             $("#remove_argument").click(function (e) {
-                rowCount -= 1;
-                if (rowCount <= 0) {
-                    $("#new_argument").css({"border": "", "border-radius": "", "padding": ""});
-                }
+
 
                 for (var i = 0; i < 2; i++) {
                     $("#new_argument input").last().remove();
                     $("#new_argument label").last().remove();
                 }
+
+                rowCount -= 1;
+                {# orginal argument colume cant be remove#}
+                if (rowCount <= 1) {
+                    $("#new_argument").css({"border": "", "border-radius": "", "padding": ""});
+                }
+
             });
 
 
