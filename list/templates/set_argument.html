@@ -2,14 +2,15 @@
 {% load staticfiles %}
 {% load  filter %}
 
-
+{% block head %}
+    <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
+{% endblock %}
 
 {% block css %}
     <style>
         h3 {
             text-align: center;
         }
-
         .tooltip-inner {
             text-align: left;
         }
@@ -25,47 +26,105 @@
     </script>
 {% endblock %}
 
-{% block head %}
-    <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
-{% endblock %}
+
 
 
 {% block body %}
 
+    <!--tab controller-->
     <ul class="nav nav-tabs" id="myTab" role="tablist">
 
-
         {% for id in task_ids %}
-            <li class="nav-item">
-                <a class="nav-link" id="profile-tab" data-toggle="tab" href="#T{{ id }}" role="tab"
-                   aria-controls="profile" aria-selected="false">Task ID [{{ id }}]</a>
-            </li>
+            {% if forloop.counter == 1 %}
+                <li class="nav-item">
+                    <a class="nav-link active" id="T{{ id }}-tab" data-toggle="tab" href="#T{{ id }}" role="tab"
+                       aria-controls="T{{ id }}" aria-selected="true">Task ID [{{ id }}]</a>
+                </li>
+            {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" id="T{{ id }}-tab" data-toggle="tab" href="#T{{ id }}" role="tab"
+                       aria-controls="T{{ id }}" aria-selected="false">Task ID [{{ id }}]</a>
+                </li>
+            {% endif %}
         {% endfor %}
     </ul>
+    <!--tab controller end-->
+
+    <!--tab ccntent-->
+    <form enctype="multipart/form-data" method="post" action="">{% csrf_token %}
+        <div class="tab-content" id="myTabContent">
+            {% for id in task_ids %}
+                {% if forloop.counter == 1 %}
+                    <div class="tab-pane fade show active" id="T{{ id }}" role="tabpanel" aria-labelledby="profile-tab">
+                        {% for infos   in arg_dict|lookup:id|get_list %}
+                            Argument [ {{ infos |lookup:"argument" }}]：
+                            <input type="text" name="arg_{{ id }}_{{ infos |lookup:"argument" }}" class="form-control"
+                                   data-toggle="tooltip" data-placement="left"
+                                   title=" {{ infos |lookup:"description" }}">
+                        {% endfor %}
+                        TimeOut：
+                        <input type="text" name="timeout_{{ id }}" class="form-control" data-toggle="tooltip"
+                               data-placement="left"
+                               title="Test case timeout value">
+                        ExitCode：
+                        <input type="text" name="exitcode_{{ id }}" class="form-control" data-toggle="tooltip"
+                               data-placement="left"
+                               title=" Pass condition 'exitCode to be define for exit(0) and exit(1)'">
+                        Retry Count：
+                        <input type="text" name="retry_{{ id }}" class="form-control" data-toggle="tooltip"
+                               data-placement="left"
+                               title="Retry count">
+                        Sleep Time：
+                        <input type="text" name="sleep_{{ id }}" class="form-control" data-toggle="tooltip"
+                               data-placement="left"
+                               title="Sleep time">
+                        Criteria：
+                        <input type="text" name="criteria_{{ id }}" class="form-control" data-toggle="tooltip"
+                               data-placement="left"
+                               title="Set test case criteria">
+                    </div>
+                {% else %}
+                    <div class="tab-pane fade" id="T{{ id }}" role="tabpanel" aria-labelledby="profile-tab">
+
+                        {% for infos   in arg_dict|lookup:id|get_list %}
+                            Argument [ {{ infos |lookup:"argument" }}]：
+                            <input type="text" name="arg_{{ id }}_{{ infos |lookup:"argument" }}" class="form-control"
+                                   data-toggle="tooltip" data-placement="left"
+                                   title=" {{ infos |lookup:"description" }}">
+                        {% endfor %}
 
 
-         <form enctype="multipart/form-data" method="post" action="">{% csrf_token %}
+                        TimeOut：
+                        <input type="text" name="timeout_{{ id }}" class="form-control" data-toggle="tooltip"
+                               data-placement="left"
+                               title="Test case timeout value">
+                        ExitCode：
+                        <input type="text" name="exitcode_{{ id }}" class="form-control" data-toggle="tooltip"
+                               data-placement="left"
+                               title=" Pass condition 'exitCode to be define for exit(0) and exit(1)'">
+                        Retry Count：
+                        <input type="text" name="retry_{{ id }}" class="form-control" data-toggle="tooltip"
+                               data-placement="left"
+                               title="Retry count">
+                        Sleep Time：
+                        <input type="text" name="sleep_{{ id }}" class="form-control" data-toggle="tooltip"
+                               data-placement="left"
+                               title="Sleep time">
+                        Criteria：
+                        <input type="text" name="criteria_{{ id }}" class="form-control" data-toggle="tooltip"
+                               data-placement="left"
+                               title="Set test case criteria">
+                    </div>
 
-    <div class="tab-content" id="myTabContent">
+                {% endif %}
+
+            {% endfor %}
 
 
+        </div>
+        <!--tab ccntent end-->
 
-        {% for id in task_ids %}
-            <div class="tab-pane fade" id="T{{ id }}" role="tabpanel" aria-labelledby="profile-tab">
-                {% for infos   in arg_dict|lookup:id|get_list %}
-                    Argument [ {{ infos |lookup:"argument" }}]：
-                    <input type="text" name="arg_{{ id }}_{{  infos |lookup:"argument"}}" class="form-control" data-toggle="tooltip" data-placement="left"
-                           title=" {{ infos |lookup:"description" }}">
-
-                {% endfor %}
-
-            </div>
-        {% endfor %}
-
-
-    </div>
-         <button class="btn btn-secondary" type="submit">Submit</button>
-
-
+        <br>
+        <button class="btn btn-secondary" type="submit">Submit</button>  <!--the form will post all tab content-->
     </form>
 {% endblock %}
