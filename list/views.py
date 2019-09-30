@@ -29,9 +29,6 @@ def list_index(request):
                     arg_dict[task_id] = args.values()
                 return render(request, "set_argument.html", locals())
 
-
-        # todo confirm page
-
         # handle the set_argument submit action ,it will get all tab parameter
         else:
 
@@ -54,7 +51,7 @@ def list_index(request):
 
                     task_info = Upload_TestCase.objects.get(task_id=task_id)
                     script_name = task_info.script_name
-                    task_name = task_info.task_case_name
+                    task_name = task_info.task_name
 
                     parmeter = arg_reg.search(k).group(2)
                     argument = v[0]

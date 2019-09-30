@@ -79,7 +79,7 @@
 
 
 
-        {% if a.errors %}
+    {% if a.errors %}
         {% for field in a %}
             {% for error in field.errors %}
                 <div class="alert alert-danger">
@@ -108,8 +108,8 @@
     <form enctype="multipart/form-data" method="post" action="">{% csrf_token %}
 
         <label for="id">ID：</label>{{ u.task_id }}
-        <label for="test_case_name">TestCase Name：</label>{{ u.task_case_name }}
-        <label for="descript">TestCase Description：</label>{{ u.task_case_description }}
+        <label for="test_case_name">TestCase Name：</label>{{ u.task_name }}
+        <label for="descript">TestCase Description：</label>{{ u.task_description }}
         <label for="script">Script Name：</label>{{ u.script_name }}
         <label for="upload">Upload Zip file：</label>
         <div class="input-group">
@@ -118,6 +118,8 @@
                 <label class="custom-file-label" for="inputGroupFile04">Only allow Zip file</label>
             </div>
         </div>
+
+
 
 
         <div id="argument_info">

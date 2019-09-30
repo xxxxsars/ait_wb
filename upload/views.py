@@ -18,8 +18,8 @@ def upload_index(request):
 
         if u.is_valid() and a.is_valid():
             id = request.POST["task_id"]
-            task_case_name = request.POST["task_case_name"]
-            task_case_descript = request.POST["task_case_description"]
+            task_name = request.POST["task_name"]
+            task_descript = request.POST["task_description"]
             script_name = request.POST["script_name"]
 
 
@@ -40,10 +40,10 @@ def upload_index(request):
             task_id = id +serial_number
 
 
-            handle_uploaded_file(request.FILES['file'],task_case_name)
+            handle_uploaded_file(request.FILES['file'],task_name)
 
 
-            up = Upload_TestCase.objects.create(task_id=task_id,   task_case_name=task_case_name,description = task_case_descript,  script_name=script_name)
+            up = Upload_TestCase.objects.create(task_id=task_id,   task_name=task_name,description = task_descript,  script_name=script_name)
 
             for i, e in enumerate(arguments):
                 argument = arguments[i]
