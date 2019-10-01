@@ -101,9 +101,8 @@ def handle_uploaded_file(f,script_name):
         unzip_path = path + r'\upload_folder\\'
 
     else:
-        source_zip = path + 'upload_folder/' + f.name
-        unzip_path = path + 'upload_folder/'
-
+        source_zip = path + '/upload_folder/' + f.name
+        unzip_path = path + '/upload_folder/'
 
 
     with open(source_zip, 'wb+') as destination:

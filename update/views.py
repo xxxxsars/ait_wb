@@ -165,8 +165,8 @@ def handle_update_file(f, task_name):
         unzip_path = path + r'\upload_folder\\'
 
     else:
-        source_zip = path + 'upload_folder/' + f.name
-        unzip_path = path + 'upload_folder/'
+        source_zip = path + '/upload_folder/' + f.name
+        unzip_path = path + '/upload_folder/'
 
     with open(source_zip, 'wb+') as destination:
         for chunk in f.chunks():
