@@ -38,7 +38,6 @@ def list_index(request):
 
             result_dict = {}
 
-            print(dict(request.POST.lists()).items())
             for k, v in dict(request.POST.lists()).items():
                 pd = []
 

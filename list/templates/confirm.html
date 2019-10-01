@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+
+
+{% block css %}
+    <style>
+        h3 {
+            text-align: center;
+        }
+
+    </style>
+{% endblock %}
+
+
+
+{% block head %}
+    <link type="text/css" rel="stylesheet" href="{% static  "bower_components/highlightjs/styles/github-gist.css" %}">
+    <script src="{% static "bower_components/highlightjs/highlight.pack.min.js" %}"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+{% endblock %}
+
+
+
+{% block body %}
+    <h3>TeseCase ini Content</h3>
+    <pre>
+        <code class="javascript">
+            <div id="confirm_data">
+                {{ render_str|linebreaks }}
+            </div>
+       </code>
+    </pre>
+{% endblock %}
