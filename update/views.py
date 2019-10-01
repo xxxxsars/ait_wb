@@ -1,9 +1,11 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import render, redirect
+from rest_framework import status
+from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
+
 
 import zipfile, os, shutil, platform, re
 
@@ -40,13 +42,31 @@ def update_index(request, message=None):
 
             return render(request, "modify.html", locals())
 
-
     # handle redirect GET request
     form = QueryTestCaseForm()
     if message != None and error_message(message):
-        is_error= True
+        is_error = True
 
     return render(request, "update.html", locals())
+
+
+
+
+
+class DeleteTestCaseView(viewsets.ModelViewSet):
+    queryset = Upload_TestCase.objects.all()
+    serializer_class = TaskSerializer
+    http_method_names = ['delete']
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            task_name = serializer.data["task_name"]
+            remove_upload_file(task_name)
+            self.perform_destroy(instance)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(["POST"])
@@ -64,7 +84,7 @@ def modify_testCase(request, format=None):
                 message = "Upload file is no valid zip file."
                 return redirect("redirect_update", message)
 
-        t_serialzer = ModifyTaskSerializer(task_info, data=request.data)
+        t_serialzer = TaskSerializer(task_info, data=request.data)
         # check all post agrument information is valid
         vaild = False
 
@@ -76,13 +96,13 @@ def modify_testCase(request, format=None):
                 post_arg = request.POST["arg_%s" % arg.argument]
                 post_descript = request.POST["des_%s" % arg.argument]
 
-                if vail_argument(post_arg)==False:
-                   message = "Your arguments [%s] cannot contain spaces."%post_arg
-                   return redirect("redirect_update", message)
+                if vail_argument(post_arg) == False:
+                    message = "Your arguments [%s] cannot contain spaces." % post_arg
+                    return redirect("redirect_update", message)
 
-                a_serialzer = ModifyArgumentuSerializer(arg, data={"argument": post_arg,
-                                                                   "description": post_descript,
-                                                                   "task_id": request.POST["task_id"]})
+                a_serialzer = ArgumentuSerializer(arg, data={"argument": post_arg,
+                                                             "description": post_descript,
+                                                             "task_id": request.POST["task_id"]})
                 # any argument is not valid will break for loop
                 if a_serialzer.is_valid():
                     a_serialzer.save()
@@ -102,9 +122,6 @@ def modify_testCase(request, format=None):
         return redirect("redirect_update", message)
 
 
-
-
-
 def vail_argument(argument):
     if re.search(r"\s", argument) != None:
         return False
@@ -117,17 +134,39 @@ def error_message(message):
     return False
 
 
+
+
+def remove_upload_file(task_name):
+    path = os.path.dirname(  os.path.dirname(os.path.abspath(__file__)))
+
+    if platform.system() == "Windows":
+        source_folder = path + r'\upload_folder\\' + task_name
+
+    else:
+        source_folder = path+'/upload_folder/' + task_name
+
+
+    # remove  script file
+    try:
+
+        print(source_folder)
+        shutil.rmtree(source_folder )
+    except Exception:
+        pass
+
+
+
 # handle_update_file will remove all unzip folder
-def handle_update_file(f, script_name):
-    path = os.path.dirname(os.path.abspath(__file__))
+def handle_update_file(f, task_name):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     if platform.system() == "Windows":
         source_zip = path + r'\upload_folder\\' + f.name
         unzip_path = path + r'\upload_folder\\'
 
     else:
-        source_zip = 'upload_folder/' + f.name
-        unzip_path = 'upload_folder/'
+        source_zip = path + 'upload_folder/' + f.name
+        unzip_path = path + 'upload_folder/'
 
     with open(source_zip, 'wb+') as destination:
         for chunk in f.chunks():
@@ -147,11 +186,11 @@ def handle_update_file(f, script_name):
 
     # remove old script file
     try:
-        shutil.rmtree(unzip_path + script_name)
+        shutil.rmtree(unzip_path + task_name)
     except Exception:
         pass
 
     with zipfile.ZipFile(source_zip, 'r') as zip_ref:
-        zip_ref.extractall(unzip_path + script_name)
+        zip_ref.extractall(unzip_path + task_name)
 
     os.remove(source_zip)

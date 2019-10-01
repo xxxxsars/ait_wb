@@ -81,18 +81,14 @@ def list_index(request):
     return render(request, "list.html", locals())
 
 
+
+
+
 def set_argument(request):
     if request.POST:
         print(request.POST)
 
     return render(request, "set_argument.html", locals())
-
-
-def get_parameter_order(task_id, argument):
-    task_info = Upload_TestCase.objects.filter(task_id=task_id)
-    arg = Arguments.objects.filter(task_id=task_info).get(argument=argument)
-    return arg.id
-
 
 def gen_ini_str(task_id, argumet_dict):
     di = argumet_dict[task_id]
