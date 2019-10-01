@@ -67,6 +67,9 @@
 {% block body %}
 
     <h3>Upload Test Case</h3>
+
+    <div id="alert_placeholder"></div>
+
     {% if u.errors %}
         {% for field in u %}
             {% for error in field.errors %}
@@ -118,8 +121,6 @@
                 <label class="custom-file-label" for="inputGroupFile04">Only allow Zip file</label>
             </div>
         </div>
-
-
 
 
         <div id="argument_info">
