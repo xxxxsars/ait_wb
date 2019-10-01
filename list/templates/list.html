@@ -186,15 +186,42 @@
 
             //delete buttons
             $('.dt-delete').each(function () {
-                <!--TODO ajax remove data -->
+
                 $(this).on('click', function (evt) {
                     $this = $(this);
                     var dtRow = $this.parents('tr');
+
                     if (confirm("Are you sure to delete this row?")) {
+
+                        taskID = dtRow.attr("id");
+
+                        var csrftoken = getCookie('csrftoken');
+
+                        $.ajax({
+                            url: "/testCase/delete/" + taskID, // the endpoint,commonly same url
+                            type: 'DELETE',
+                            data: {
+                                csrfmiddlewaretoken: csrftoken,
+                            },
+
+                            success: function (json) {
+                                console.log(json); // another sanity check
+
+                            },
+
+                            //處理失敗時會做的動作
+                            error: function (xhr, errmsg, err) {
+                                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                            }
+                        });
+
+
                         var table = $('#task-table').DataTable();
                         table.row(dtRow[0].rowIndex - 1).remove().draw(false);
                     }
                 });
+
+
             });
 
 

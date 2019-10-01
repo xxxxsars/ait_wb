@@ -148,8 +148,6 @@ def remove_upload_file(task_name):
 
     # remove  script file
     try:
-
-        print(source_folder)
         shutil.rmtree(source_folder )
     except Exception:
         pass
