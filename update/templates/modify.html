@@ -42,10 +42,10 @@
 
     <form enctype="multipart/form-data" method="POST" action={% url "script_modify" %}>{% csrf_token %}
 
-        ID：<input name="task_id" type="text" class="form-control" value="{{ task_info.task_id }}"  readonly="readonly">
+        ID：<input name="task_id" type="text" class="form-control" value="{{ task_info.task_id }}" readonly="readonly">
 
         TestCase Name：<input name="task_name" type="text" class="form-control"
-                             value="{{ task_info.task_name }}"  readonly="readonly">
+                             value="{{ task_info.task_name }}" readonly="readonly">
 
         TestCase Description：<input name="description" type="text" class="form-control"
                                     value="{{ task_info.description }}">
@@ -72,7 +72,8 @@
         {% endfor %}
 
         <br>
-        <input type="submit" class="btn btn-secondary" formmethod="post" value="Modify">
+        <button class="btn btn-primary" type="submit"><i class="fas fa-edit"></i> Modify</button>
+
     </form>
 
 
@@ -80,6 +81,6 @@
 
 
     <form action="{% url "script_update" %}">
-        <input type="submit" value="<- Back to Query"/>
+    <button class="btn btn-secondary" type="submit"><i class="fas fa-undo"></i> Back to Query</button>
     </form>
 {% endblock %}

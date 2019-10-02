@@ -6,17 +6,22 @@
 
     <!--import css path-->
     <link type="text/css" rel="stylesheet" href="{% static "bower_components/bootstrap/dist/css/bootstrap.min.css" %}">
-
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/components-font-awesome/css/fontawesome.min.css" %}">
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/components-font-awesome/css/brands.min.css" %}">
+    <link type="text/css" rel="stylesheet" href="{% static "bower_components/components-font-awesome/css/solid.css" %}">
     <!--import js path-->
     <script src="{% static "bower_components/jquery/dist/jquery.slim.min.js" %}"></script>
     <script src="{% static "bower_components/jquery/dist/jquery.min.js" %}"></script>
+    <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
     <script src={% static "bower_components/bootstrap/dist/js/bootstrap.min.js" %}></script>
 
     <!--extend css -->
     {% block css %}{% endblock %}
     <!--extend js -->
     {% block js %}{% endblock %}
-     <!--extend js/css path-->
+    <!--extend js/css path-->
     {% block head %}{% endblock %}
 
 
@@ -43,6 +48,7 @@
     </div>
 </nav>
 
+<br>
 
 <div class="container">
     {% block body %}Pleas extend body block {% endblock %}
