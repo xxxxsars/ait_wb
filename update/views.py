@@ -7,6 +7,8 @@ from update.forms import *
 from upload.models import *
 from upload.forms import *
 
+from common.limit import modify_error_message
+
 
 
 
@@ -45,7 +47,8 @@ def update_index(request, message=None):
 
 
 def error_message(message):
-    if re.match(r".+(no valid.+|.+error|.+cannot.+).+", message):
+    r = modify_error_message
+    if r.match( message):
         return True
     return False
 

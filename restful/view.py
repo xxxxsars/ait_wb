@@ -8,11 +8,13 @@ from rest_framework.response import Response
 from django.shortcuts import redirect
 
 
-import zipfile, os, shutil, platform,re
+import zipfile, os, shutil, platform
 
 from update.forms import *
 from update.serializer import *
 from update.models import *
+
+from common.limit import input_argument
 
 
 
@@ -64,7 +66,7 @@ def modify_testCase(request, format=None):
                 post_descript = request.POST["des_%s" % arg.argument]
 
                 if vail_argument(post_arg) == False:
-                    message = "Your arguments [%s] cannot contain spaces." % post_arg
+                    message = "Your arguments only allow number, letter and underline."
                     return redirect("redirect_update", message)
 
                 a_serialzer = ArgumentuSerializer(arg, data={"argument": post_arg,
@@ -90,7 +92,8 @@ def modify_testCase(request, format=None):
 
 
 def vail_argument(argument):
-    if re.search(r"\s", argument) != None:
+    r = input_argument
+    if r.search(argument) != None:
         return False
     return True
 

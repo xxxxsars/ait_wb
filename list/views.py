@@ -7,7 +7,9 @@ django.setup()
 
 from django.shortcuts import render, redirect
 from upload.models import *
-import re
+
+
+from common.limit import set_parameter_arg,set_parameter_other
 
 
 # Create your views here.
@@ -17,6 +19,8 @@ def list_index(request):
     datas = Upload_TestCase.objects.all()
 
     if request.POST:
+
+        print(request.POST)
         # render the set_agrument page ,it data get from list page
         if "task_ids" in request.POST:
             task_ids = (request.POST['task_ids']).split(",")
@@ -32,8 +36,8 @@ def list_index(request):
         else:
 
             task_ids = []
-            arg_reg = re.compile(r'arg_([0-9A]+)_(\w+)')
-            other_reg = re.compile(r"^\w+_([0-9A]{6})$")
+            arg_reg = set_parameter_arg
+            other_reg = set_parameter_other
 
             result_dict = {}
 
@@ -70,6 +74,7 @@ def list_index(request):
                 append_dict["criteria"] = request.POST["criteria_%s" % task_id]
 
             render_str = ""
+            print(result_dict)
             for task_id in task_ids:
                 render_str += gen_ini_str(task_id,result_dict)+"\n"
 

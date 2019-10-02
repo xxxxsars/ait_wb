@@ -2,6 +2,8 @@ from django import forms
 import zipfile, re
 from upload.models import *
 
+from common.limit import input_task_id,input_argument
+
 
 class UploadFileForm(forms.Form):
     task_id = forms.CharField(max_length=255, required=True, widget=forms.TextInput(attrs={'class': 'form-control'}),
@@ -27,7 +29,8 @@ class UploadFileForm(forms.Form):
         if Upload_TestCase.objects.filter(task_id=task_id).count():
             raise forms.ValidationError("Your ID cannot be repeated.Please Update it.")
 
-        if re.search(r"^[0-2][0-9A]\d{2}$", task_id) == None:
+        r = input_task_id
+        if r.search(task_id) == None:
             raise forms.ValidationError("Your ID not match the ID rules.")
 
     def clean_task_name(self):
@@ -58,5 +61,6 @@ class ArgumentForm(forms.Form):
 
     def clean_argument(self):
         argument = self.cleaned_data['argument']
-        if re.search(r"\s", argument) != None:
-            raise forms.ValidationError("Your arguments cannot contain spaces.")
+        r = input_argument
+        if r.search(argument) != None:
+            raise forms.ValidationError("Your arguments only allow number, letter and underline.")
