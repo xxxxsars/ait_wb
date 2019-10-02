@@ -20,7 +20,6 @@ def list_index(request):
 
     if request.POST:
 
-        print(request.POST)
         # render the set_agrument page ,it data get from list page
         if "task_ids" in request.POST:
             task_ids = (request.POST['task_ids']).split(",")
@@ -74,7 +73,7 @@ def list_index(request):
                 append_dict["criteria"] = request.POST["criteria_%s" % task_id]
 
             render_str = ""
-            print(result_dict)
+
             for task_id in task_ids:
                 render_str += gen_ini_str(task_id,result_dict)+"\n"
 
@@ -87,11 +86,6 @@ def list_index(request):
 
 
 
-def set_argument(request):
-    if request.POST:
-        print(request.POST)
-
-    return render(request, "set_argument.html", locals())
 
 def gen_ini_str(task_id, argumet_dict):
     di = argumet_dict[task_id]

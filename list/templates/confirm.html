@@ -14,6 +14,21 @@
 
 
 
+{% block js %}
+    <script>
+        $(document).ready(function () {
+
+            console.log('{{ render_str|escapejs }}')
+        });
+
+
+
+
+    </script>
+{% endblock %}
+
+
+
 {% block head %}
     <link type="text/css" rel="stylesheet" href="{% static  "bower_components/highlightjs/styles/github-gist.css" %}">
     <script src="{% static "bower_components/highlightjs/highlight.pack.min.js" %}"></script>
@@ -31,4 +46,6 @@
             </div>
        </code>
     </pre>
+
+    <button  id="save" type="button" class="btn btn-primary btn-lg btn-block">Save</button>
 {% endblock %}

@@ -97,7 +97,6 @@ def vail_argument(argument):
         return False
     return True
 
-
 # handle_update_file will remove all unzip folder
 def handle_update_file(f, task_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

@@ -75,6 +75,13 @@
             $("#pass_value").hide();
 
 
+
+            $("#col2_regex").click(  function() {
+
+                console.log("in")
+
+                fnFilterColumn( 0 ); });
+
             //global array ,it save selected task id
             var rows_selected = [];
 
@@ -233,6 +240,9 @@
 {% block body %}
 
     <form id="myForm" class="form-signin" method="POST">{% csrf_token %}
+        <input type="checkbox" name="col2_regex" id="col2_regex">Test
+
+
         <div class="text-right">
             <button id="submit" type="submit" class="btn btn-primary pull-right">Set Parmeters</button>
         </div>
