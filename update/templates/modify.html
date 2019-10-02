@@ -42,15 +42,15 @@
 
     <form enctype="multipart/form-data" method="POST" action={% url "script_modify" %}>{% csrf_token %}
 
-        ID：<input name="task_id" type="text" class="form-control" value={{ task_info.task_id }}  readonly="readonly">
+        ID：<input name="task_id" type="text" class="form-control" value="{{ task_info.task_id }}"  readonly="readonly">
 
         TestCase Name：<input name="task_name" type="text" class="form-control"
-                             value={{ task_info.task_name }}  readonly="readonly">
+                             value="{{ task_info.task_name }}"  readonly="readonly">
 
         TestCase Description：<input name="description" type="text" class="form-control"
-                                    value={{ task_info.description }}>
+                                    value="{{ task_info.description }}">
 
-        Script Name：<input name="script_name" type="text" class="form-control" value={{ task_info.script_name }}>
+        Script Name：<input name="script_name" type="text" class="form-control" value="{{ task_info.script_name }}">
 
 
         <label for="upload">Upload Zip file：</label>
@@ -65,10 +65,10 @@
 
         {% for arg in args %}
             Argument [{{ arg.argument }}]：
-            <input name="arg_{{ arg.argument }}" type="text" class="form-control" value={{ arg.argument }}>
+            <input name="arg_{{ arg.argument }}" type="text" class="form-control" value="{{ arg.argument }}">
 
             Argument [{{ arg.argument }}] Description：
-            <input name="des_{{ arg.argument }}" type="text" class="form-control" value={{ arg.description }}>
+            <input name="des_{{ arg.argument }}" type="text" class="form-control" value="{{ arg.description }}">
         {% endfor %}
 
         <br>
