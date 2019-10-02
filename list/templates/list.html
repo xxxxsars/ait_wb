@@ -22,8 +22,39 @@
 {% endblock %}
 
 
+
+{% block css %}
+    <style>
+        #conditiontd td {
+            text-align: center;
+        }
+
+        {#hide the search colume#}
+        .dataTables_filter, .dataTables_info {
+            display: none;
+        }
+
+        .condition-lable {
+            margin-right: 20px;
+        }
+
+    </style>
+{% endblock %}
+
+
 {% block js %}
     <script>
+
+
+        function filterColumn(i) {
+            $('#task-table').DataTable().column(i).search(
+                $('#col' + i + '_filter').val(),
+                true,
+            ).draw();
+
+
+        }
+
 
         function updateDataTableSelectAllCtrl(table) {
             var $table = table.table().node();
@@ -74,14 +105,6 @@
         $(document).ready(function () {
             $("#pass_value").hide();
 
-
-
-            $("#col2_regex").click(  function() {
-
-                console.log("in")
-
-                fnFilterColumn( 0 ); });
-
             //global array ,it save selected task id
             var rows_selected = [];
 
@@ -103,7 +126,6 @@
             var table = $('#task-table').DataTable({
                 "dom": '<"top"i>rt<"bottom"flp><"clear">',
                 "autoWidth": true,
-                "searching": false,
 
                 columnDefs: [{
                     'targets': 0,
@@ -128,6 +150,27 @@
                 },
                 order: [[1, 'asc']],
 
+            });
+
+
+            //datable filter with regex
+            $("#platform").change(function () {
+                var r = $('#platform :selected').val();
+
+                $('#task-table').DataTable().column(1).search("^" + r + "{1}", true,).draw();
+            });
+
+
+            $("#interface").change(function () {
+                var r1 = $('#platform :selected').val();
+                var r2 = $('#interface :selected').val();
+
+                $('#task-table').DataTable().column(1).search("^" + r1 + "{1}" + r2 + "{1}", true,).draw();
+            });
+
+            //clean datable filter
+            $("#clean").click(function () {
+                  $('#task-table').DataTable().column(1).search("", true,).draw();
             });
 
             // handle click on checkbox
@@ -239,13 +282,73 @@
 
 {% block body %}
 
+
+
+    <table id="condition" cellpadding="3" cellspacing="0" border="0" style="width: 100%; margin: 0 auto 2em auto;">
+
+        <tr id="filter_col1" data-column="0">
+
+
+            <td>
+                <form class="form-inline" role="form">
+                    <div class="form-group">
+                        <label for="platform" class="condition-lable">Platform:</label>
+                        <select class="form-control" id="platform">
+                            <option value="0">Windows</option>
+                            <option value="1">Mac</option>
+                            <option value="2">All</option>
+                        </select>
+                    </div>
+                </form>
+            </td>
+
+
+            <td>
+                <form class="form-inline" role="form">
+                    <div class="form-group">
+                        <label for="interface" class="condition-lable">Interface:</label>
+                        <select class="form-control" id="interface">
+                            <option value="0">USB</option>
+                            <option value="1">Type-C</option>
+                            <option value="2">TBT</option>
+                            <option value="3">VGA</option>
+                            <option value="4">HDMI</option>
+                            <option value="5">ETH</option>
+                            <option value="6">DP</option>
+                            <option value="7">Audio</option>
+                            <option value="8">IC</option>
+                            <option value="9">PD</option>
+                            <option value="A">INTERACTIVE</option>
+                        </select>
+                    </div>
+                </form>
+            </td>
+
+
+            <td>
+                <div class="text-right">
+
+                    <button id="clean" type="button" class="btn btn-success"><i class="fas fa-redo"></i> Clean Filter
+                    </button>
+
+                    <button id="submit" type="submit" class="btn btn-primary" form="myForm"><i
+                            class="fas fa-wrench"></i> Set Parmeters
+                    </button>
+
+                </div>
+            </td>
+
+
+        </tr>
+    </table>
+
+
+
+
+
+
     <form id="myForm" class="form-signin" method="POST">{% csrf_token %}
-        <input type="checkbox" name="col2_regex" id="col2_regex">Test
 
-
-        <div class="text-right">
-            <button id="submit" type="submit" class="btn btn-primary pull-right">Set Parmeters</button>
-        </div>
 
         <table id="task-table" class="hover" style="width:100%">
             <thead>
@@ -268,7 +371,9 @@
                     <td>{{ data.script_name }}</td>
                     <td>
                         <div align="center">
-                            <button type="button" class="btn btn-danger btn-xs dt-delete">Delete</button>
+                            <button type="button" class="btn btn-danger btn-xs dt-delete"><i class="fas fa-trash"></i>
+                                Delete
+                            </button>
                         </div>
                     </td>
                 </tr>
