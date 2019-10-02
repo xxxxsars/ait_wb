@@ -25,6 +25,7 @@ urlpatterns = [
     url(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
     url("^testCase/",include("upload.urls")),
     url("^testCase/",include("update.urls")),
+    url("^testCase/",include("restful.urls")),
     url("^", include("list.urls"))  #index page
 
 ]

@@ -6,7 +6,6 @@ import django
 django.setup()
 
 from django.shortcuts import render, redirect
-from django_tables2 import RequestConfig
 from upload.models import *
 import re
 
