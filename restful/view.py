@@ -12,10 +12,7 @@ import zipfile, os, shutil, platform,re
 
 from update.forms import *
 from update.serializer import *
-
-
-
-
+from update.models import *
 
 
 
@@ -40,8 +37,10 @@ class DeleteTestCaseView(viewsets.ModelViewSet):
 @api_view(["POST"])
 def modify_testCase(request, format=None):
     if request.method == "POST":
+        task_id = request.POST["task_id"]
         task_name = request.POST["task_name"]
-        task_info = Upload_TestCase.objects.get(task_name=task_name)
+
+        task_info = Upload_TestCase.objects.get(task_id=task_id)
         arg_infos = Arguments.objects.filter(task_id=task_info)
 
         # check zip file

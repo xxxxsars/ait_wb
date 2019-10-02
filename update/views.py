@@ -8,7 +8,7 @@ from upload.models import *
 from upload.forms import *
 
 
-# Create your views here.
+
 
 # when redirect will show message to update page
 def update_index(request, message=None):
