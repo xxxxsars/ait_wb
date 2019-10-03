@@ -16,7 +16,6 @@ from common.limit import modify_error_message
 def update_index(request, message=None):
     if request.method == 'POST':
         form = QueryTestCaseForm(request.POST)
-
         task_id = request.POST["task_id"]
         task_name = request.POST["task_name"]
 
@@ -31,7 +30,7 @@ def update_index(request, message=None):
 
             elif task_id != "":
                 task_info = Upload_TestCase.objects.get(task_id=task_id)
-            task_info = Upload_TestCase.objects.get(task_id=task_id)
+
             args = Arguments.objects.filter(task_id=task_info)
 
             return render(request, "modify.html", locals())
