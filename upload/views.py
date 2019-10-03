@@ -125,7 +125,6 @@ def save_tmp_file(task_name):
         dest_path = path + '/upload_folder/' + task_name
         source_path =  path + '/upload_folder_tmp/' + task_name
 
-    print(source_path,dest_path)
     shutil.move(source_path,dest_path)
 
 def task_files():
