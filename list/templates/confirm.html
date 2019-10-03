@@ -9,6 +9,49 @@
             text-align: center;
         }
 
+        .content{
+            padding: 18px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #721c24;
+        }
+        .collapsible {
+            background-color: #f8d7da;
+            padding: 18px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 18px;
+            font-weight: bold;
+            color: #721c24;
+
+        }
+
+        /* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+        .active, .collapsible:hover {
+            background-color: #efced1;
+        }
+
+        /* Style the collapsible content. Note: hidden by default */
+        .content {
+            padding: 14px;
+            display: none;
+            overflow: hidden;
+            background-color: #ffdee1;
+        }
+
+        .collapsible:after {
+            content: '\02795'; /* Unicode character for "plus" sign (+) */
+            font-size: 13px;
+            color: white;
+            float: right;
+            margin-left: 5px;
+        }
+
+        .active:after {
+            content: "\2796"; /* Unicode character for "minus" sign (-) */
+        }
     </style>
 {% endblock %}
 
@@ -19,9 +62,22 @@
         $(document).ready(function () {
 
             console.log('{{ render_str|escapejs }}')
+
+            var coll = document.getElementsByClassName("collapsible");
+            var i;
+
+            for (i = 0; i < coll.length; i++) {
+                coll[i].addEventListener("click", function () {
+                    this.classList.toggle("active");
+                    var content = this.nextElementSibling;
+                    if (content.style.display === "block") {
+                        content.style.display = "none";
+                    } else {
+                        content.style.display = "block";
+                    }
+                });
+            }
         });
-
-
 
 
     </script>
@@ -39,6 +95,19 @@
 
 {% block body %}
     <h3>TeseCase ini Content</h3>
+
+    {% if err_message %}
+        <button type="button" class="collapsible">{{ err_message }}</button>
+        <div class="content">
+            <p>{{ detali_error_message }}</p>
+        </div>
+
+    {% endif %}
+
+
+
+
+
     <pre>
         <code class="javascript">
             <div id="confirm_data">
@@ -47,5 +116,16 @@
        </code>
     </pre>
 
-    <button  id="save" type="button" class="btn btn-primary btn-lg btn-block"><i class="fas fa-download"></i> Download</button>
+
+    {% if disable_download %}
+        <button id="save" type="button" class="btn btn-primary btn-lg btn-block" disabled><i
+                class="fas fa-download"></i> Download
+        </button>
+    {% else %}
+        <button id="save" type="button" class="btn btn-primary btn-lg btn-block"><i class="fas fa-download"></i>
+            Download
+        </button>
+
+    {% endif %}
+
 {% endblock %}

@@ -8,7 +8,7 @@ django.setup()
 from django.shortcuts import render, redirect
 from upload.models import *
 
-
+import platform
 from common.limit import set_parameter_arg,set_parameter_other
 
 
@@ -77,13 +77,34 @@ def list_index(request):
             for task_id in task_ids:
                 render_str += gen_ini_str(task_id,result_dict)+"\n"
 
-            return render(request,"confirm.html",{"render_str":render_str})
+
+            cf = conflict_files(result_dict)
+
+            if len(cf.keys())!=0:
+                disable_download = True
+                err_message = "Your had some conflict files. Please modify it."
+                detali_error_message = detail_error_message(cf)
+
+
+            print(cf)
+            return render(request,"confirm.html",locals())
 
 
     return render(request, "list.html", locals())
 
 
 
+
+def detail_error_message(conflict_dict):
+    task_list = list(conflict_dict.keys())
+
+    content = 'Your TestCase : "%s" files "%s " had conflict file with TestCase' % (
+    task_list[0], " ,".join(conflict_dict[task_list[0]]))
+
+    for t in task_list[1:]:
+        content += ' "%s"' % t
+
+    return content
 
 
 
@@ -109,3 +130,65 @@ def gen_ini_str(task_id, argumet_dict):
 
 
 
+
+def task_files(task_list):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+    task_files ={}
+    for task_name in task_list:
+        if platform.system() == "Windows":
+            file_path = path + r'\upload_folder\\' + task_name
+        else:
+            file_path = path + '/upload_folder/' + task_name
+
+
+        # add source pyfile
+        file_list = []
+        for root, folders, files in os.walk(file_path):
+
+            for sfile in files:
+                aFile = os.path.join(root, sfile)
+                file_list.append(os.path.relpath(aFile, file_path))
+
+        task_files[task_name] = file_list
+
+    return task_files
+
+
+
+def conflict_files(result_dict):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if platform.system() == "Windows":
+        file_path = path + r'\upload_folder\\'
+    else:
+        file_path = path + '/upload_folder/'
+
+    task_list = []
+    for k,v in result_dict.items():
+        task_list.append(v["task_name"])
+
+
+    file_map = task_files(task_list)
+
+
+    new_files = []
+
+    dedup = []
+    for k, fs in file_map.items():
+        for f in fs:
+            if f in new_files:
+                dedup.append(f)
+            else:
+                new_files.append(f)
+
+
+    dedup_map = {}
+    for k, fs in file_map.items():
+        file_list = []
+        for f in fs:
+            if f in dedup:
+                file_list.append(f)
+        dedup_map[k] =file_list
+
+    return dedup_map
