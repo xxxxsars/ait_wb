@@ -85,8 +85,6 @@ def list_index(request):
                 err_message = "Your had some conflict files. Please modify it."
                 detali_error_message = detail_error_message(cf)
 
-
-            print(cf)
             return render(request,"confirm.html",locals())
 
 
@@ -189,6 +187,7 @@ def conflict_files(result_dict):
         for f in fs:
             if f in dedup:
                 file_list.append(f)
-        dedup_map[k] =file_list
+        if len(file_list)!=0:
+            dedup_map[k] =file_list
 
     return dedup_map
