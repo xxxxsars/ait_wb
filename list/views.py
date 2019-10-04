@@ -111,11 +111,6 @@ def download(request):
         archive_folder(task_list,token)
 
 
-
-
-
-
-
     if platform.system() == "Windows":
         file_path = path + r'\download_folder\\' + "%s.zip"%token
     else:
@@ -133,9 +128,6 @@ def download(request):
 
 def archive_folder(task_list,token):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-
-
 
     if platform.system() == "Windows":
         config_path = path + r"\ait_config\\"
