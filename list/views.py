@@ -1,20 +1,18 @@
-import os
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'FactoryWeb.settings')
-import django
-
-django.setup()
-
 from django.shortcuts import render, redirect
+from django.http import StreamingHttpResponse
 from upload.models import *
 
 import platform
-from common.limit import set_parameter_arg,set_parameter_other
+import os
+import random
+import string
+from datetime import datetime
+import zipfile
+
+from common.limit import set_parameter_arg, set_parameter_other
 
 
 # Create your views here.
-
-
 def list_index(request):
     datas = Upload_TestCase.objects.all()
 
@@ -35,6 +33,8 @@ def list_index(request):
         else:
 
             task_ids = []
+            task_names = []
+
             arg_reg = set_parameter_arg
             other_reg = set_parameter_other
 
@@ -46,16 +46,16 @@ def list_index(request):
                 if arg_reg.match(k):
                     task_id = arg_reg.search(k).group(1)
 
-
                     if task_id not in task_ids:
                         task_ids.append(task_id)
 
                     task_info = Upload_TestCase.objects.get(task_id=task_id)
                     script_name = task_info.script_name
                     task_name = task_info.task_name
-
                     parmeter = arg_reg.search(k).group(2)
                     argument = v[0]
+
+                    task_names.append(task_name)
 
                     if task_id in result_dict:
                         pd = result_dict[task_id]
@@ -75,35 +75,129 @@ def list_index(request):
             render_str = ""
 
             for task_id in task_ids:
-                render_str += gen_ini_str(task_id,result_dict)+"\n"
+                render_str += gen_ini_str(task_id, result_dict) + "\n"
 
 
+            # check cnoflict files
             cf = conflict_files(result_dict)
-
-            if len(cf.keys())!=0:
-                disable_download = True
-                err_message = "Your had some conflict files. Please modify it."
-                detali_error_message = detail_error_message(cf)
-
-            return render(request,"confirm.html",locals())
+            if len(cf.keys()) != 0:
+                return render(request, "confirm.html", {"disable_download": True,
+                                                        "err_message": "You have some conflicting files. Please modify it.",
+                                                        "detali_error_message":detail_error_message(cf)})
 
 
+
+
+            return render(request, "confirm.html", locals())
     return render(request, "list.html", locals())
 
 
+def download(request):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+    token = ''.join(random.choice(string.ascii_letters+string.digits) for i in range(30))
+
+
+    print(token)
+    if request.POST:
+        # save ini
+        with open( os.path.join(os.path.join(path,"download_folder"),"%s.ini"%token),"w") as f:
+            f.write(request.POST["ini_content"])
+
+
+        task_list = str(request.POST["task_list"]).split(",")
+
+        archive_folder(task_list,token)
+
+
+
+
+
+
+
+    if platform.system() == "Windows":
+        file_path = path + r'\download_folder\\' + "%s.zip"%token
+    else:
+        file_path = path + '/download_folder/' + "%s.zip"%token
+
+    file = open(file_path, 'rb')
+    response = StreamingHttpResponse(file)
+    response['Content-Type'] = 'application/octet-stream'
+    response['Content-Disposition'] = 'attachment;filename="%s.zip"'%datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    return response
+
+
+
+
+
+def archive_folder(task_list,token):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+
+
+    if platform.system() == "Windows":
+        config_path = path + r"\ait_config\\"
+        dest_path = path +r"\download_folder\\"
+        script_path ="TestScriptRes\\"
+
+    else:
+        config_path = path+"/ait_config/"
+        dest_path = path + "/download_folder/"
+
+        script_path = "TestScriptRes/"
+
+
+
+    ini_path = os.path.join(dest_path,"%s.ini"%token)
+
+    dest_zip = "%s.zip" % token
+
+    zf = zipfile.ZipFile(os.path.join(dest_path,dest_zip), mode='w')
+
+
+    for task_name in task_list:
+        if platform.system() == "Windows":
+            file_path = path + r'\upload_folder\\' + task_name
+        else:
+            file_path = path + '/upload_folder/' + task_name
+
+
+        # add source pyfile
+        for root, folders, files in os.walk(file_path):
+            for sfile in files:
+                aFile = os.path.join(root, sfile)
+                zf.write(aFile, os.path.join(script_path,os.path.relpath(aFile, file_path)))
+
+    # add default configuration
+    for root, folders, files in os.walk(config_path):
+        for sfile in files:
+            aFile = os.path.join(root, sfile)
+
+            zf.write(aFile,os.path.relpath(aFile, config_path))
+
+            #add ini
+            zf.write(ini_path,"testScript.ini")
+
+    os.remove(ini_path)
+
+    zf.close()
+
+
+
+
+# todo add download conflict file link
 def detail_error_message(conflict_dict):
     task_list = list(conflict_dict.keys())
 
-    content = 'Your TestCase : "%s" files "%s " had conflict file with TestCase' % (
-    task_list[0], " ,".join(conflict_dict[task_list[0]]))
+    content = 'Your TestCase : [%s] conflicts with TestCase' % task_list[0]
 
     for t in task_list[1:]:
-        content += ' "%s"' % t
+        content += ' [%s]' % t
 
+    content += ", Download and modify it before uploading."
     return content
-
 
 
 def gen_ini_str(task_id, argumet_dict):
@@ -122,24 +216,20 @@ def gen_ini_str(task_id, argumet_dict):
         arg_str += " %s" % di[arg.argument]
 
     content = "%s%s;%s;%s;%s;%s\ncriteria=%s" % (
-    script_path, arg_str, di["timeout"], di["exitcode"], di["retry"], di["sleep"], di["criteria"])
+        script_path, arg_str, di["timeout"], di["exitcode"], di["retry"], di["sleep"], di["criteria"])
 
     return title + content
-
-
 
 
 def task_files(task_list):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
-    task_files ={}
+    task_files = {}
     for task_name in task_list:
         if platform.system() == "Windows":
             file_path = path + r'\upload_folder\\' + task_name
         else:
             file_path = path + '/upload_folder/' + task_name
-
 
         # add source pyfile
         file_list = []
@@ -154,7 +244,6 @@ def task_files(task_list):
     return task_files
 
 
-
 def conflict_files(result_dict):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if platform.system() == "Windows":
@@ -163,12 +252,10 @@ def conflict_files(result_dict):
         file_path = path + '/upload_folder/'
 
     task_list = []
-    for k,v in result_dict.items():
+    for k, v in result_dict.items():
         task_list.append(v["task_name"])
 
-
     file_map = task_files(task_list)
-
 
     new_files = []
 
@@ -180,14 +267,13 @@ def conflict_files(result_dict):
             else:
                 new_files.append(f)
 
-
     dedup_map = {}
     for k, fs in file_map.items():
         file_list = []
         for f in fs:
             if f in dedup:
                 file_list.append(f)
-        if len(file_list)!=0:
-            dedup_map[k] =file_list
+        if len(file_list) != 0:
+            dedup_map[k] = file_list
 
     return dedup_map

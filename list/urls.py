@@ -4,4 +4,5 @@ from list.views import *
 
 urlpatterns = [
     url("^$",list_index ,name="script_list"),
+    url("^download/",download,name="export_task")
 ]
