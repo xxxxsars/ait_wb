@@ -46,6 +46,50 @@
     <script>
 
 
+     $(function(){
+
+           $('#task-table tbody .dt-delete').each(function () {
+
+                console.log($(this));
+                $(this).on('click', function (evt) {
+                    $this = $(this);
+                    var dtRow = $this.parents('tr');
+
+                    if (confirm("Are you sure to delete this row?")) {
+
+                        taskID = dtRow.attr("id");
+
+                        var csrftoken = getCookie('csrftoken');
+
+                        $.ajax({
+                            url: "/testCase/delete/" + taskID, // the endpoint,commonly same url
+                            type: 'DELETE',
+                            data: {
+                                csrfmiddlewaretoken: csrftoken,
+                            },
+
+                            success: function (json) {
+                                console.log(json); // another sanity check
+
+                            },
+
+                            //處理失敗時會做的動作
+                            error: function (xhr, errmsg, err) {
+                                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                            }
+                        });
+
+
+                        var table = $('#task-table').DataTable();
+                        table.row(dtRow).remove().draw(false);
+                    }
+                });
+
+
+            });
+
+     });
+
         function filterColumn(i) {
             $('#task-table').DataTable().column(i).search(
                 $('#col' + i + '_filter').val(),
@@ -234,45 +278,8 @@
                 updateDataTableSelectAllCtrl(table);
             });
 
-            //delete buttons
-            $('.dt-delete').each(function () {
-
-                $(this).on('click', function (evt) {
-                    $this = $(this);
-                    var dtRow = $this.parents('tr');
-
-                    if (confirm("Are you sure to delete this row?")) {
-
-                        taskID = dtRow.attr("id");
-
-                        var csrftoken = getCookie('csrftoken');
-
-                        $.ajax({
-                            url: "/testCase/delete/" + taskID, // the endpoint,commonly same url
-                            type: 'DELETE',
-                            data: {
-                                csrfmiddlewaretoken: csrftoken,
-                            },
-
-                            success: function (json) {
-                                console.log(json); // another sanity check
-
-                            },
-
-                            //處理失敗時會做的動作
-                            error: function (xhr, errmsg, err) {
-                                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-                            }
-                        });
 
 
-                        var table = $('#task-table').DataTable();
-                        table.row(dtRow).remove().draw(false);
-                    }
-                });
-
-
-            });
 
 
         });
@@ -371,8 +378,7 @@
                     <td>{{ data.script_name }}</td>
                     <td>
                         <div align="center">
-                            <button type="button" class="btn btn-danger btn-xs dt-delete"><i class="fas fa-trash"></i>
-                                Delete
+                            <button type="button" class="btn btn-danger btn-xs dt-delete">Delete
                             </button>
                         </div>
                     </td>
