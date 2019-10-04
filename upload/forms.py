@@ -51,7 +51,7 @@ class UploadFileForm(forms.Form):
 
         if ret is not None:
             raise forms.ValidationError("Upload file is no valid zip file.")
-
+        zip_file.close()
         return file
 
 

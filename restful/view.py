@@ -120,7 +120,7 @@ def handle_update_file(f, task_name):
 
         if ret is not None:
             raise Exception("not valid zip")
-
+        zip_file.close()
     except Exception:
         os.remove(source_zip)
         raise Exception("Upload file is no valid zip file.")
