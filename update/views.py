@@ -58,7 +58,7 @@ def modify_index(request,task_id):
             # function end will save it
             modified_arg = []
             # check if the parameter is a duplicate
-            post_args = []
+            db_args = [i["argument"] for i in arg_infos.values("argument") ]
             for arg in arg_infos:
                 post_arg = request.POST["arg_%s" % arg.argument]
                 post_descript = request.POST["des_%s" % arg.argument]
@@ -66,14 +66,16 @@ def modify_index(request,task_id):
                 if input_argument.search(post_arg) != None:
                     error_message = "Your arguments only allow number, letter and underline."
                     return render(request, "modify.html", locals())
-                if post_arg in post_args:
+
+
+                if post_arg in db_args:
                     error_message = "Your parameters only allow unique values."
                     return render(request, "modify.html", locals())
 
                 arg.argument = post_arg
                 arg.description = post_descript
                 modified_arg.append(arg)
-                post_args.append(post_arg)
+
 
 
             # handle new argument
