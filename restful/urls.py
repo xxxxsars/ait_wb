@@ -9,7 +9,6 @@ router.register(r'delete', DeleteTestCaseView)
 
 
 urlpatterns = [
-    url("^modify/$",modify_testCase,name="script_modify"),
     url("",include(router.urls))
 ]
 

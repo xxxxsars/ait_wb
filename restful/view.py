@@ -35,62 +35,6 @@ class DeleteTestCaseView(viewsets.ModelViewSet):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
-@api_view(["POST"])
-def modify_testCase(request, format=None):
-    if request.method == "POST":
-        task_id = request.POST["task_id"]
-        task_name = request.POST["task_name"]
-
-        task_info = Upload_TestCase.objects.get(task_id=task_id)
-        arg_infos = Arguments.objects.filter(task_id=task_info)
-
-        # check zip file
-        if "file" in request.FILES:
-            try:
-                handle_update_file(request.FILES['file'], task_name)
-            except Exception:
-                message = "Upload file is no valid zip file."
-                return redirect("redirect_update", message)
-
-        t_serialzer = TaskSerializer(task_info, data=request.data)
-        # check all post agrument information is valid
-        vaild = False
-
-        # check task_case information
-        if t_serialzer.is_valid():
-            for arg in arg_infos:
-
-                # value get from post
-                post_arg = request.POST["arg_%s" % arg.argument]
-                post_descript = request.POST["des_%s" % arg.argument]
-
-                if vail_argument(post_arg) == False:
-                    message = "Your arguments only allow number, letter and underline."
-                    return redirect("redirect_update", message)
-
-                a_serialzer = ArgumentuSerializer(arg, data={"argument": post_arg,
-                                                             "description": post_descript,
-                                                             "task_id": request.POST["task_id"]})
-                # any argument is not valid will break for loop
-                if a_serialzer.is_valid():
-                    a_serialzer.save()
-                    t_serialzer.save()
-                    vaild = True
-
-                else:
-                    vaild = False
-                    break
-
-        if vaild:
-            message = "Modify TestCase successfully!"
-            return redirect("redirect_update", message)
-
-        # if data not valid return error and redirect to update page
-        message = "Your modify data had some error."
-        return redirect("redirect_update", message)
-
-
 def vail_argument(argument):
     r = input_argument
     if r.search(argument) != None:

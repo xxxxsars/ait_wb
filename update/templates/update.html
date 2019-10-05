@@ -12,28 +12,10 @@
 
 
 
-
 {% block body %}
     <h3>Update Test Case</h3>
 
 
-
-    {% if message %}
-
-        {% if is_error %}
-            <div class="alert alert-danger">
-                <strong>{{ message }}</strong>
-            </div>
-
-        {% else %}
-            <div class="alert alert-success">
-                <strong>{{ message }}</strong>
-            </div>
-        {% endif %}
-
-
-
-    {% endif %}
 
     {% if form.errors %}
         {% for field in form %}

@@ -17,6 +17,20 @@
 
 {% block js %}
     <script>
+
+
+        {#display the upload file name#}
+        $(function () {
+            $('#customFileLang').on('change', function () {
+                console.log("in")
+                //get the file name
+                var fileName = $(this).val();
+                //replace the "Choose a file" label
+                $(this).next('.custom-file-label').html(fileName);
+            });
+        });
+
+
         $(document).ready(function () {
 
             var max_fields = 19;
@@ -126,6 +140,9 @@
         <div id="argument_info">
             <label for="argument">Argument：</label> {{ a.argument }}
             <label for="description">Description：</label>{{ a.description }}
+
+
+
         </div>
 
 

@@ -2,7 +2,7 @@ from django import forms
 import zipfile, re
 from upload.models import *
 
-from common.limit import input_task_id,input_argument,input_script_name
+from common.limit import input_task_id,input_argument,input_script_name,input_zip_file_name
 
 
 class UploadFileForm(forms.Form):
@@ -49,6 +49,9 @@ class UploadFileForm(forms.Form):
 
     def clean_file(self):
         file = self.cleaned_data.get("file", False)
+
+        if input_zip_file_name.search(str(file))==None:
+            raise forms.ValidationError("Upload file is no valid zip file.")
 
         try:
             zip_file = zipfile.ZipFile(file)
