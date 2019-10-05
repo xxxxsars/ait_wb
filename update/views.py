@@ -26,7 +26,6 @@ def modify_index(request,task_id):
 
 
     if request.POST:
-        print(request.POST)
 
         u = UpdateFileForm(request.POST,request.FILES)
 
@@ -46,19 +45,44 @@ def modify_index(request,task_id):
                     return render(request, "modify.html", locals())
 
 
-            # modify task information
+            # handle post task information
             up =Upload_TestCase.objects.get(task_id=task_id)
             up.script_name = script_name
             up.description = task_descript
 
 
+
+            # handle post argument
+            arg_infos = Arguments.objects.filter(task_id=task_info)
+
+            # function end will save it
+            modified_arg = []
+            # check if the parameter is a duplicate
+            post_args = []
+            for arg in arg_infos:
+                post_arg = request.POST["arg_%s" % arg.argument]
+                post_descript = request.POST["des_%s" % arg.argument]
+
+                if input_argument.search(post_arg) != None:
+                    error_message = "Your arguments only allow number, letter and underline."
+                    return render(request, "modify.html", locals())
+                if post_arg in post_args:
+                    error_message = "Your parameters only allow unique values."
+                    return render(request, "modify.html", locals())
+
+                arg.argument = post_arg
+                arg.description = post_descript
+                modified_arg.append(arg)
+                post_args.append(post_arg)
+
+
+            # handle new argument
             if "argument" and "description" in request.POST:
                 descripts = request.POST.getlist("description")
                 arguments = request.POST.getlist("argument")
 
-
                 for arg in arguments:
-                    print(arg,input_argument.search(arg))
+
                     if input_argument.search(arg)!=None:
                             error_message = "Your arguments only allow number, letter and underline."
                             return render(request, "modify.html", locals())
@@ -68,8 +92,16 @@ def modify_index(request,task_id):
                     description = descripts[i]
                     Arguments.objects.create(argument=argument, description=description, task_id=up)
 
+
+
+
+
             # arguments create finish will save the change
             up.save()
+
+            for m_arg in modified_arg:
+                m_arg.save()
+
 
             susessful = "Update Test Case ID: [ %s ] was successfully!" % task_id
             # update update value

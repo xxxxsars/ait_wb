@@ -10,6 +10,8 @@
         .tooltip-inner {
             text-align: left;
         }
+
+
     </style>
 {% endblock %}
 
@@ -144,14 +146,37 @@
             </div>
         </div>
 
+        <br>
 
-        {% for arg in args %}
-            Argument [{{ arg.argument }}]：
-            <input name="arg_{{ arg.argument }}" type="text" class="form-control" value="{{ arg.argument }}">
 
-            Argument [{{ arg.argument }}] Description：
-            <input name="des_{{ arg.argument }}" type="text" class="form-control" value="{{ arg.description }}">
-        {% endfor %}
+        <table class="table table-bordered">
+            <thead class="thead-dark">
+            <tr>
+                <th scope="col" style="width: 20%">Argument</th>
+                <th scope="col" style="width: 70%">Description</th>
+                <th style="width: 10%">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            {% for arg in args %}
+                <tr>
+                    <td><input name="arg_{{ arg.argument }}" type="text" class="form-control"
+                               value="{{ arg.argument }}"></td>
+                    <td><input name="des_{{ arg.argument }}" type="text" class="form-control"
+                               value="{{ arg.description }}">
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-xs dt-delete">Delete
+                        </button>
+                    </td>
+
+
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
 
         <br>
         <button class="btn btn-success" type="button" id="add_argument"><i class="fas fa-plus"></i> Add</button>
