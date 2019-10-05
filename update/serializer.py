@@ -11,7 +11,3 @@ class TaskSerializer(serializers.ModelSerializer):
 
 
 
-class ArgumentuSerializer(serializers.ModelSerializer):
-    class Meta:
-        model =upload.models.Arguments
-        fields = "__all__"

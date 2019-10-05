@@ -18,10 +18,26 @@
 
 {% block js %}
     <script>
+
         $(function () {
             $('[data-toggle="tooltip"]').tooltip()
         });
 
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
 
         {#display the upload file name#}
         $(function () {
@@ -90,6 +106,42 @@
             });
 
 
+
+            <!--delete specific argument-->
+            var taskID = $("input[name=task_id]").val();
+            $('#task-table tbody .dt-delete').each(function () {
+                $(this).on('click', function (evt) {
+                    var dtRow = $(this).parents('tr');
+                    console.log(dtRow)
+                    if (confirm("Are you sure to delete this row?")) {
+                        var csrftoken = getCookie('csrftoken');
+                        var argument = dtRow.find("input[name^='arg_']").val();
+                        $.ajax({
+                            url: "testCase/arg_delete/",
+                            type: 'POST',
+                            data: {
+                                csrfmiddlewaretoken: csrftoken,
+                                "task_id": taskID,
+                                "argument": argument
+                            },
+
+                            success: function (json) {
+                                console.log(json); // another sanity check
+
+                            },
+
+                            //處理失敗時會做的動作
+                            error: function (xhr, errmsg, err) {
+                                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                            }
+                        });
+
+                       dtRow.remove();
+                    }
+                });
+            });
+
+
         })
 
     </script>
@@ -149,7 +201,7 @@
         <br>
 
 
-        <table class="table table-bordered">
+        <table class="table table-bordered" id="task-table">
             <thead class="thead-dark">
             <tr>
                 <th scope="col" style="width: 20%">Argument</th>

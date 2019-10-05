@@ -5,19 +5,33 @@ from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from django.shortcuts import redirect
-
-
 import zipfile, os, shutil, platform
 
 from update.forms import *
 from update.serializer import *
-from update.models import *
-
-from common.limit import input_argument
 
 
 
+@api_view(["POST"])
+def DeleteArgumentView(request, format=None):
+    if request.method == "POST":
+        task_id = request.data.get("task_id")
+        argument = request.data.get("argument")
+
+        print(task_id, argument)
+        if task_id == None or argument == None:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        task_args = Arguments.objects.filter(task_id=task_id)
+
+        existed = task_args.filter(argument=argument).exists()
+
+        if existed == False:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        arg_obj = task_args.get(argument=argument)
+        arg_obj.delete()
+        # arg_obj.save()
+        return Response(status=status.HTTP_200_OK)
 
 
 class DeleteTestCaseView(viewsets.ModelViewSet):
@@ -35,66 +49,18 @@ class DeleteTestCaseView(viewsets.ModelViewSet):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-def vail_argument(argument):
-    r = input_argument
-    if r.search(argument) != None:
-        return False
-    return True
-
-# handle_update_file will remove all unzip folder
-def handle_update_file(f, task_name):
-    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-    if platform.system() == "Windows":
-        source_zip = path + r'\upload_folder\\' + f.name
-        unzip_path = path + r'\upload_folder\\'
-
-    else:
-        source_zip = path + '/upload_folder/' + f.name
-        unzip_path = path + '/upload_folder/'
-
-    with open(source_zip, 'wb+') as destination:
-        for chunk in f.chunks():
-            destination.write(chunk)
-
-    # check vaild zip file
-    try:
-        zip_file = zipfile.ZipFile(source_zip)
-        ret = zip_file.testzip()
-
-        if ret is not None:
-            raise Exception("not valid zip")
-        zip_file.close()
-    except Exception:
-        os.remove(source_zip)
-        raise Exception("Upload file is no valid zip file.")
-
-    # remove old script file
-    try:
-        shutil.rmtree(unzip_path + task_name)
-    except Exception:
-        pass
-
-    with zipfile.ZipFile(source_zip, 'r') as zip_ref:
-        zip_ref.extractall(unzip_path + task_name)
-
-    os.remove(source_zip)
-
-
 
 def remove_upload_file(task_name):
-    path = os.path.dirname(  os.path.dirname(os.path.abspath(__file__)))
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     if platform.system() == "Windows":
         source_folder = path + r'\upload_folder\\' + task_name
 
     else:
-        source_folder = path+'/upload_folder/' + task_name
-
+        source_folder = path + '/upload_folder/' + task_name
 
     # remove  script file
     try:
-        shutil.rmtree(source_folder )
+        shutil.rmtree(source_folder)
     except Exception:
         pass
-
