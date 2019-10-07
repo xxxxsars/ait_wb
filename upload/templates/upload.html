@@ -21,7 +21,7 @@
 
         {#display the upload file name#}
         $(function () {
-            $('#customFileLang').on('change', function () {
+            $('#inputGroupFile04').on('change', function () {
                 console.log("in")
                 //get the file name
                 var fileName = $(this).val();
@@ -29,6 +29,7 @@
                 $(this).next('.custom-file-label').html(fileName);
             });
         });
+
 
 
         $(document).ready(function () {
