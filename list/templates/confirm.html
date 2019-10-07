@@ -8,6 +8,10 @@
         h3 {
             text-align: center;
         }
+            .tasks-lable {
+            margin-right: 20px;
+        }
+
     </style>
 {% endblock %}
 
@@ -17,20 +21,20 @@
     <script>
         $(document).ready(function () {
 
+            {% comment %}
+                        $("#export_form").submit(function (e) {
+                            console.log({{task_name }});
+                            var task_name = {{ task_names | safe }};
+                            var ini_content = '{{ render_str |escapejs }}';
 
-            $("#export_form").submit(function (e) {
-
-                var task_name = {{ task_names | safe }};
-                var ini_content = '{{ render_str |escapejs }}';
-
-                $(this).append('<input  id="task_list" type="hidden" name="task_list"/>');
-                $("#task_list").val(task_name);
+                            $(this).append('<input  id="task_list" type="hidden" name="task_list"/>');
+                            $("#task_list").val(task_name);
 
 
-                $(this).append('<input  id="ini_content" type="hidden" name="ini_content"/>');
-                $("#ini_content").val(ini_content);
+                            $(this).append('<input  id="ini_content" type="hidden" name="ini_content"/>');
+                            $("#ini_content").val(ini_content);
 
-            })
+                        }){% endcomment %}
         });
 
 
@@ -60,6 +64,24 @@
             <p>{{ err_message }} {{ detali_error_message }}</p>
 
         </div>
+
+
+
+        {% for k,tasks in cf_tasks.items %}
+
+            <form class="form-inline" role="form">
+                <div class="form-group">
+                    <label class="tasks-lable">{{ k|escape }} </label>
+
+                    <select class="form-control">
+                        {% for task in tasks %}
+                            <option value="{{ task }}">{{ task }}</option>
+                        {% endfor %}
+                    </select>
+
+                </div>
+            </form>
+        {% endfor %}
 
     {% endif %}
 
