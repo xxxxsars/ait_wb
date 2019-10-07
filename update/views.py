@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect
 import os
 import shutil
 import platform
+import collections
 
 from update.forms import *
 from upload.models import *
@@ -26,7 +27,6 @@ def modify_index(request,task_id):
 
 
     if request.POST:
-
         u = UpdateFileForm(request.POST,request.FILES)
 
         if u.is_valid():
@@ -52,13 +52,12 @@ def modify_index(request,task_id):
 
 
 
-            # handle post argument
+            # handle modify argument
             arg_infos = Arguments.objects.filter(task_id=task_info)
 
-            # function end will save it
-            modified_arg = []
-            # check if the parameter is a duplicate
-            db_args = [i["argument"] for i in arg_infos.values("argument") ]
+
+            # check ths post data valid
+            posted_args = []
             for arg in arg_infos:
                 post_arg = request.POST["arg_%s" % arg.argument]
                 post_descript = request.POST["des_%s" % arg.argument]
@@ -67,32 +66,51 @@ def modify_index(request,task_id):
                     error_message = "Your arguments only allow number, letter and underline."
                     return render(request, "modify.html", locals())
 
-
-                if post_arg in db_args:
+                if post_arg in posted_args:
                     error_message = "Your parameters only allow unique values."
                     return render(request, "modify.html", locals())
+                posted_args.append(post_arg)
+
+
+            # vaild data will be modify
+            for arg in arg_infos:
+                post_arg = request.POST["arg_%s" % arg.argument]
+                post_descript = request.POST["des_%s" % arg.argument]
 
                 arg.argument = post_arg
                 arg.description = post_descript
-                modified_arg.append(arg)
-
+                arg.save()
 
 
             # handle new argument
+
+            # check if the parameter is a duplicate
+            db_args = [i["argument"] for i in arg_infos.values("argument") ]
+            new_args = []
+
             if "argument" and "description" in request.POST:
                 descripts = request.POST.getlist("description")
                 arguments = request.POST.getlist("argument")
 
                 for arg in arguments:
-
                     if input_argument.search(arg)!=None:
                             error_message = "Your arguments only allow number, letter and underline."
                             return render(request, "modify.html", locals())
 
+                # check new argument not deplicate
+                if len( [item for item, count in collections.Counter(arguments).items() if count > 1])>0:
+                    error_message = "Your parameters only allow unique values."
+                    return render(request, "modify.html", locals())
+
+
                 for i, e in enumerate(arguments):
                     argument = arguments[i]
                     description = descripts[i]
-                    Arguments.objects.create(argument=argument, description=description, task_id=up)
+
+                    if argument in db_args:
+                        error_message = "Your parameters only allow unique values."
+                        return render(request, "modify.html", locals())
+                    new_args.append(Arguments(argument=argument, description=description, task_id=up))
 
 
 
@@ -101,9 +119,8 @@ def modify_index(request,task_id):
             # arguments create finish will save the change
             up.save()
 
-            for m_arg in modified_arg:
-                m_arg.save()
-
+            for n_arg in new_args:
+                n_arg.save()
 
             susessful = "Update Test Case ID: [ %s ] was successfully!" % task_id
             # update update value
