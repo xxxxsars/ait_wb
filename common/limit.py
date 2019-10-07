@@ -31,3 +31,32 @@ django.setup()
 from upload.models import *
 
 
+
+
+
+def get_conflict_tasks(conflict_dict):
+    # get conflict file
+    conflict_files = []
+    for k,files in conflict_dict.items():
+        for f in files:
+            if f in conflict_files:
+               pass
+            else:
+                conflict_files.append(f)
+
+
+    # get confilct task map by conflict file
+    conflict_task = {}
+    for cf in conflict_files:
+        tasks = []
+        for k,files in conflict_dict.items():
+            if cf in files:
+                tasks.append(k)
+        conflict_task[cf] = tasks
+    return conflict_task
+
+
+
+if __name__ =="__main__":
+    conflict_dict = {'test': ['json.txt', 'json1.txt', 'func/1.txt'], 'test2': ['json.txt', '__MACOSX/._json.txt'], 'test3': ['json.txt', '__MACOSX/._json.txt', 'func/1.txt'], 'test4': ['json.txt', 'json1.txt', '__MACOSX/._json.txt']}
+

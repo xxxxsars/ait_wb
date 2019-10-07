@@ -8,6 +8,11 @@
         h3 {
             text-align: center;
         }
+
+        .tasks-lable {
+            margin-right: 20px;
+        }
+
     </style>
 {% endblock %}
 
@@ -17,9 +22,8 @@
     <script>
         $(document).ready(function () {
 
-
             $("#export_form").submit(function (e) {
-
+                console.log({{task_name }},);
                 var task_name = {{ task_names | safe }};
                 var ini_content = '{{ render_str |escapejs }}';
 
@@ -57,28 +61,45 @@
         <div class="alert alert-danger" role="alert">
             <h4 class="alert-heading">You got an error!</h4>
             <hr>
-            <p>{{ err_message }} {{ detali_error_message }}</p>
+            <p>{{ err_message }}</p>
 
         </div>
+
+
+
+        {% for k,tasks in cf_tasks.items %}
+
+            <form class="form-inline" role="form">
+                <div class="form-group">
+                    <label class="tasks-lable">{{ k|escape }} </label>
+
+                    <select class="form-control">
+                        {% for task in tasks %}
+                            <option value="{{ task }}">{{ task }}</option>
+                        {% endfor %}
+                    </select>
+
+                </div>
+            </form>
+        {% endfor %}
 
     {% endif %}
 
 
 
 
-
-    <pre>
+    {% if err_message is None %}
+        <pre>
         <code class="javascript">
             <div id="confirm_data">
                 {{ render_str|linebreaks }}
             </div>
        </code>
     </pre>
-
+    {% endif %}
 
     {% if disable_download %}
-        <button id="save" type="button" class="btn btn-primary btn-lg btn-block" disabled><i
-                class="fas fa-download"></i> Download
+        <button id="confirm" type="button" class="btn btn-primary btn-lg btn-block"><i class="fas fa-check"></i> Confirm
         </button>
     {% else %}
         {#        <a href="{% url "export_task" %}" id="save" class="btn btn-primary btn-lg btn-block" role="button"><i class="fas fa-download"></i>Download</a>#}

@@ -131,7 +131,7 @@ def modify_index(request,task_id):
             # if not valid display post data
             render_value = False
 
-
+    aa = {"a":1}
     return render(request, "modify.html", locals())
 
 

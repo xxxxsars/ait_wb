@@ -81,9 +81,12 @@ def list_index(request):
             # check cnoflict files
             cf = conflict_files(result_dict)
             if len(cf.keys()) != 0:
-                return render(request, "confirm.html", {"disable_download": True,
-                                                        "err_message": "You have some conflicting files. Please modify it.",
-                                                        "detali_error_message":detail_error_message(cf)})
+                cf_tasks = get_conflict_tasks(cf)
+                disable_download=  True
+                err_message  = "You have some conflicting files.Please select the file to be compressed into TestCase zip. "
+
+
+                return render(request, "confirm.html", locals())
 
 
 
@@ -98,8 +101,7 @@ def download(request):
 
     token = ''.join(random.choice(string.ascii_letters+string.digits) for i in range(30))
 
-
-    print(token)
+    print(request.POST)
     if request.POST:
         # save ini
         with open( os.path.join(os.path.join(path,"download_folder"),"%s.ini"%token),"w") as f:
@@ -187,8 +189,6 @@ def detail_error_message(conflict_dict):
 
     for t in task_list[1:]:
         content += ' [%s]' % t
-
-    content += ", Download and modify it before uploading."
     return content
 
 
@@ -237,12 +237,6 @@ def task_files(task_list):
 
 
 def conflict_files(result_dict):
-    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    if platform.system() == "Windows":
-        file_path = path + r'\upload_folder\\'
-    else:
-        file_path = path + '/upload_folder/'
-
     task_list = []
     for k, v in result_dict.items():
         task_list.append(v["task_name"])
@@ -269,3 +263,28 @@ def conflict_files(result_dict):
             dedup_map[k] = file_list
 
     return dedup_map
+
+
+
+
+def get_conflict_tasks(conflict_dict):
+
+    # get conflict file
+    conflict_files = []
+    for k,files in conflict_dict.items():
+        for f in files:
+            if f in conflict_files:
+               pass
+            else:
+                conflict_files.append(f)
+
+
+    # get confilct task map by conflict file
+    conflict_task = {}
+    for cf in conflict_files:
+        tasks = []
+        for k,files in conflict_dict.items():
+            if cf in files:
+                tasks.append(k)
+        conflict_task[cf] = tasks
+    return conflict_task
