@@ -2,7 +2,7 @@ from django import forms
 import zipfile, re
 from upload.models import *
 
-from common.limit import input_task_id,input_argument,input_script_name,input_zip_file_name
+from common.limit import input_task_id,input_argument,input_script_name,input_zip_file_name,input_task_name
 
 
 class UploadFileForm(forms.Form):
@@ -38,6 +38,10 @@ class UploadFileForm(forms.Form):
 
         if Upload_TestCase.objects.filter(task_name=task_name).count():
             raise forms.ValidationError("Your TestCase Name cannot be repeated.Please Update it.")
+
+        r = input_task_name
+        if r.search(task_name) != None:
+            raise forms.ValidationError("Your arguments only allow number, letter and underline.")
 
     def clean_script_name(self):
         script_name = self.cleaned_data['script_name']

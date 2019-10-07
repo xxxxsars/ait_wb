@@ -14,6 +14,7 @@ modify_error_message = re.compile(r".+(no valid.+|.+error|.+only allow.+).+")
 
 # form regex
 input_task_id = re.compile(r"^[0-2][0-9A]\d{2}$")
+input_task_name = re.compile(r"[^\w|_]+")
 input_argument = re.compile(r"[^\w|_]+")
 input_script_name = re.compile("^[\w|_]+.py$")
 input_zip_file_name =  re.compile(r"\.zip$")
