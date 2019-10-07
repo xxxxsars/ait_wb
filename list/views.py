@@ -83,8 +83,8 @@ def list_index(request):
             if len(cf.keys()) != 0:
                 cf_tasks = get_conflict_tasks(cf)
                 disable_download=  True
-                err_message  = "You have some conflicting files. Please modify it."
-                detali_error_message= detail_error_message(cf)
+                err_message  = "You have some conflicting files.Please select the file to be compressed into TestCase zip. "
+
 
                 return render(request, "confirm.html", locals())
 
@@ -101,6 +101,7 @@ def download(request):
 
     token = ''.join(random.choice(string.ascii_letters+string.digits) for i in range(30))
 
+    print(request.POST)
     if request.POST:
         # save ini
         with open( os.path.join(os.path.join(path,"download_folder"),"%s.ini"%token),"w") as f:
