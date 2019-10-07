@@ -17,7 +17,7 @@
 
     <script src={% static "bower_components/datatables.net/js/dataTables.select.min.js" %}></script>
 
-
+    <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
 
 {% endblock %}
 
@@ -38,17 +38,20 @@
             margin-right: 20px;
         }
 
+
     </style>
 {% endblock %}
 
 
 {% block js %}
     <script>
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        });
 
+        $(function () {
 
-     $(function(){
-
-           $('#task-table tbody .dt-delete').each(function () {
+            $('#task-table tbody .dt-delete').each(function () {
 
                 $(this).on('click', function (evt) {
                     $this = $(this);
@@ -87,7 +90,20 @@
 
             });
 
-     });
+
+            $('#task-table tbody .dt-edit').each(function () {
+
+                $(this).on('click', function (evt) {
+                    $this = $(this);
+                    var editRow = $this.parents('tr');
+                    taskID = editRow.attr("id");
+
+                     location.href = "/testCase/modify/"+taskID;
+                });
+            });
+
+
+        });
 
         function filterColumn(i) {
             $('#task-table').DataTable().column(i).search(
@@ -169,7 +185,7 @@
             var table = $('#task-table').DataTable({
                 "dom": '<"top"i>rt<"bottom"flp><"clear">',
                 "autoWidth": true,
-
+                "scrollX": true,
                 columnDefs: [{
                     'targets': 0,
                     'searchable': false,
@@ -213,7 +229,7 @@
 
             //clean datable filter
             $("#clean").click(function () {
-                  $('#task-table').DataTable().column(1).search("", true,).draw();
+                $('#task-table').DataTable().column(1).search("", true,).draw();
             });
 
             // handle click on checkbox
@@ -276,9 +292,6 @@
                 // Update state of "Select all" control
                 updateDataTableSelectAllCtrl(table);
             });
-
-
-
 
 
         });
@@ -365,6 +378,7 @@
                 <th>Description</th>
                 <th>Script Name</th>
                 <th></th>
+                <th></th>
             </tr>
             </thead>
             <tbody>
@@ -376,10 +390,15 @@
                     <td>{{ data.description }}</td>
                     <td>{{ data.script_name }}</td>
                     <td>
-                        <div align="center">
-                            <button type="button" class="btn btn-danger btn-xs dt-delete">Delete
-                            </button>
-                        </div>
+                        <button type="button" class="delete_btn btn btn-primary btn-xs  btn-md center-block dt-edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+
+                    </td>
+                    <td>
+                        <button type="button" class="edit_btn btn btn-danger btn-xs   btn-md center-block dt-delete"><i
+                                class="fas fa-trash"></i>
+                        </button>
                     </td>
                 </tr>
             {% endfor %}
@@ -391,6 +410,7 @@
                 <th>Task Case Name</th>
                 <th>Description</th>
                 <th>Script Name</th>
+                <th></th>
                 <th></th>
             </tr>
             </tfoot>
