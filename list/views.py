@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import StreamingHttpResponse
+from django.urls import reverse
 from upload.models import *
 
 import platform
@@ -17,8 +18,7 @@ def list_index(request):
     datas = Upload_TestCase.objects.all()
 
     if request.POST:
-
-        # render the set_agrument page ,it data get from list page
+        # render the set_argument page ,it data get from list page
         if "task_ids" in request.POST:
             task_ids = (request.POST['task_ids']).split(",")
             arg_dict = {}
@@ -28,6 +28,15 @@ def list_index(request):
                     args = Arguments.objects.filter(task_id=task_info)
                     arg_dict[task_id] = args.values()
                 return render(request, "set_argument.html", locals())
+
+
+        # handle the conflict file
+        if "chose" in request.POST:
+            print(request.POST)
+            render_str = request.POST["ini_content"]
+            task_names = str(request.POST["task_list"]).split(",")
+
+            return render(request, "confirm.html", locals())
 
         # handle the set_argument submit action ,it will get all tab parameter
         else:
@@ -89,10 +98,16 @@ def list_index(request):
                 return render(request, "confirm.html", locals())
 
 
-
-
             return render(request, "confirm.html", locals())
     return render(request, "list.html", locals())
+
+
+
+
+
+def confirm(request):
+
+    return render(request,"confirm.html",locals())
 
 
 def download(request):
@@ -101,7 +116,6 @@ def download(request):
 
     token = ''.join(random.choice(string.ascii_letters+string.digits) for i in range(30))
 
-    print(request.POST)
     if request.POST:
         # save ini
         with open( os.path.join(os.path.join(path,"download_folder"),"%s.ini"%token),"w") as f:

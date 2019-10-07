@@ -20,10 +20,10 @@
 
 {% block js %}
     <script>
-        $(document).ready(function () {
 
+        $(document).ready(function () {
+            <!--pass value to download needs-->
             $("#export_form").submit(function (e) {
-                console.log({{task_name }},);
                 var task_name = {{ task_names | safe }};
                 var ini_content = '{{ render_str |escapejs }}';
 
@@ -34,7 +34,23 @@
                 $(this).append('<input  id="ini_content" type="hidden" name="ini_content"/>');
                 $("#ini_content").val(ini_content);
 
-            })
+            });
+
+            <!--pass value to chose needs-->
+            $("#chose_form").submit(function (e) {
+
+                var task_name = {{ task_names | safe }};
+                var ini_content = '{{ render_str |escapejs }}';
+
+                $(this).append('<input  id="task_list" type="hidden" name="task_list"/>');
+                $("#task_list").val(task_name);
+
+
+                $(this).append('<input  id="ini_content" type="hidden" name="ini_content"/>');
+                $("#ini_content").val(ini_content);
+                $(this).append('<input  id="chose" type="hidden" name="chose" value="true"/>');
+
+            });
         });
 
 
@@ -66,23 +82,22 @@
         </div>
 
 
+        <form id="chose_form" class="form-inline" role="form" method="POST">{% csrf_token %}
+            {% for k,tasks in cf_tasks.items %}
 
-        {% for k,tasks in cf_tasks.items %}
-
-            <form class="form-inline" role="form">
                 <div class="form-group">
                     <label class="tasks-lable">{{ k|escape }} </label>
 
-                    <select class="form-control">
+                    <select class="form-control" name="{{ k |escape }}">
                         {% for task in tasks %}
                             <option value="{{ task }}">{{ task }}</option>
                         {% endfor %}
                     </select>
 
                 </div>
-            </form>
-        {% endfor %}
 
+            {% endfor %}
+        </form>
     {% endif %}
 
 
@@ -99,7 +114,8 @@
     {% endif %}
 
     {% if disable_download %}
-        <button id="confirm" type="button" class="btn btn-primary btn-lg btn-block"><i class="fas fa-check"></i> Confirm
+        <button id="confirm" type="submit" class="btn btn-primary btn-lg btn-block" form="chose_form"><i
+                class="fas fa-check"></i> Confirm
         </button>
     {% else %}
         {#        <a href="{% url "export_task" %}" id="save" class="btn btn-primary btn-lg btn-block" role="button"><i class="fas fa-download"></i>Download</a>#}
