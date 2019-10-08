@@ -23,8 +23,9 @@
 
         $(function () {
             <!--pass value to download needs-->
-            $("#export_form").submit(function (e) {
-                var task_name = {{ task_names | safe }};
+
+            $("#export_form").one("submit",function (e) {
+                 var task_name = {{ task_names | safe }};
                 var ini_content = '{{ render_str |escapejs }}';
 
                 $(this).append('<input  id="task_list" type="hidden" name="task_list"/>');
@@ -40,14 +41,15 @@
                     $("#chose_files").val(chose_files);
                 {% endif %}
             });
+            });
 
-        });
+
 
         $(document).ready(function () {
 
 
             <!--pass value to chose needs-->
-            $("#chose_form").submit(function (e) {
+            $("#chose_form").one("submit",function (e) {
 
                 var task_name = {{ task_names | safe }};
                 var ini_content = '{{ render_str |escapejs }}';
