@@ -9,9 +9,6 @@
             text-align: center;
         }
 
-        .tasks-lable {
-            margin-right: 20px;
-        }
 
     </style>
 {% endblock %}
@@ -24,8 +21,8 @@
         $(function () {
             <!--pass value to download needs-->
 
-            $("#export_form").one("submit",function (e) {
-                 var task_name = {{ task_names | safe }};
+            $("#export_form").one("submit", function (e) {
+                var task_name = {{ task_names | safe }};
                 var ini_content = '{{ render_str |escapejs }}';
 
                 $(this).append('<input  id="task_list" type="hidden" name="task_list"/>');
@@ -36,26 +33,25 @@
                 $("#ini_content").val(ini_content);
 
                 {% if chose_map %}
-                    var chose_files = JSON.stringify( {{ chose_map |safe }});
+                    var chose_files = JSON.stringify({{ chose_map |safe }});
                     $(this).append('<input  id="chose_files" type="hidden" name="chose_files" />');
                     $("#chose_files").val(chose_files);
                 {% endif %}
             });
-            });
-
+        });
 
 
         $(document).ready(function () {
 
 
             <!--pass value to chose needs-->
-            $("#chose_form").one("submit",function (e) {
+            $("#chose_form").one("submit", function (e) {
 
                 var task_name = {{ task_names | safe }};
                 var ini_content = '{{ render_str |escapejs }}';
                 var conflict_files = {{ cf_tasks.keys|get_list|safe  }}
 
-                $(this).append('<input  id="task_list" type="hidden" name="task_list"/>');
+                    $(this).append('<input  id="task_list" type="hidden" name="task_list"/>');
                 $("#task_list").val(task_name);
 
 
@@ -86,8 +82,10 @@
 
 
 {% block body %}
-    <h3>TestScript.ini Content</h3>
 
+    {% if err_message is None %}
+        <h3>TestScript.ini Content</h3>
+    {% endif %}
 
 
     {% if err_message %}
@@ -99,23 +97,44 @@
 
         </div>
 
+        <form id="chose_form" role="form" method="POST">{% csrf_token %}
+            <table class="table " id="task-table">
+                <tbody>
+                <thead>
+                <tr>
+                    <th scope="col" style="width: 30%">Conflict File</th>
+                    <th scope="col" style="width: 70%">TestCase Name</th>
 
-        <form id="chose_form" class="form-inline" role="form" method="POST">{% csrf_token %}
-            {% for k,tasks in cf_tasks.items %}
+                </tr>
+                </thead>
+                {% for k,tasks in cf_tasks.items %}
+                    <tr>
 
-                <div class="form-group">
-                    <label class="tasks-lable">{{ k|escape }} </label>
 
-                    <select class="form-control" name="{{ k |escape }}">
-                        {% for task in tasks %}
-                            <option value="{{ task }}">{{ task }}</option>
-                        {% endfor %}
-                    </select>
+                        <td><label class="tasks-lable" style="text-align: left">{{ k|escape }} </label></td>
 
-                </div>
+                        <td>
+                            <select class="form-control" name="{{ k |escape }}">
+                                {% for task in tasks %}
+                                    <option value="{{ task }}">{{ task }}</option>
+                                {% endfor %}
+                            </select>
 
-            {% endfor %}
+                        </td>
+
+
+                    </tr>
+
+
+                {% endfor %}
+
+                </tbody>
+            </table>
+
         </form>
+
+
+
     {% endif %}
 
 
