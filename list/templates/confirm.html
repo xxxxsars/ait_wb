@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load staticfiles %}
-
+{% load filter %}
 
 
 {% block css %}
@@ -21,7 +21,7 @@
 {% block js %}
     <script>
 
-        $(document).ready(function () {
+        $(function () {
             <!--pass value to download needs-->
             $("#export_form").submit(function (e) {
                 var task_name = {{ task_names | safe }};
@@ -34,13 +34,24 @@
                 $(this).append('<input  id="ini_content" type="hidden" name="ini_content"/>');
                 $("#ini_content").val(ini_content);
 
+                {% if chose_map %}
+                    var chose_files = JSON.stringify( {{ chose_map |safe }});
+                    $(this).append('<input  id="chose_files" type="hidden" name="chose_files" />');
+                    $("#chose_files").val(chose_files);
+                {% endif %}
             });
+
+        });
+
+        $(document).ready(function () {
+
 
             <!--pass value to chose needs-->
             $("#chose_form").submit(function (e) {
 
                 var task_name = {{ task_names | safe }};
                 var ini_content = '{{ render_str |escapejs }}';
+                var conflict_files = {{ cf_tasks.keys|get_list|safe  }}
 
                 $(this).append('<input  id="task_list" type="hidden" name="task_list"/>');
                 $("#task_list").val(task_name);
@@ -48,7 +59,12 @@
 
                 $(this).append('<input  id="ini_content" type="hidden" name="ini_content"/>');
                 $("#ini_content").val(ini_content);
-                $(this).append('<input  id="chose" type="hidden" name="chose" value="true"/>');
+
+
+                $(this).append('<input  id="conflicted" type="hidden" name="conflicted" />');
+
+                $(this).append('<input  id="conflict_files" type="hidden" name="conflict_files"/>');
+                $("#conflict_files").val(conflict_files)
 
             });
         });

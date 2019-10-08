@@ -30,11 +30,15 @@ def list_index(request):
                 return render(request, "set_argument.html", locals())
 
 
-        # handle the conflict file
-        if "chose" in request.POST:
-            print(request.POST)
+        # handle the "confirm.htnl"  the  conflict file
+        if "conflicted" in request.POST:
+            confilct_files = str(request.POST["conflict_files"]).split(",")
             render_str = request.POST["ini_content"]
             task_names = str(request.POST["task_list"]).split(",")
+
+            chose_map = {}
+            for cf in confilct_files:
+                chose_map[cf] = request.POST[cf]
 
             return render(request, "confirm.html", locals())
 
@@ -101,10 +105,6 @@ def list_index(request):
             return render(request, "confirm.html", locals())
     return render(request, "list.html", locals())
 
-
-
-
-
 def confirm(request):
 
     return render(request,"confirm.html",locals())
@@ -124,7 +124,11 @@ def download(request):
 
         task_list = str(request.POST["task_list"]).split(",")
 
-        archive_folder(task_list,token)
+        if "chose_files" in request.POST:
+            chose_map = eval(request.POST["chose_files"])
+            conflict_archive_folder(task_list,token,chose_map)
+        else:
+            archive_folder(task_list,token)
 
 
     if platform.system() == "Windows":
@@ -137,10 +141,6 @@ def download(request):
     response['Content-Type'] = 'application/octet-stream'
     response['Content-Disposition'] = 'attachment;filename="%s.zip"'%datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     return response
-
-
-
-
 
 def archive_folder(task_list,token):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -166,6 +166,7 @@ def archive_folder(task_list,token):
 
 
     for task_name in task_list:
+
         if platform.system() == "Windows":
             file_path = path + r'\upload_folder\\' + task_name
         else:
@@ -185,17 +186,72 @@ def archive_folder(task_list,token):
 
             zf.write(aFile,os.path.relpath(aFile, config_path))
 
-            #add ini
-            zf.write(ini_path,"testScript.ini")
+    #add ini
+    zf.write(ini_path,"testScript.ini")
 
     os.remove(ini_path)
 
     zf.close()
 
+def conflict_archive_folder(task_list,token,chose_files):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    if platform.system() == "Windows":
+        config_path = path + r"\ait_config\\"
+        dest_path = path +r"\download_folder\\"
+        script_path ="TestScriptRes\\"
+        file_path = path + r'\upload_folder\\'
+
+    else:
+        config_path = path+"/ait_config/"
+        dest_path = path + "/download_folder/"
+        script_path = "TestScriptRes/"
+        file_path = path + '/upload_folder/'
 
 
 
-# todo add download conflict file link
+    ini_path = os.path.join(dest_path,"%s.ini"%token)
+
+    dest_zip = "%s.zip" % token
+
+    zf = zipfile.ZipFile(os.path.join(dest_path,dest_zip), mode='w')
+
+
+
+
+    chose_files_path = []
+    for file, task in chose_files.items():
+        chose_files_path.append(os.path.join(os.path.join(file_path, task), file))
+
+    for task_name in task_list:
+
+        source_file_path  = os.path.join(file_path,task_name)
+        # add source pyfile
+        for root, folders, files in os.walk(source_file_path):
+            for sfile in files:
+                aFile = os.path.join(root, sfile)
+                dest_file = os.path.relpath(aFile, source_file_path)
+
+                if dest_file in list(chose_files.keys()):
+                    if aFile in chose_files_path:
+                        zf.write(aFile, os.path.join(script_path, dest_file))
+                else:
+
+                    zf.write(aFile, os.path.join(script_path,dest_file))
+
+    # add default configuration
+    for root, folders, files in os.walk(config_path):
+        for sfile in files:
+            aFile = os.path.join(root, sfile)
+
+            zf.write(aFile, os.path.relpath(aFile, config_path))
+
+    #add ini
+    zf.write(ini_path,"testScript.ini")
+
+    os.remove(ini_path)
+    zf.close()
+
 def detail_error_message(conflict_dict):
     task_list = list(conflict_dict.keys())
 
@@ -204,7 +260,6 @@ def detail_error_message(conflict_dict):
     for t in task_list[1:]:
         content += ' [%s]' % t
     return content
-
 
 def gen_ini_str(task_id, argumet_dict):
     di = argumet_dict[task_id]
@@ -225,7 +280,6 @@ def gen_ini_str(task_id, argumet_dict):
         script_path, arg_str, di["timeout"], di["exitcode"], di["retry"], di["sleep"], di["criteria"])
 
     return title + content
-
 
 def task_files(task_list):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -248,7 +302,6 @@ def task_files(task_list):
         task_files[task_name] = file_list
 
     return task_files
-
 
 def conflict_files(result_dict):
     task_list = []
@@ -277,9 +330,6 @@ def conflict_files(result_dict):
             dedup_map[k] = file_list
 
     return dedup_map
-
-
-
 
 def get_conflict_tasks(conflict_dict):
 
