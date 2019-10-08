@@ -11,6 +11,7 @@
         h3 {
             text-align: center;
         }
+
         .tooltip-inner {
             text-align: left;
         }
@@ -65,23 +66,23 @@
                         TimeOut：
                         <input type="text" name="timeout_{{ id }}" class="form-control" data-toggle="tooltip"
                                data-placement="left"
-                               title="Test case timeout value">
+                               title="Test case timeout value" value="30">
                         ExitCode：
                         <input type="text" name="exitcode_{{ id }}" class="form-control" data-toggle="tooltip"
                                data-placement="left"
-                               title=" Pass condition 'exitCode to be define for exit(0) and exit(1)'">
+                               title=" Pass condition 'exitCode to be define for exit(0) and exit(1)'" value="exitCode">
                         Retry Count：
                         <input type="text" name="retry_{{ id }}" class="form-control" data-toggle="tooltip"
                                data-placement="left"
-                               title="Retry count">
+                               title="Retry count" value="3">
                         Sleep Time：
                         <input type="text" name="sleep_{{ id }}" class="form-control" data-toggle="tooltip"
                                data-placement="left"
-                               title="Sleep time">
+                               title="Sleep time" value="0">
                         Criteria：
                         <input type="text" name="criteria_{{ id }}" class="form-control" data-toggle="tooltip"
                                data-placement="left"
-                               title="Set test case criteria">
+                               title="Set test case criteria" value="75">
                     </div>
                 {% else %}
                     <div class="tab-pane fade" id="T{{ id }}" role="tabpanel" aria-labelledby="profile-tab">
@@ -97,23 +98,23 @@
                         TimeOut：
                         <input type="text" name="timeout_{{ id }}" class="form-control" data-toggle="tooltip"
                                data-placement="left"
-                               title="Test case timeout value">
+                               title="Test case timeout value" value="30">
                         ExitCode：
                         <input type="text" name="exitcode_{{ id }}" class="form-control" data-toggle="tooltip"
                                data-placement="left"
-                               title=" Pass condition 'exitCode to be define for exit(0) and exit(1)'">
+                               title=" Pass condition 'exitCode to be define for exit(0) and exit(1)'" value="exitCode">
                         Retry Count：
                         <input type="text" name="retry_{{ id }}" class="form-control" data-toggle="tooltip"
                                data-placement="left"
-                               title="Retry count">
+                               title="Retry count" value="3">
                         Sleep Time：
                         <input type="text" name="sleep_{{ id }}" class="form-control" data-toggle="tooltip"
                                data-placement="left"
-                               title="Sleep time">
+                               title="Sleep time" value="0">
                         Criteria：
                         <input type="text" name="criteria_{{ id }}" class="form-control" data-toggle="tooltip"
                                data-placement="left"
-                               title="Set test case criteria">
+                               title="Set test case criteria" value="75">
                     </div>
 
                 {% endif %}
