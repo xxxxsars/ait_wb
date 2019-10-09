@@ -97,7 +97,7 @@
                     var editRow = $this.parents('tr');
                     taskID = editRow.attr("id");
 
-                     location.href = "/testCase/modify/"+taskID;
+                    location.href = "/testCase/modify/" + taskID;
                 });
             });
 
@@ -346,7 +346,8 @@
                     <button id="clean" type="button" class="btn btn-success"><i class="fas fa-redo"></i> Clean Filter
                     </button>
 
-                    <button id="submit" type="submit" class="btn btn-primary" form="myForm">Next <i class="fas fa-forward"></i>
+                    <button id="submit" type="submit" class="btn btn-primary" form="myForm">Next <i
+                            class="fas fa-forward"></i>
                     </button>
 
                 </div>
@@ -372,7 +373,7 @@
                 <th>Task Case Name</th>
                 <th>Description</th>
                 <th></th>
-                <th></th>
+
             </tr>
             </thead>
             <tbody>
@@ -382,16 +383,18 @@
                     <td>{{ data.task_id }}</td>
                     <td>{{ data.task_name }}</td>
                     <td>{{ data.description }}</td>
-                    <td>
-                        <button type="button" class="delete_btn btn btn-primary btn-xs  btn-md center-block dt-edit">
+                    <td style="text-align: center;min-width:100px ">
+
+                        <button type="button"
+                                class="delete_btn btn btn-primary btn-xs  btn-md center-block dt-edit">
                             <i class="fas fa-edit"></i>
                         </button>
-
-                    </td>
-                    <td>
-                        <button type="button" class="edit_btn btn btn-danger btn-xs   btn-md center-block dt-delete"><i
+                        <button type="button"
+                                class="edit_btn btn btn-danger btn-xs   btn-md center-block dt-delete"><i
                                 class="fas fa-trash"></i>
                         </button>
+
+
                     </td>
                 </tr>
             {% endfor %}
@@ -403,7 +406,7 @@
                 <th>Task Case Name</th>
                 <th>Description</th>
                 <th></th>
-                <th></th>
+
             </tr>
             </tfoot>
         </table>
