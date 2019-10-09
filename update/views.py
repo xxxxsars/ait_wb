@@ -11,7 +11,7 @@ import collections
 from update.forms import *
 from upload.models import *
 from upload.forms import *
-from common.limit import modify_error_message,input_argument
+from common.limit import modify_error_message,input_argument,input_default_value
 
 
 
@@ -60,8 +60,10 @@ def modify_index(request,task_id):
             posted_args = []
             for arg in arg_infos:
                 post_arg = request.POST["arg_%s" % arg.argument]
-                post_descript = request.POST["des_%s" % arg.argument]
+                post_value = request.POST["value_%s" % arg.argument]
 
+
+                # handle render post value
                 if input_argument.search(post_arg) != None:
                     error_message = "Your arguments only allow number, letter and underline."
                     return render(request, "modify.html", locals())
@@ -71,14 +73,21 @@ def modify_index(request,task_id):
                     return render(request, "modify.html", locals())
                 posted_args.append(post_arg)
 
+                if input_default_value.search(post_value) != None:
+                    error_message = "Your default value only allow number, letter and underline."
+                    return render(request, "modify.html", locals())
+
+
 
             # vaild data will be modify
             for arg in arg_infos:
                 post_arg = request.POST["arg_%s" % arg.argument]
                 post_descript = request.POST["des_%s" % arg.argument]
+                post_value = request.POST["value_%s" % arg.argument]
 
                 arg.argument = post_arg
                 arg.description = post_descript
+                arg.default_value = post_value
                 arg.save()
 
 
@@ -88,9 +97,11 @@ def modify_index(request,task_id):
             db_args = [i["argument"] for i in arg_infos.values("argument") ]
             new_args = []
 
-            if "argument" and "description" in request.POST:
+            if "argument" and "description" and "default_value" in request.POST:
                 descripts = request.POST.getlist("description")
                 arguments = request.POST.getlist("argument")
+                values = request.POST.getlist("default_value")
+
 
                 for arg in arguments:
                     if input_argument.search(arg)!=None:
@@ -106,11 +117,12 @@ def modify_index(request,task_id):
                 for i, e in enumerate(arguments):
                     argument = arguments[i]
                     description = descripts[i]
+                    value = values[i]
 
                     if argument in db_args:
                         error_message = "Your parameters only allow unique values."
                         return render(request, "modify.html", locals())
-                    new_args.append(Arguments(argument=argument, description=description, task_id=up))
+                    new_args.append(Arguments(argument=argument, description=description, default_value=value,task_id=up))
 
 
 
@@ -131,7 +143,7 @@ def modify_index(request,task_id):
             # if not valid display post data
             render_value = False
 
-    aa = {"a":1}
+
     return render(request, "modify.html", locals())
 
 

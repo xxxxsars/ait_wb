@@ -19,6 +19,7 @@ class Arguments(models.Model):
     task_id= models.ForeignKey(Upload_TestCase,on_delete=models.CASCADE)
     argument = models.CharField(max_length=255)
     description=  models.CharField(max_length=255)
+    default_value = models.CharField(max_length=255,default="null")
 
 
     class Meta:

@@ -57,9 +57,9 @@
             });
 
             $("#remove_argument").click(function (e) {
+                var removelines = {{ a.fields |length}};
 
-
-                for (var i = 0; i < 2; i++) {
+                for (var i = 0; i < removelines; i++) {
                     $("#new_argument input").last().remove();
                     $("#new_argument label").last().remove();
                 }
@@ -141,7 +141,7 @@
         <div id="argument_info">
             <label for="argument">Argument：</label> {{ a.argument }}
             <label for="description">Description：</label>{{ a.description }}
-
+            <label for="default_value">Default Value：</label>{{ a.default_value }}
 
 
         </div>

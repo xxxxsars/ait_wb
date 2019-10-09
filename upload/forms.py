@@ -2,7 +2,7 @@ from django import forms
 import zipfile, re
 from upload.models import *
 
-from common.limit import input_task_id,input_argument,input_script_name,input_zip_file_name,input_task_name
+from common.limit import input_task_id,input_argument,input_script_name,input_zip_file_name,input_task_name,input_default_value
 
 
 class UploadFileForm(forms.Form):
@@ -74,8 +74,21 @@ class ArgumentForm(forms.Form):
     argument = forms.CharField(max_length=255, widget=forms.TextInput(attrs={'class': 'form-control'}))
     description = forms.CharField(max_length=255, widget=forms.TextInput(attrs={'class': 'form-control'}))
 
+    default_value = forms.CharField(max_length=255, required=True,
+                                     widget=forms.TextInput(attrs={'class': 'form-control'}),
+                                     error_messages={'required': 'Default value is empyt!',
+                                                     "invalid": "Please insert valid Default Value."})
+
+
     def clean_argument(self):
         argument = self.cleaned_data['argument']
         r = input_argument
         if r.search(argument) != None:
             raise forms.ValidationError("Your arguments only allow number, letter and underline.")
+
+
+    def clean_default_value(self):
+        default_value = self.cleaned_data['default_value']
+        r = input_default_value
+        if r.search(default_value) != None:
+            raise forms.ValidationError("Your default value only allow number, letter and underline.")

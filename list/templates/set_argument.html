@@ -61,7 +61,7 @@
                             Argument [ {{ infos |lookup:"argument" }}]：
                             <input type="text" name="arg_{{ id }}_{{ infos |lookup:"argument" }}" class="form-control"
                                    data-toggle="tooltip" data-placement="left"
-                                   title=" {{ infos |lookup:"description" }}">
+                                   title=" {{ infos |lookup:"description" }}" value="{{ infos |lookup:"default_value" }}">
                         {% endfor %}
                         TimeOut：
                         <input type="text" name="timeout_{{ id }}" class="form-control" data-toggle="tooltip"
@@ -91,7 +91,7 @@
                             Argument [ {{ infos |lookup:"argument" }}]：
                             <input type="text" name="arg_{{ id }}_{{ infos |lookup:"argument" }}" class="form-control"
                                    data-toggle="tooltip" data-placement="left"
-                                   title=" {{ infos |lookup:"description" }}">
+                                   title=" {{ infos |lookup:"description" }}" value="{{ infos |lookup:"default_value" }}">
                         {% endfor %}
 
 

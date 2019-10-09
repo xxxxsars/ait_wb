@@ -27,6 +27,7 @@ def upload_index(request):
 
             descripts = request.POST.getlist("description")
             arguments =request.POST.getlist("argument")
+            values = request.POST.getlist("default_value")
 
 
 
@@ -49,7 +50,8 @@ def upload_index(request):
             for i, e in enumerate(arguments):
                 argument = arguments[i]
                 description = descripts[i]
-                Arguments.objects.create(argument=argument, description=description, task_id=up)
+                value = values[i]
+                Arguments.objects.create(argument=argument, description=description,default_value= value ,task_id=up)
 
 
             susessful = "Upload  Test Case ID: [ %s ] was successfully!" % task_id
