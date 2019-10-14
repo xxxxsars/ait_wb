@@ -34,13 +34,12 @@ def list_index(request):
         # handle the "confirm.htnl"  the  conflict file
         if "conflicted" in request.POST:
             confilct_files = str(request.POST["conflict_files"]).split(",")
-            render_str = request.POST["ini_content"]
+            render_di = eval(request.POST["ini_content"])
             task_names = str(request.POST["task_list"]).split(",")
 
             chose_map = {}
             for cf in confilct_files:
                 chose_map[cf] = request.POST[cf]
-
 
             return render(request, "confirm.html", locals())
 
@@ -88,9 +87,9 @@ def list_index(request):
                 append_dict["criteria"] = request.POST["criteria_%s" % task_id]
 
             render_str = ""
-
+            render_di = {}
             for task_id in task_ids:
-                render_str += gen_ini_str(task_id, result_dict) + "\n"
+                render_di[task_id] = gen_ini_str(task_id, result_dict) + "\n"
 
             # check conflict files
             cf = conflict_files(result_dict)
@@ -98,19 +97,17 @@ def list_index(request):
             if len(cf.keys()) != 0:
                 cf_tasks = get_conflict_tasks(cf)
 
-                disable_download=  True
-                err_message  = "You have some conflicting files.Please select the file to be compressed into TestCase zip. "
-
+                disable_download = True
+                err_message = "You have some conflicting files.Please select the file to be compressed into TestCase zip. "
 
                 return render(request, "confirm.html", locals())
-
-
             return render(request, "confirm.html", locals())
     return render(request, "list.html", locals())
 
+
 def confirm(request):
 
-    return render(request,"confirm.html",locals())
+    return render(request, "test.html", locals())
 
 
 def download(request):
@@ -121,7 +118,6 @@ def download(request):
         # save ini
         with open( os.path.join(os.path.join(path,"download_folder"),"%s.ini"%token),"w") as f:
             f.write(request.POST["ini_content"])
-
 
         task_list = str(request.POST["task_list"]).split(",")
 
@@ -178,17 +174,17 @@ def archive_folder(task_list,token):
         for root, folders, files in os.walk(file_path):
             for sfile in files:
                 aFile = os.path.join(root, sfile)
-                zf.write(aFile, os.path.join(script_path,os.path.relpath(aFile, file_path)))
+                zf.write(aFile, os.path.join(script_path, os.path.relpath(aFile, file_path)))
 
     # add default configuration
     for root, folders, files in os.walk(config_path):
         for sfile in files:
             aFile = os.path.join(root, sfile)
 
-            zf.write(aFile,os.path.relpath(aFile, config_path))
+            zf.write(aFile, os.path.relpath(aFile, config_path))
 
-    #add ini
-    zf.write(ini_path,"testScript.ini")
+    # add ini
+    zf.write(ini_path, "testScript.ini")
 
     os.remove(ini_path)
 
@@ -250,8 +246,8 @@ def conflict_archive_folder(task_list,token,chose_files):
 
             zf.write(aFile, os.path.relpath(aFile, config_path))
 
-    #add ini
-    zf.write(ini_path,"testScript.ini")
+    # add ini
+    zf.write(ini_path, "testScript.ini")
 
     os.remove(ini_path)
     zf.close()
@@ -285,6 +281,7 @@ def gen_ini_str(task_id, argumet_dict):
 
     return title + content
 
+
 def task_files(task_list):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -307,9 +304,9 @@ def task_files(task_list):
 
     return task_files
 
+
 def conflict_files(result_dict):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
     task_list = []
     for k, v in result_dict.items():
@@ -330,10 +327,10 @@ def conflict_files(result_dict):
         for f in fs:
             if f in new_files.keys():
                 # check md5 ,if not same will append to the deduplicate list
-                if md5(os.path.join(file_path,f)) != new_files[f]:
+                if md5(os.path.join(file_path, f)) != new_files[f]:
                     dedup.append(f)
             else:
-                new_files[f] = md5(os.path.join(file_path,f))
+                new_files[f] = md5(os.path.join(file_path, f))
     dedup_map = {}
     for k, fs in file_map.items():
         file_list = []
@@ -346,7 +343,6 @@ def conflict_files(result_dict):
     return dedup_map
 
 
-
 def md5(fname):
     hash_md5 = hashlib.md5()
     with open(fname, "rb") as f:
@@ -356,22 +352,20 @@ def md5(fname):
 
 
 def get_conflict_tasks(conflict_dict):
-
     # get conflict file
     conflict_files = []
-    for k,files in conflict_dict.items():
+    for k, files in conflict_dict.items():
         for f in files:
             if f in conflict_files:
-               pass
+                pass
             else:
                 conflict_files.append(f)
-
 
     # get confilct task map by conflict file
     conflict_task = {}
     for cf in conflict_files:
         tasks = []
-        for k,files in conflict_dict.items():
+        for k, files in conflict_dict.items():
             if cf in files:
                 tasks.append(k)
         conflict_task[cf] = tasks

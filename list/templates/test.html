@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+
+{% block head %}
+
+    <link rel="stylesheet" href="{% static "bower_components/jquery-ui/themes/ui-lightness/jquery-ui.min.css" %}">
+    <link rel="stylesheet" href="{% static "bower_components/jquery-ui/themes/ui-lightness/theme.css" %}">
+
+
+    <script src="{% static "bower_components/jquery-ui/jquery-ui.min.js" %}"></script>
+
+    <link type="text/css" rel="stylesheet" href="{% static  "bower_components/highlightjs/styles/github-gist.css" %}">
+    <script src="{% static "bower_components/highlightjs/highlight.pack.min.js" %}"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+{% endblock %}
+
+
+
+{% block css %}
+    <style>
+        .task {
+            border: 1px #ccc dashed;
+            padding: 10px;
+        }
+
+        ul li {
+            list-style-type: none;
+        }
+    </style>
+{% endblock %}
+{% block js %}
+    <script>
+
+        $(function () {
+            $("#sortable").sortable();
+            $("#sortable").disableSelection();
+        })
+
+
+    </script>
+{% endblock %}
+
+{% block body %}
+
+    <ul id="sortable">
+        <li class="task"><code class="javascript" style="color:#333333;">{{ render_str |linebreaks }}</code></li>
+        <li class="task"><code class="javascript" style="color:#333333;">{{ render_str |linebreaks }}</code></li>
+        <li class="task"><code class="javascript" style="color:#333333;">{{ render_str |linebreaks }}</code></li>
+        <li class="task"><code class="javascript" style="color:#333333;">{{ render_str |linebreaks }}</code></li>
+        <li class="task"><code class="javascript" style="color:#333333;">{{ render_str |linebreaks }}</code></li>
+        <li class="task"><code class="javascript" style="color:#333333;">{{ render_str |linebreaks }}</code></li>
+
+    </ul>
+
+{% endblock %}

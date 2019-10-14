@@ -5,5 +5,5 @@ from list.views import *
 urlpatterns = [
     url("^$",list_index ,name="script_list"),
     url("^download/",download,name="export_task"),
-    url("^confirm/",confirm,name="confirm")
+    url("^test/",confirm,name="test")
 ]

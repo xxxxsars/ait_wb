@@ -9,6 +9,14 @@
             text-align: center;
         }
 
+        .task {
+            border: 1px #ccc dashed;
+            padding: 10px;
+        }
+
+        ul li {
+            list-style-type: none;
+        }
 
     </style>
 {% endblock %}
@@ -17,13 +25,28 @@
 
 {% block js %}
     <script>
+        $(function () {
+            $("#sort-task").sortable();
+            $("#sort-task").disableSelection();
+        });
+
 
         $(function () {
             <!--pass value to download needs-->
-
-            $("#export_form").one("submit", function (e) {
+            $("#export_form").on("submit", function (e) {
                 var task_name = {{ task_names | safe }};
-                var ini_content = '{{ render_str |escapejs }}';
+                var ini_content = "";
+                $("#sort-task li p").each(function () {
+                    lines = ($(this).html().split('<br>'));
+                    for (var i = 0; i < lines.length; ++i) {
+                        ini_content += lines[i] + "\n"
+                    }
+                });
+
+
+                <!--remove old input colume-->
+                $("#task_list").remove();
+                $("#ini_content").remove();
 
                 $(this).append('<input  id="task_list" type="hidden" name="task_list"/>');
                 $("#task_list").val(task_name);
@@ -37,18 +60,22 @@
                     $(this).append('<input  id="chose_files" type="hidden" name="chose_files" />');
                     $("#chose_files").val(chose_files);
                 {% endif %}
+
+
+                console.log(ini_content)
+
+
             });
         });
 
 
         $(document).ready(function () {
 
-
             <!--pass value to chose needs-->
             $("#chose_form").one("submit", function (e) {
 
                 var task_name = {{ task_names | safe }};
-                var ini_content = '{{ render_str |escapejs }}';
+                var ini_content = '{{ render_di |escapejs }}';
                 var conflict_files = {{ cf_tasks.keys|get_list|safe  }}
 
                     $(this).append('<input  id="task_list" type="hidden" name="task_list"/>');
@@ -74,6 +101,9 @@
 
 
 {% block head %}
+    <link rel="stylesheet" href="{% static "bower_components/jquery-ui/themes/ui-lightness/jquery-ui.min.css" %}">
+    <link rel="stylesheet" href="{% static "bower_components/jquery-ui/themes/ui-lightness/theme.css" %}">
+    <script src="{% static "bower_components/jquery-ui/jquery-ui.min.js" %}"></script>
     <link type="text/css" rel="stylesheet" href="{% static  "bower_components/highlightjs/styles/github-gist.css" %}">
     <script src="{% static "bower_components/highlightjs/highlight.pack.min.js" %}"></script>
     <script>hljs.initHighlightingOnLoad();</script>
@@ -142,13 +172,15 @@
 
 
     {% if err_message is None %}
-        <pre>
-        <code class="javascript">
-            <div id="confirm_data">
-                {{ render_str|linebreaks }}
-            </div>
-       </code>
-    </pre>
+
+        <ul id="sort-task">
+
+            {% for task,content in render_di.items %}
+                <li class="task" id="{{ task }}"><code class="javascript"
+                                                       style="color:#333333;">{{ content |linebreaks }}</code></li>
+            {% endfor %}
+        </ul>
+
     {% endif %}
 
     {% if disable_download %}
