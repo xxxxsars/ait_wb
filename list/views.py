@@ -9,6 +9,7 @@ import random
 import string
 from datetime import datetime
 import zipfile
+import hashlib
 
 from common.limit import set_parameter_arg, set_parameter_other
 
@@ -39,6 +40,7 @@ def list_index(request):
             chose_map = {}
             for cf in confilct_files:
                 chose_map[cf] = request.POST[cf]
+
 
             return render(request, "confirm.html", locals())
 
@@ -90,11 +92,12 @@ def list_index(request):
             for task_id in task_ids:
                 render_str += gen_ini_str(task_id, result_dict) + "\n"
 
-
             # check cnoflict files
             cf = conflict_files(result_dict)
+
             if len(cf.keys()) != 0:
                 cf_tasks = get_conflict_tasks(cf)
+
                 disable_download=  True
                 err_message  = "You have some conflicting files.Please select the file to be compressed into TestCase zip. "
 
@@ -112,8 +115,6 @@ def confirm(request):
 
 def download(request):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-
     token = ''.join(random.choice(string.ascii_letters+string.digits) for i in range(30))
 
     if request.POST:
@@ -223,8 +224,10 @@ def conflict_archive_folder(task_list,token,chose_files):
     for file, task in chose_files.items():
         chose_files_path.append(os.path.join(os.path.join(file_path, task), file))
 
-    for task_name in task_list:
 
+
+    compressed_file = []
+    for task_name in task_list:
         source_file_path  = os.path.join(file_path,task_name)
         # add source pyfile
         for root, folders, files in os.walk(source_file_path):
@@ -235,9 +238,10 @@ def conflict_archive_folder(task_list,token,chose_files):
                 if dest_file in list(chose_files.keys()):
                     if aFile in chose_files_path:
                         zf.write(aFile, os.path.join(script_path, dest_file))
-                else:
-
+                # if had compress file not compress again
+                elif sfile not in compressed_file:
                     zf.write(aFile, os.path.join(script_path,dest_file))
+                    compressed_file.append(sfile)
 
     # add default configuration
     for root, folders, files in os.walk(config_path):
@@ -304,22 +308,32 @@ def task_files(task_list):
     return task_files
 
 def conflict_files(result_dict):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
     task_list = []
     for k, v in result_dict.items():
         task_list.append(v["task_name"])
 
     file_map = task_files(task_list)
 
-    new_files = []
+    new_files = {}
 
     dedup = []
     for k, fs in file_map.items():
-        for f in fs:
-            if f in new_files:
-                dedup.append(f)
-            else:
-                new_files.append(f)
 
+        if platform.system() == "Windows":
+            file_path = path + r'\upload_folder\\' + k
+        else:
+            file_path = path + '/upload_folder/' + k
+
+        for f in fs:
+            if f in new_files.keys():
+                # check md5 ,if not same will append to the deduplicate list
+                if md5(os.path.join(file_path,f)) != new_files[f]:
+                    dedup.append(f)
+            else:
+                new_files[f] = md5(os.path.join(file_path,f))
     dedup_map = {}
     for k, fs in file_map.items():
         file_list = []
@@ -330,6 +344,16 @@ def conflict_files(result_dict):
             dedup_map[k] = file_list
 
     return dedup_map
+
+
+
+def md5(fname):
+    hash_md5 = hashlib.md5()
+    with open(fname, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
+
 
 def get_conflict_tasks(conflict_dict):
 
