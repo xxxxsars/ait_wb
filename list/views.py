@@ -92,7 +92,7 @@ def list_index(request):
             for task_id in task_ids:
                 render_str += gen_ini_str(task_id, result_dict) + "\n"
 
-            # check cnoflict files
+            # check conflict files
             cf = conflict_files(result_dict)
 
             if len(cf.keys()) != 0:
