@@ -42,7 +42,6 @@
         {#display the upload file name#}
         $(function () {
             $('#customFileLang').on('change', function () {
-                console.log("in")
                 //get the file name
                 var fileName = $(this).val();
                 //replace the "Choose a file" label
@@ -112,7 +111,6 @@
             $('#task-table tbody .dt-delete').each(function () {
                 $(this).on('click', function (evt) {
                     var dtRow = $(this).parents('tr');
-                    console.log(dtRow)
                     if (confirm("Are you sure to delete this row?")) {
                         var csrftoken = getCookie('csrftoken');
                         var argument = dtRow.find("input[name^='arg_']").val();

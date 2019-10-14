@@ -239,9 +239,6 @@
                     r2 = "[" + selected.join("|") +"]"
                 }
 
-
-                console.log("^" + r1 + "{1}" + r2 + "{1}");
-
                 $('#task-table').DataTable().column(1).search("^" + r1 + "{1}" + r2 + "{1}", true,).draw();
             });
 
