@@ -50,4 +50,23 @@ import platform,os,zipfile
 
 
 
+import os,platform,re
 
+
+if __name__ =="__main__":
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    if platform.system() == "Windows":
+        source_path = path + r'\upload_folder\\'
+
+
+    else:
+        source_path = path + '/upload_folder/'
+
+
+
+
+    for f in os.listdir(source_path):
+        if re.search("_+",f) !=None:
+            new_name = f.replace("_"," ")
+            os.rename(os.path.join(source_path,f),os.path.join(  source_path,new_name))
