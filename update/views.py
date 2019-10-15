@@ -11,7 +11,7 @@ import collections
 from update.forms import *
 from upload.models import *
 from upload.forms import *
-from common.limit import input_argument,input_default_value
+from common.limit import input_argument,valid_default_value
 
 
 
@@ -73,7 +73,7 @@ def modify_index(request,task_id):
                     return render(request, "modify.html", locals())
                 posted_args.append(post_arg)
 
-                if input_default_value.search(post_value) == None:
+                if valid_default_value(post_value) == False:
                     error_message = "Your default value does not match the rule."
                     return render(request, "modify.html", locals())
 
