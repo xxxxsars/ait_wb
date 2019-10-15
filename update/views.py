@@ -11,7 +11,7 @@ import collections
 from update.forms import *
 from upload.models import *
 from upload.forms import *
-from common.limit import modify_error_message,input_argument,input_default_value
+from common.limit import input_argument,input_default_value
 
 
 
@@ -73,8 +73,8 @@ def modify_index(request,task_id):
                     return render(request, "modify.html", locals())
                 posted_args.append(post_arg)
 
-                if input_default_value.search(post_value) != None:
-                    error_message = "Your default value only allow number, letter and underline."
+                if input_default_value.search(post_value) == None:
+                    error_message = "Your default value does not match the rule."
                     return render(request, "modify.html", locals())
 
 
@@ -169,16 +169,6 @@ def update_index(request, message=None):
 
     form = QueryTestCaseForm()
     return render(request, "update.html", locals())
-
-
-
-
-def error_message(message):
-    r = modify_error_message
-    if r.match( message):
-        return True
-    return False
-
 
 
 

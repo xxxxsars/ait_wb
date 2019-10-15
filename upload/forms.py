@@ -90,5 +90,5 @@ class ArgumentForm(forms.Form):
     def clean_default_value(self):
         default_value = self.cleaned_data['default_value']
         r = input_default_value
-        if r.search(default_value) != None:
-            raise forms.ValidationError("Your default value only allow number, letter and underline.")
+        if r.search(default_value) == None:
+            raise forms.ValidationError("our default value does not match the rule.")
