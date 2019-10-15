@@ -13,6 +13,7 @@
     <link type="text/css" rel="stylesheet" href="{% static  "bower_components/highlightjs/styles/github-gist.css" %}">
     <script src="{% static "bower_components/highlightjs/highlight.pack.min.js" %}"></script>
     <script>hljs.initHighlightingOnLoad();</script>
+    <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
 
 {% endblock %}
 
@@ -20,22 +21,20 @@
 
 {% block css %}
     <style>
-        .task {
-            border: 1px #ccc dashed;
-            padding: 10px;
-        }
-
-        ul li {
-            list-style-type: none;
+        .borderless td, .borderless th {
+            border: none;
         }
     </style>
 {% endblock %}
 {% block js %}
     <script>
-
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
         $(function () {
             $("#sortable").sortable();
             $("#sortable").disableSelection();
+
         })
 
 
@@ -43,15 +42,84 @@
 {% endblock %}
 
 {% block body %}
+    <form class="form-inline">
+    <table class='table borderless'>
+        <thead class="thead-dark">
+        <tr>
+            <th scope="col">arguments</th>
+            <th scope="col">First</th>
+            <th scope="col">Last</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="basic-addon1">a</span>
+                    </div>
+                    <input type="text" class="form-group"
+                           data-toggle="tooltip" data-placement="left"
+                           title=" This is test 123123" value="10">
 
-    <ul id="sortable">
-        <li class="task"><code class="javascript" style="color:#333333;">{{ render_str |linebreaks }}</code></li>
-        <li class="task"><code class="javascript" style="color:#333333;">{{ render_str |linebreaks }}</code></li>
-        <li class="task"><code class="javascript" style="color:#333333;">{{ render_str |linebreaks }}</code></li>
-        <li class="task"><code class="javascript" style="color:#333333;">{{ render_str |linebreaks }}</code></li>
-        <li class="task"><code class="javascript" style="color:#333333;">{{ render_str |linebreaks }}</code></li>
-        <li class="task"><code class="javascript" style="color:#333333;">{{ render_str |linebreaks }}</code></li>
 
-    </ul>
+                </div>
+                                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="basic-addon1">a</span>
+                    </div>
+                    <input type="text" class="form-group"
+                           data-toggle="tooltip" data-placement="left"
+                           title=" This is test 123123" value="10">
 
+
+                </div>
+                                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="basic-addon1">a</span>
+                    </div>
+                    <input type="text" class="form-group"
+                           data-toggle="tooltip" data-placement="left"
+                           title=" This is test 123123" value="10">
+
+
+                </div>
+                                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="basic-addon1">a</span>
+                    </div>
+                    <input type="text" class="form-group"
+                           data-toggle="tooltip" data-placement="left"
+                           title=" This is test 123123" value="10">
+
+
+                </div>
+            </td>
+            <td>Otto</td>
+            <td>@mdo</td>
+        </tr>
+        <tr>
+
+            <td><form class="form-inline">
+  <div class="form-group">
+    <label class="sr-only" for="exampleInputAmount">Amount (in dollars)</label>
+    <div class="input-group">
+      <div class="input-group-addon">$</div>
+      <input type="text" class="form-control" id="exampleInputAmount" placeholder="Amount">
+      <div class="input-group-addon">.00</div>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary">Transfer cash</button>
+</form></td>
+            <td>Thornton</td>
+            <td>@fat</td>
+        </tr>
+        <tr>
+            <td>Larry</td>
+            <td>the Bird</td>
+            <td>@twitter</td>
+        </tr>
+        </tbody>
+    </table>
+    </form>
 {% endblock %}

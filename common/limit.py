@@ -20,7 +20,7 @@ def valid_default_value(value):
         if re.search(r'^".*"$',value) ==None:
             return False
 
-    elif re.search("(\w|-\.)+",value) ==None:
+    elif re.search('[^(\w|\-|\.|")]+',value) !=None:
         return False
 
     return True
