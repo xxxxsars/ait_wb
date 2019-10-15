@@ -13,7 +13,7 @@ set_parameter_other = re.compile(r"^\w+_([0-9A]{6})$")
 input_task_id = re.compile(r"^[0-2][0-9A]\d{2}$")
 input_task_name = re.compile(r"[^\w|_]+")
 input_argument = re.compile(r"[^\w|_]+")
-input_default_value = re.compile(r'(^"(\w+\s+\w+)"$)|^(\w+\.*\w+)+$|^\w+$')
+input_default_value = re.compile(r'(^"(\w+\s+\w+)"$)|^(\w+\.*)*$|^\w+$')
 input_script_name = re.compile("^[\w|_]+.py$")
 input_zip_file_name =  re.compile(r"\.zip$")
 
