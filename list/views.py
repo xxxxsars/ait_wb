@@ -10,6 +10,7 @@ import string
 from datetime import datetime
 import zipfile
 import hashlib
+import json
 
 from common.limit import set_parameter_arg, set_parameter_other
 
@@ -27,7 +28,8 @@ def list_index(request):
                 for task_id in task_ids:
                     task_info = Upload_TestCase.objects.get(task_id=task_id)
                     args = Arguments.objects.filter(task_id=task_info)
-                    arg_dict[task_id] = args.values()
+                    arg_dict[task_id] = list(args.values())
+                arg_json = json.dumps(arg_dict)
                 return render(request, "set_argument.html", locals())
 
 
@@ -45,7 +47,7 @@ def list_index(request):
 
         # handle the set_argument submit action ,it will get all tab parameter
         else:
-
+            print(dict(request.POST.lists()).items())
             task_ids = []
             task_names = []
 
@@ -78,6 +80,7 @@ def list_index(request):
                         result_dict[task_id] = {parmeter: argument,
                                                 "script_name": script_name, "task_name": task_name}
 
+
             for task_id in task_ids:
                 append_dict = result_dict[task_id]
                 append_dict["timeout"] = request.POST["timeout_%s" % task_id]
@@ -90,6 +93,7 @@ def list_index(request):
             render_di = {}
             for task_id in task_ids:
                 render_di[task_id] = gen_ini_str(task_id, result_dict) + "\n"
+
 
             # check conflict files
             cf = conflict_files(result_dict)
@@ -106,7 +110,18 @@ def list_index(request):
 
 
 def confirm(request):
+    if request.POST:
+        print(request.POST)
 
+
+    task_ids = list(Upload_TestCase.objects.values_list("task_id",flat=True))
+    arg_dict = {}
+    for task_id in task_ids:
+        task_info = Upload_TestCase.objects.get(task_id=task_id)
+        args = Arguments.objects.filter(task_id=task_info)
+        arg_dict[task_id] = list(args.values())
+
+    arg_json = json.dumps(arg_dict)
     return render(request, "test.html", locals())
 
 
