@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import StreamingHttpResponse
+from django.http import StreamingHttpResponse,Http404
 from django.urls import reverse
 from upload.models import *
 
@@ -31,6 +31,8 @@ def list_index(request):
                     arg_dict[task_id] = list(args.values())
                 arg_json = json.dumps(arg_dict)
                 return render(request, "set_argument.html", locals())
+            else:
+                raise Http404
 
 
         # handle the "confirm.htnl"  the  conflict file
