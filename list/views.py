@@ -47,7 +47,6 @@ def list_index(request):
 
         # handle the set_argument submit action ,it will get all tab parameter
         else:
-            print(dict(request.POST.lists()).items())
             task_ids = []
             task_names = []
 
