@@ -22,13 +22,18 @@ def list_index(request):
     if request.POST:
         # render the set_argument page ,it data get from list page
         if "task_ids" in request.POST:
+
             task_ids = (request.POST['task_ids']).split(",")
             arg_dict = {}
+            task_dict = {}
+
             if len(task_ids) != 0:
                 for task_id in task_ids:
                     task_info = Upload_TestCase.objects.get(task_id=task_id)
                     args = Arguments.objects.filter(task_id=task_info)
                     arg_dict[task_id] = list(args.values())
+                    task_dict[task_id] = task_info.task_name
+
                 arg_json = json.dumps(arg_dict)
                 return render(request, "set_argument.html", locals())
             else:

@@ -186,6 +186,7 @@
             <tr>
                 <th>Arguments</th>
                 <th>ID</th>
+                <th>Name</th>
                 <th>TimeOut</th>
                 <th>ExitCode</th>
                 <th>Retry Count</th>
@@ -195,10 +196,11 @@
             </tr>
             </thead>
             <tbody>
-            {% for id in task_ids %}
+            {% for id,name in task_dict.items %}
                 <tr>
                     <td class="details-control"></td>
                     <td class="task_id">{{ id }}</td>
+                    <td>{{ name }}</td>
                     <td><input type="text" name="timeout_{{ id }}" class="form-control" data-toggle="tooltip"
                                data-placement="left"
                                title="Test case timeout value" value="30"></td>
