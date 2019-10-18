@@ -15,8 +15,15 @@ import json
 from common.limit import set_parameter_arg, set_parameter_other
 
 
+
+def index(request):
+    return render(request,"index.html",locals())
+
+
+
+
 # Create your views here.
-def list_index(request):
+def list_task(request):
     datas = Upload_TestCase.objects.all()
 
     if request.POST:
