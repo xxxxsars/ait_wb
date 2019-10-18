@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import render, redirect
-
+from django.contrib.auth.decorators import login_required
 
 import os
 import shutil
@@ -14,7 +14,7 @@ from upload.forms import *
 from common.limit import input_argument,valid_default_value
 
 
-
+@login_required(login_url="/user/login/")
 def modify_index(request,task_id):
     is_script = True
 

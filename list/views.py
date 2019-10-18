@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import StreamingHttpResponse,Http404
-from django.urls import reverse
+from django.contrib.auth.decorators import login_required
 from upload.models import *
 
 import platform
@@ -16,6 +16,8 @@ from common.limit import set_parameter_arg, set_parameter_other
 
 
 
+
+@login_required(login_url="/user/login/")
 def list_task(request):
     is_script = True
     datas = Upload_TestCase.objects.all()
@@ -31,7 +33,7 @@ def list_task(request):
 ########## project script ###############
 
 
-# Create your views here.
+@login_required(login_url="/user/login/")
 def create_script(request):
     datas = Upload_TestCase.objects.all()
 
