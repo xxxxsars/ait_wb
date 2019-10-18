@@ -42,7 +42,6 @@ def modify_index(request,task_id):
                 try:
                     handle_update_file(request.FILES['file'], task_name)
                 except Exception as e:
-                    print("update err",e)
                     error_message = "Upload file is no valid zip file."
                     return render(request, "modify.html", locals())
 

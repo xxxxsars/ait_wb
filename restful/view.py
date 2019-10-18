@@ -2,8 +2,10 @@ import os
 
 from rest_framework import status
 from rest_framework import viewsets
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view,authentication_classes,permission_classes
 from rest_framework.response import Response
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 import zipfile, os, shutil, platform
 
@@ -13,12 +15,12 @@ from update.serializer import *
 
 
 @api_view(["POST"])
+@authentication_classes((BasicAuthentication,))
 def DeleteArgumentView(request, format=None):
     if request.method == "POST":
         task_id = request.data.get("task_id")
         argument = request.data.get("argument")
 
-        print(task_id, argument)
         if task_id == None or argument == None:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         task_args = Arguments.objects.filter(task_id=task_id)
@@ -34,10 +36,11 @@ def DeleteArgumentView(request, format=None):
         return Response(status=status.HTTP_200_OK)
 
 
+
 class DeleteTestCaseView(viewsets.ModelViewSet):
     queryset = Upload_TestCase.objects.all()
     serializer_class = TaskSerializer
-    http_method_names = ['delete']
+    authentication_classes = [ BasicAuthentication]
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
