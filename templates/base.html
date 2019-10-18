@@ -17,8 +17,26 @@
     <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
     <script src={% static "bower_components/bootstrap/dist/js/bootstrap.min.js" %}></script>
 
+
+    <style>
+        td {
+            padding: 20px;
+        }
+
+        input[type=submit] {
+            padding: 5px 15px;
+            background: #ccc;
+            border: 0 none;
+            cursor: pointer;
+            -webkit-border-radius: 5px;
+            border-radius: 5px;
+        }
+
+    </style>
     <!--extend css -->
-    {% block css %}{% endblock %}
+    {% block css %}
+
+    {% endblock %}
     <!--extend js -->
     {% block js %}{% endblock %}
     <!--extend js/css path-->
@@ -31,18 +49,37 @@
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="{% url "script_list" %}">Factory Line Web Page</a>
+    <a class="navbar-brand" href="{% url "index" %}">Factory Line Web Page</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item">
-                <a class="nav-link" href="{% url "script_upload" %}">Upload</a>
-            </li>
-        </ul>
-    </div>
+
+    {% if login_page == None %}
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url "script_upload" %}">Upload</a>
+                </li>
+            </ul>
+
+
+            <ul class="nav navbar-nav navbar-right">
+                <li><a class="nav-link" href="{% url "login" %}"><i class="fas fa-sign-in-alt"></i> Log in</a></li>
+                <li><a class="nav-link" href="{% url "logout" %}">Log out</a></li>
+                {% if request.user.is_authenticated %}
+                    {% if request.user.is_staff %}
+                        <li><a class="nav-link" href="/admin/"><i class="fas fa-user"></i>{{ request.user.username }}
+                        </a>
+                        </li>
+                    {% else %}
+                        <li class="navbar-text"><i class="fas fa-user"></i>{{ request.user.username }}
+                        </li>
+                    {% endif %}
+                {% endif %}
+            </ul>
+        </div>
+    {% endif %}
 </nav>
 
 <br>

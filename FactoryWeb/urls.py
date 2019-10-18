@@ -26,7 +26,8 @@ urlpatterns = [
     url("^testCase/",include("upload.urls")),
     url("^testCase/",include("update.urls")),
     url("^testCase/",include("restful.urls")),
-    url("^", include("list.urls"))  #index page
+    url("^", include("list.urls")),
+    url("^user/",include("user_information.urls")),
 
 ]
 

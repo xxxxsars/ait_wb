@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     "FactoryWeb",
     'upload',
     'update',
-    'list'
+    'list',
+    'user_information'
 ]
 
 MIDDLEWARE = [
