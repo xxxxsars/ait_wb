@@ -1,5 +1,5 @@
 from django import forms
-from upload.models import *
+from test_script.upload.models import *
 import zipfile
 from common.limit import input_script_name,input_zip_file_name
 

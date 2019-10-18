@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import StreamingHttpResponse,Http404
 from django.contrib.auth.decorators import login_required
-from upload.models import *
+from test_script.upload.models import *
 
 import platform
 import os
@@ -136,8 +136,6 @@ def create_script(request):
 def confirm(request):
     if request.POST:
         print(request.POST)
-
-
     task_ids = list(Upload_TestCase.objects.values_list("task_id",flat=True))
     arg_dict = {}
     for task_id in task_ids:
@@ -147,6 +145,9 @@ def confirm(request):
 
     arg_json = json.dumps(arg_dict)
     return render(request, "test.html", locals())
+
+
+
 
 
 def download(request):

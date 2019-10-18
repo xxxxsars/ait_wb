@@ -1,6 +1,6 @@
 from django import forms
 import zipfile, re
-from upload.models import *
+from test_script.upload.models import *
 
 from common.limit import input_task_id,input_argument,input_script_name,input_zip_file_name,input_task_name,valid_default_value
 

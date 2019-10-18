@@ -42,7 +42,7 @@ import django
 django.setup()
 # from django.core.exceptions import ObjectDoesNotExist
 # from django.db.models import Q
-from upload.models import *
+from test_script.upload.models import *
 
 import platform,os,zipfile
 

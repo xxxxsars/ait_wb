@@ -9,8 +9,8 @@ from rest_framework.permissions import IsAuthenticated
 
 import zipfile, os, shutil, platform
 
-from update.forms import *
-from update.serializer import *
+from test_script.update.forms import *
+from test_script.update.serializer import *
 
 
 

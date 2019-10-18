@@ -39,9 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "rest_framework",
     "FactoryWeb",
-    'upload',
-    'update',
-    'list',
+    'test_script.upload',
+    'test_script.update',
+    'test_script.list',
     'user_information'
 ]
 

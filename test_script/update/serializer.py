@@ -1,13 +1,10 @@
 from rest_framework import serializers
-import upload.models
+import  test_script.upload.models
 
 
 
 class TaskSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model =upload.models.Upload_TestCase
+        model= test_script.upload.models.Upload_TestCase
         fields = "__all__"
-
-
-

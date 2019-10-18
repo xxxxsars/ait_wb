@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from upload.forms import *
-from upload.models import *
+from test_script.upload.forms import *
+from test_script.upload.models import *
 import os
 import zipfile
 import platform
@@ -88,7 +88,7 @@ def get_serial_number(task_id):
     return max_serial
 
 def handle_uploaded_file(f,task_name):
-    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
     if platform.system() == "Windows":
         source_zip = path + r'\upload_folder\\' + f.name

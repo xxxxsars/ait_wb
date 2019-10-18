@@ -25,10 +25,10 @@ urlpatterns = [
     url('admin/', admin.site.urls),
     url("^$",index,name="index"),
     url(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
-    url("^testCase/",include("upload.urls")),
-    url("^testCase/",include("update.urls")),
+    url("^testCase/",include("test_script.upload.urls")),
+    url("^testCase/",include("test_script.update.urls")),
     url("^testCase/",include("restful.urls")),
-    url("^testCase/", include("list.urls")),
+    url("^testCase/", include("test_script.list.urls")),
     url("^user/",include("user_information.urls")),
 
 ]

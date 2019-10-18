@@ -8,9 +8,9 @@ import shutil
 import platform
 import collections
 
-from update.forms import *
-from upload.models import *
-from upload.forms import *
+from test_script.update.forms import *
+from test_script.upload.models import *
+from test_script.upload.forms import *
 from common.limit import input_argument,valid_default_value
 
 
@@ -155,7 +155,7 @@ def handle_update_file(f, task_name):
     if input_zip_file_name.search(str(f.name)) == None:
         raise Exception("Upload file is no valid zip file.")
 
-    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
     if platform.system() == "Windows":
         source_zip = path + r'\upload_folder\\' + f.name

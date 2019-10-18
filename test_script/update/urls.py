@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.conf.urls import url, include
-from update.views import *
+from test_script.update.views import *
 from rest_framework.routers import DefaultRouter
 
 
