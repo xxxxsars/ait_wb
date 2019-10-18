@@ -19,14 +19,16 @@ from django.conf.urls import url,include
 from FactoryWeb import settings
 from .error_views import *
 from django.views.static import serve
+from FactoryWeb.view import *
 
 urlpatterns = [
     url('admin/', admin.site.urls),
+    url("^$",index,name="index"),
     url(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
     url("^testCase/",include("upload.urls")),
     url("^testCase/",include("update.urls")),
     url("^testCase/",include("restful.urls")),
-    url("^", include("list.urls")),
+    url("^testCase/", include("list.urls")),
     url("^user/",include("user_information.urls")),
 
 ]

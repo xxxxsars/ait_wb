@@ -233,10 +233,10 @@
                 });
 
 
-                if (selected.length === 0){
+                if (selected.length === 0) {
                     r2 = "."
-                }else{
-                    r2 = "[" + selected.join("|") +"]"
+                } else {
+                    r2 = "[" + selected.join("|") + "]"
                 }
 
                 $('#task-table').DataTable().column(1).search("^" + r1 + "{1}" + r2 + "{1}", true,).draw();
@@ -331,7 +331,8 @@
                 <form class="form-inline" role="form">
                     <div class="form-group">
                         <label for="platform" class="condition-lable">Platform:</label>
-                        <select class="condition-select form-control selectpicker  show-tick" data-width="170px" id="platform"
+                        <select class="condition-select form-control selectpicker  show-tick" data-width="170px"
+                                id="platform"
                                 title="Nothing selected" multiple data-max-options="1">
                             <option value="0">Windows</option>
                             <option value="1">Mac</option>
@@ -346,7 +347,8 @@
                 <form class="form-inline" role="form">
                     <div class="form-group">
                         <label for="interface" class="condition-lable">Interface:</label>
-                        <select class="condition-select form-control selectpicker" id="interface" data-width="170px" multiple>
+                        <select class="condition-select form-control selectpicker" id="interface" data-width="170px"
+                                multiple>
                             <option value="0">USB</option>
                             <option value="1">Type-C</option>
                             <option value="2">TBT</option>
@@ -370,10 +372,11 @@
                     <button id="clean" type="button" class="btn btn-success"><i class="fas fa-redo"></i> Clean Filter
                     </button>
 
-                    <button id="submit" type="submit" class="btn btn-primary" form="myForm">Next <i
-                            class="fas fa-forward"></i>
-                    </button>
-
+                    {% if is_script == None %}
+                        <button id="submit" type="submit" class="btn btn-primary" form="myForm">Next <i
+                                class="fas fa-forward"></i>
+                        </button>
+                    {% endif %}
                 </div>
             </td>
 

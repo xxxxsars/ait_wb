@@ -10,6 +10,7 @@ import shutil
 # Create your views here.
 
 def upload_index(request):
+    is_script = True
 
     if request.method == 'POST':
         a = ArgumentForm(request.POST)

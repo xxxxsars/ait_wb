@@ -16,14 +16,23 @@ from common.limit import set_parameter_arg, set_parameter_other
 
 
 
-def index(request):
-    return render(request,"index.html",locals())
+def list_task(request):
+    is_script = True
+    datas = Upload_TestCase.objects.all()
+
+    return render(request, "list.html", locals())
 
 
+
+
+
+
+
+########## project script ###############
 
 
 # Create your views here.
-def list_task(request):
+def create_script(request):
     datas = Upload_TestCase.objects.all()
 
     if request.POST:
@@ -398,3 +407,5 @@ def get_conflict_tasks(conflict_dict):
                 tasks.append(k)
         conflict_task[cf] = tasks
     return conflict_task
+
+########## project script ###############

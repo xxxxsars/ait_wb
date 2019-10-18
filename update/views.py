@@ -16,6 +16,8 @@ from common.limit import input_argument,valid_default_value
 
 
 def modify_index(request,task_id):
+    is_script = True
+
     u = UpdateFileForm()
 
     # let js can't dynamic add argument column
@@ -145,30 +147,6 @@ def modify_index(request,task_id):
 
 
     return render(request, "modify.html", locals())
-
-
-
-# when redirect will show message to update page
-def update_index(request, message=None):
-    if request.method == 'POST':
-        form = QueryTestCaseForm(request.POST)
-        task_id = request.POST["task_id"]
-
-        if task_id =="":
-            task_name = request.POST["task_name"]
-            task_id = Upload_TestCase.objects.get(task_name = task_name).task_id
-
-        if form.is_valid():
-
-            return redirect ("script_modify", task_id)
-
-        else:
-            return render(request, "update.html", locals())
-
-
-
-    form = QueryTestCaseForm()
-    return render(request, "update.html", locals())
 
 
 

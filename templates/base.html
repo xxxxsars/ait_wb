@@ -58,9 +58,12 @@
     {% if login_page == None %}
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav mr-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url "script_upload" %}">Upload</a>
-                </li>
+
+                {% if is_script %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url "script_upload" %}">Create</a>
+                    </li>
+                {% endif %}
             </ul>
 
 
