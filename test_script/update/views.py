@@ -9,7 +9,6 @@ import platform
 import collections
 
 from test_script.update.forms import *
-from test_script.upload.models import *
 from test_script.upload.forms import *
 from common.limit import input_argument,valid_default_value
 

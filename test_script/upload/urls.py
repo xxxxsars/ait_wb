@@ -3,6 +3,6 @@ from django.conf.urls import url, include
 from test_script.upload.views import *
 
 urlpatterns = [
-    url("^upload/$", upload_index,name="script_upload"),
+    url("^create/$", upload_index,name="script_create"),
 ]
 

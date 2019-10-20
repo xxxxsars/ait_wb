@@ -38,11 +38,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "rest_framework",
+    'user_information',
     "FactoryWeb",
     'test_script.upload',
     'test_script.update',
     'test_script.list',
-    'user_information'
+    'project'
+
 ]
 
 MIDDLEWARE = [

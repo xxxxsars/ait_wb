@@ -6,7 +6,7 @@ from test_script.upload.models import *
 import os
 import zipfile
 import platform
-import shutil
+
 
 # Create your views here.
 
