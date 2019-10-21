@@ -49,6 +49,7 @@
                 $("#task_list").remove();
                 $("#ini_content").remove();
                 $("#chose_files").remove();
+                $("#result_dict").remove();
 
                 $(this).append('<input  id="task_list" type="hidden" name="task_list"/>');
                 $("#task_list").val(task_name);
@@ -65,8 +66,8 @@
 
 
 
-                    $(this).append('<input  id="result_dict" type="hidden" name="result_dict" />');
-                    $("#result_dict").val(result_dict);
+                $(this).append('<input  id="result_dict" type="hidden" name="result_dict" />');
+                $("#result_dict").val(result_dict);
 
                 <!--if download the tasks will not be sorted.-->
                 $("#sort-task").sortable("disable");
@@ -98,7 +99,6 @@
 
                 $(this).append('<input  id="conflict_files" type="hidden" name="conflict_files"/>');
                 $("#conflict_files").val(conflict_files)
-
 
 
                 $(this).append('<input  id="conflict_files" type="hidden" name="conflict_files"/>');

@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import StreamingHttpResponse,Http404
 from django.contrib.auth.models import User
+from django.core.exceptions import SuspiciousOperation
 
 import platform
 import os
@@ -15,6 +16,15 @@ import json
 from common.limit import set_parameter_arg, set_parameter_other
 from project.forms import *
 from project.models import *
+
+
+@login_required(login_url="/user/login/")
+def list_project(request):
+    is_project = True
+
+
+    return render(request, "project_list.html", locals())
+
 
 @login_required(login_url="/user/login")
 def create_project_index(request):
@@ -50,9 +60,13 @@ def select_script(request,project_name):
     is_project = True
     datas = Upload_TestCase.objects.all()
 
+    # if project name not existed ,will show bad requests
+    if (Project.objects.filter(project_name=project_name).exists()==False):
+        raise SuspiciousOperation("Invalid request!")
+
 
     if request.POST:
-        print(project_name)
+
         # render the set_argument page ,it data get from list page
         if "task_ids" in request.POST:
 
@@ -120,6 +134,7 @@ def select_script(request,project_name):
                                                 "script_name": script_name, "task_name": task_name}
 
 
+
             for task_id in task_ids:
                 append_dict = result_dict[task_id]
                 append_dict["timeout"] = request.POST["timeout_%s" % task_id]
@@ -131,13 +146,21 @@ def select_script(request,project_name):
             render_str = ""
             render_di = {}
 
+
+
             token = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(30))
+
+
+
             for task_id in task_ids:
                 render_di[task_id] = gen_ini_str(task_id, result_dict) + "\n"
 
 
             # check conflict files
             cf = conflict_files(result_dict)
+
+
+            result_dict["project_name"] = project_name
             if len(cf.keys()) != 0:
                 cf_tasks = get_conflict_tasks(cf)
 
@@ -148,7 +171,10 @@ def select_script(request,project_name):
 
             # if not conflict files will show  confirm page and the project can be downloaded.
             return render(request, "confirm.html", locals())
-    return render(request, "list.html", locals())
+
+
+
+    return render(request, "script_list.html", locals())
 
 
 
@@ -158,37 +184,77 @@ def select_script(request,project_name):
 
 def download(request,token):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-
-
-    if request.POST:
-        post_args = eval(request.POST['result_dict'])
-        username = request.user.username
-
-
-        # save ini
-        with open( os.path.join(os.path.join(path,"download_folder"),"%s.ini"%token),"w") as f:
-            f.write(request.POST["ini_content"])
-
-        task_list = str(request.POST["task_list"]).split(",")
-
-        if "chose_files" in request.POST:
-            chose_map = eval(request.POST["chose_files"])
-            conflict_archive_folder(task_list,token,chose_map)
-        else:
-            archive_folder(task_list,token)
-
-
     if platform.system() == "Windows":
-        file_path = path + r'\download_folder\\' + "%s.zip"%token
+        file_path = path + r'\download_folder\\' + "%s.zip" % token
     else:
-        file_path = path + '/download_folder/' + "%s.zip"%token
+        file_path = path + '/download_folder/' + "%s.zip" % token
 
-    file = open(file_path, 'rb')
-    response = StreamingHttpResponse(file)
-    response['Content-Type'] = 'application/octet-stream'
-    response['Content-Disposition'] = 'attachment;filename="%s.zip"'%datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    return response
+    # if had been download only provide download service not record data
+    if Download_log.objects.filter(token=token).exists() ==True:
+
+        file = open(file_path, 'rb')
+        response = StreamingHttpResponse(file)
+        response['Content-Type'] = 'application/octet-stream'
+        response['Content-Disposition'] = 'attachment;filename="%s.zip"' % datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
+        return response
+
+    else:
+        if request.POST:
+            Download_log.objects.create(token=token)
+
+            post_args = eval(request.POST['result_dict'])
+            username = request.user.username
+            project_name = post_args["project_name"]
+
+            post_args.pop("project_name")
+            # save ini
+            with open( os.path.join(os.path.join(path,"download_folder"),"%s.ini"%token),"w") as f:
+                f.write(request.POST["ini_content"])
+
+            # compress all file to zip file
+            task_list = str(request.POST["task_list"]).split(",")
+            if "chose_files" in request.POST:
+                chose_map = eval(request.POST["chose_files"])
+                conflict_archive_folder(task_list,token,chose_map)
+            else:
+                archive_folder(task_list,token)
+
+
+            # provide the download link service
+            file = open(file_path, 'rb')
+            response = StreamingHttpResponse(file)
+            response['Content-Type'] = 'application/octet-stream'
+            response['Content-Disposition'] = 'attachment;filename="%s.zip"'%datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
+
+            #save all project paramters to database
+            project_instance = Project.objects.get(project_name=project_name)
+
+            for task_id,argumes in post_args.items():
+                task_instance = Upload_TestCase.objects.get(task_id=task_id)
+                Project_task.objects.create(project_name=project_instance,
+                                            task_id=task_instance,
+                                            criteria=argumes['criteria'],
+                                            exit_code=argumes["exitcode"],
+                                            retry_count=argumes["retry"],
+                                            sleep_time=argumes['sleep'],
+                                            timeout=argumes['timeout'])
+
+                db_args = Arguments.objects.filter(task_id=task_id)
+
+                for arg in db_args:
+                    Project_task_argument.objects.create(argument=arg.argument,
+                                                         default_value=argumes[arg.argument],
+                                                         project_name=project_instance,
+                                                         task_id=task_instance)
+
+            #save those file to owner user folder
+            save_project_files(token,username,project_name)
+
+            return response
+        else:
+            return  Http404
 
 def archive_folder(task_list,token):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -423,6 +489,26 @@ def get_conflict_tasks(conflict_dict):
     return conflict_task
 
 
+
+
+def save_project_files(token,username,project_name):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    if platform.system() == "Windows":
+        source_path = path + r'\download_folder\\'
+
+    else:
+        source_path = path + '/download_folder/'
+
+
+    source_zip = os.path.join(source_path,"%s.zip"%token)
+    dest_path = os.path.join(os.path.join(source_path,username),project_name)
+
+    if not os.path.exists(dest_path):
+        os.makedirs(dest_path)
+
+    with zipfile.ZipFile(source_zip, 'r') as zip_ref:
+        zip_ref.extractall(dest_path)
 
 def valid_user(username):
     if User.objects.filter(username=username).exists():

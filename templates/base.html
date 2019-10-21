@@ -64,6 +64,13 @@
                         <a class="nav-link" href="{% url "script_create" %}">Create</a>
                     </li>
                 {% endif %}
+
+
+                {% if is_project %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url "project_create" %}">Create</a>
+                    </li>
+                {% endif %}
             </ul>
 
 

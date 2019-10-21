@@ -12,7 +12,7 @@ def list_task(request):
     is_script = True
     datas = Upload_TestCase.objects.all()
 
-    return render(request, "list.html", locals())
+    return render(request, "script_list.html", locals())
 
 
 

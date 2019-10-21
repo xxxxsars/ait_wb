@@ -13,7 +13,7 @@ class Project(models.Model):
 
 class Project_task(models.Model):
     project_name =models.ForeignKey(Project,on_delete=models.CASCADE)
-    task_id = models.ForeignKey(Arguments,on_delete=models.CASCADE)
+    task_id = models.ForeignKey(Upload_TestCase,on_delete=models.CASCADE)
 
     timeout = models.IntegerField(default=30)
     exit_code = models.CharField(max_length=20,default="exitCode")
@@ -23,17 +23,28 @@ class Project_task(models.Model):
 
     class Meta:
         db_table = "project_task"
+        unique_together = (('task_id','project_name'),)
 
 
 
 class Project_task_argument(models.Model):
     argument = models.CharField(max_length=255)
-    description=  models.CharField(max_length=255)
     default_value = models.CharField(max_length=255,default="null")
 
     project_name =models.ForeignKey(Project,on_delete=models.CASCADE)
-    task_id = models.ForeignKey(Arguments,on_delete=models.CASCADE)
+    task_id = models.ForeignKey(Upload_TestCase,on_delete=models.CASCADE)
 
 
     class Meta:
         db_table = "project_task_arguments"
+        unique_together = (('task_id','project_name','argument'),)
+
+
+
+
+class Download_log(models.Model):
+    token  = models.CharField(max_length=30,primary_key=True)
+    time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table ="download_log"
