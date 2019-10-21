@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block css %}
+    <style>
+        h3 {
+            text-align: center;
+        }
+
+    </style>
+{% endblock %}
+
+
+
+{% block js %}
+    <script>
+    $(document).ready(function () {
+        $("#go_select").click(function () {
+            const re = /\[(\w+)\]/g;
+            const matched = re.exec( $("#success_msg").text());
+            var project_name = matched[1];
+
+            window.location.href = '/project/select/'+project_name;
+        })
+
+
+    })
+
+
+
+    </script>
+{% endblock %}
+
+
+{% block body %}
+    <h3>Create Project</h3>
+
+    {% if c.errors %}
+
+        {% for field in c %}
+            {% for error in field.errors %}
+                <div class="alert alert-danger">
+                    <strong>{{ error|escape }}</strong>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    {% endif %}
+
+
+    {% if susessful %}
+        <div class="alert alert-success">
+            <strong id="success_msg"> {{ susessful }}</strong>
+        </div>
+
+        <div class="text-right">
+            <button id="go_select" type="submit" class="btn btn-primary" >Next <i
+                    class="fas fa-forward"></i>
+            </button>
+
+        </div>
+
+    {% endif %}
+
+
+    <form enctype="multipart/form-data" method="post" action="">{% csrf_token %}
+        <label for="project_name">Project Name：</label>{{ c.project_name }}
+
+        <br>
+
+        <button class="btn btn-primary" type="submit"><i class="fas fa-share-square"></i> Submit</button>
+
+    </form>
+
+{% endblock %}

@@ -15,6 +15,9 @@ input_task_name = re.compile(r"[^\w|_|\s]+")
 input_argument = re.compile(r"[^\w|_]+")
 
 
+input_project_name = re.compile(r"\w{7}")
+
+
 def valid_default_value(value):
     if re.search("\s+",value):
         if re.search(r'^".*"$',value) ==None:

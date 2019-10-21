@@ -372,7 +372,7 @@
                     <button id="clean" type="button" class="btn btn-success"><i class="fas fa-redo"></i> Clean Filter
                     </button>
 
-                    {% if is_script == None %}
+                    {% if is_project %}
                         <button id="submit" type="submit" class="btn btn-primary" form="myForm">Next <i
                                 class="fas fa-forward"></i>
                         </button>
@@ -399,8 +399,10 @@
                 <th>ID</th>
                 <th>Task Case Name</th>
                 <th>Description</th>
-                <th></th>
 
+                {% if is_script %}
+                    <th></th>
+                {% endif %}
             </tr>
             </thead>
             <tbody>
@@ -410,19 +412,22 @@
                     <td>{{ data.task_id }}</td>
                     <td>{{ data.task_name }}</td>
                     <td>{{ data.description }}</td>
-                    <td style="text-align: center;min-width:100px ">
 
-                        <button type="button"
-                                class="delete_btn btn btn-primary btn-xs  btn-md center-block dt-edit">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button type="button"
-                                class="edit_btn btn btn-danger btn-xs   btn-md center-block dt-delete"><i
-                                class="fas fa-trash"></i>
-                        </button>
+                    {% if is_script %}
+                        <td style="text-align: center;min-width:100px ">
+
+                            <button type="button"
+                                    class="delete_btn btn btn-primary btn-xs  btn-md center-block dt-edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button"
+                                    class="edit_btn btn btn-danger btn-xs   btn-md center-block dt-delete"><i
+                                    class="fas fa-trash"></i>
+                            </button>
 
 
-                    </td>
+                        </td>
+                    {% endif %}
                 </tr>
             {% endfor %}
             </tbody>
@@ -432,7 +437,9 @@
                 <th>TasK ID</th>
                 <th>Task Case Name</th>
                 <th>Description</th>
+                {% if is_script %}
                 <th></th>
+                {% endif %}
 
             </tr>
             </tfoot>
