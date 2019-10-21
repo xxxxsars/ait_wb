@@ -21,6 +21,13 @@ from project.models import *
 @login_required(login_url="/user/login/")
 def list_project(request):
     is_project = True
+    username = request.user.username
+    if request.user.is_staff:
+        datas = Project.objects.all()
+
+    else:
+        user_instance = User.objects.get(username=username)
+        datas = Project.objects.filter(owner_user=user_instance)
 
 
     return render(request, "project_list.html", locals())

@@ -2,9 +2,125 @@
 {% load staticfiles %}
 
 
+{% block head %}
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/datatables.net-dt/css/jquery.dataTables.min.css" %}">
+
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/bootstrap-select/dist/css/bootstrap-select.min.css" %}">
+
+    <script src={% static "bower_components/datatables.net/js/jquery.dataTables.min.js" %}></script>
 
 
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/datatables.net-dt/css/select.dataTables.min.css" %}">
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/datatables.net-dt/css/query.dataTables.min.css" %}">
+
+
+    <script src={% static "bower_components/datatables.net/js/dataTables.select.min.js" %}></script>
+
+    <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
+
+    <script src="{% static "bower_components/bootstrap-select/dist/js/bootstrap-select.min.js" %}"></script>
+{% endblock %}
+
+
+
+{% block css %}
+    <style>
+
+        .dataTables_filter, .dataTables_info {
+            display: none;
+        }
+
+        h3 {
+            text-align: center;
+        }
+
+
+
+    </style>
+{% endblock %}
+
+
+
+{% block js %}
+
+
+    <script>
+
+        $(document).ready(function () {
+            var t = $('#project_table').DataTable({
+                "dom": '<"top"i>rt<"bottom"flp><"clear">',
+                "autoWidth": true,
+                "scrollX": true,
+                "columnDefs": [
+                    {
+                        "searchable": false,
+                        "orderable": false,
+                        "targets": 0,
+                        "width": "5%",
+                    },
+                    {
+                        "width": "60%",
+                        "targets": 1,
+                    },
+                    {
+                        "width": "30%",
+                        "targets": 2,
+                    },],
+                "order": [[1, 'asc']]
+            });
+
+            t.on('order.dt search.dt', function () {
+                t.column(0, {search: 'applied', order: 'applied'}).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1;
+                });
+            }).draw();
+        });
+    </script>
+{% endblock %}
 {% block body %}
+    <h3>[ {{ username |title}} ]  Project</h3>
+
+    <table id="project_table" class="display" style="width:100%">
+        <thead>
+        <tr>
+            <th></th>
+            <th>Project Name</th>
+            <th></th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for data in datas %}
+            <tr>
+                <td style="text-align: center"></td>
+                <td>{{ data.project_name }}</td>
+                <td style="text-align: center;min-width:100px ">
+
+                    <button type="button"
+                            class="btn btn-primary btn-xs  btn-md center-block dt-edit">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button type="button"
+                            class=" btn btn-danger btn-xs   btn-md center-block dt-delete"><i
+                            class="fas fa-trash"></i> Delete
+                    </button>
+
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+
+        </tbody>
+
+
+    </table>
 
 
 {% endblock %}

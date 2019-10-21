@@ -420,11 +420,13 @@
                                     class="delete_btn btn btn-primary btn-xs  btn-md center-block dt-edit">
                                 <i class="fas fa-edit"></i>
                             </button>
+
+                             {% if request.user.is_staff %}
                             <button type="button"
                                     class="edit_btn btn btn-danger btn-xs   btn-md center-block dt-delete"><i
                                     class="fas fa-trash"></i>
                             </button>
-
+                            {% endif %}
 
                         </td>
                     {% endif %}
@@ -438,7 +440,7 @@
                 <th>Task Case Name</th>
                 <th>Description</th>
                 {% if is_script %}
-                <th></th>
+                    <th></th>
                 {% endif %}
 
             </tr>
