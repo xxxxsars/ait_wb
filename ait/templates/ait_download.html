@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+
+
+{% block js %}
+<script>
+  $(document).ready(function () {
+
+      $("#download_jar").click(function () {
+          location.href ="{% url "ait_download_file" %}"
+      })
+
+
+
+  })
+
+</script>
+
+{% endblock %}
+
+
+{% block body %}
+
+
+    <table border="0" style="width: 100%; margin: 0 auto 2em auto;">
+        <tr>
+
+            <td><h3>Download</h3></td>
+            <td>
+                <div class="text-right">
+                    <button id="download_jar"  type="button" class="btn btn-success"><i class="fas fa-download"></i> Download</button>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+
+
+    <table class="table table-striped">
+        <thead style="font-weight: bold;">
+            <tr>
+                <td>
+                    Version
+                </td>
+                <td>
+                    Release data
+                </td>
+                <td>Release notes</td>
+            </tr>
+        </thead>
+        {% for data in datas %}
+        <tr>
+            <td>{{ data.version }}</td>
+            <td>{{ data.time |date:'Y M d H'}}</td>
+            <td>  <a href="{% url "release_note" data.version %}" >Announcement</a></td>
+
+        </tr>
+
+        {% endfor %}
+
+        <tbody>
+
+        </tbody>
+
+    </table>
+{% endblock %}

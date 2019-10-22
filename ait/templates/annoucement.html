@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+
+{% block js %}
+    <script>
+        $(document).ready(function () {
+
+            $("#download_jar").click(function () {
+                location.href = "{% url "ait_download_file" %}"
+            })
+
+
+        })
+
+    </script>
+
+{% endblock %}
+
+
+{% block css %}
+    <style>
+
+        h3 {
+            text-align: center;
+        }
+
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #333;
+            background-color: #fff;
+        }
+
+
+    </style>
+{% endblock %}
+
+
+{% block body %}
+    <h3>AIT Release Version {{ version }}</h3>
+    <hr>
+
+    <div class="row">
+        <div class="col-md-10">
+
+
+            {{ content.release_note |linebreaks }}
+            <small>{{ content.time|date:'Y M d H' }}</small>
+
+        </div>
+
+        <div class="col-md-2">
+
+
+            <button id="download_jar" type="button" class="btn btn-success"><i class="fas fa-download"></i> Download
+            </button>
+
+        </div>
+    </div>
+{% endblock %}
+

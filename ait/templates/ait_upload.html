@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+
+{% block css %}
+    <style>
+
+
+        h3 {
+            text-align: center;
+        }
+
+    </style>
+{% endblock %}
+
+
+
+{% block js %}
+    <script>
+
+        {#display the upload file name#}
+        $(function () {
+            $('#inputGroupFile04').on('change', function () {
+                //get the file name
+                var fileName = $(this).val();
+                //replace the "Choose a file" label
+                $(this).next('.custom-file-label').html(fileName);
+            });
+        });
+    </script>
+{% endblock %}
+
+
+{% block body %}
+    <h3>Upload AIT</h3>
+
+
+
+    {% if u.errors %}
+        {% for field in u %}
+            {% for error in field.errors %}
+                <div class="alert alert-danger">
+                    <strong>{{ error|escape }}</strong>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    {% endif %}
+
+
+    {% if susessful %}
+        <div class="alert alert-success">
+            <strong> {{ susessful }}</strong>
+        </div>
+    {% endif %}
+
+
+
+    <form enctype="multipart/form-data" method="post" action="">{% csrf_token %}
+
+        <label for="version">Version：</label>{{ u.version }}
+        <label for="realease_noet">Release Note：</label>{{ u.release_note }}
+
+
+        <label for="upload">Upload AIT file：</label>
+        <div class="input-group">
+            <div class="custom-file">
+                {{ u.file }}
+                <label class="custom-file-label" for="inputGroupFile04">Please Upload AIT File</label>
+            </div>
+        </div>
+        <br>
+        <button class="btn btn-primary" type="submit"><i class="fas fa-share-square"></i> Submit</button>
+
+    </form>
+
+{% endblock %}

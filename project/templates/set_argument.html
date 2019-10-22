@@ -196,7 +196,10 @@
             </tr>
             </thead>
             <tbody>
-            {% for id,name in task_dict.items %}
+
+            {% if is_modify %}
+
+                {% for id,name in task_dict.items %}
                 <tr>
                     <td class="details-control"></td>
                     <td class="task_id">{{ id }}</td>
@@ -206,7 +209,8 @@
                                title="Test case timeout value" value="30"></td>
                     <td><input type="text" name="exitcode_{{ id }}" class="form-control" data-toggle="tooltip"
                                data-placement="left"
-                               title=" Pass condition 'exitCode to be define for exit(0) and exit(1)'" value="exitCode">
+                               title=" Pass condition 'exitCode to be define for exit(0) and exit(1)'"
+                               value="exitCode">
                     </td>
                     <td>
                         <input type="text" name="retry_{{ id }}" class="form-control" data-toggle="tooltip"
@@ -227,7 +231,45 @@
 
                 </tr>
 
-            {% endfor %}
+            {% else %}
+
+                {% for id,name in task_dict.items %}
+                    <tr>
+                        <td class="details-control"></td>
+                        <td class="task_id">{{ id }}</td>
+                        <td>{{ name }}</td>
+                        <td><input type="text" name="timeout_{{ id }}" class="form-control" data-toggle="tooltip"
+                                   data-placement="left"
+                                   title="Test case timeout value" value="30"></td>
+                        <td><input type="text" name="exitcode_{{ id }}" class="form-control" data-toggle="tooltip"
+                                   data-placement="left"
+                                   title=" Pass condition 'exitCode to be define for exit(0) and exit(1)'"
+                                   value="exitCode">
+                        </td>
+                        <td>
+                            <input type="text" name="retry_{{ id }}" class="form-control" data-toggle="tooltip"
+                                   data-placement="left"
+                                   title="Retry count" value="3">
+                        </td>
+                        <td>
+                            <input type="text" name="sleep_{{ id }}" class="form-control" data-toggle="tooltip"
+                                   data-placement="left"
+                                   title="Sleep time" value="0">
+                        </td>
+                        <td>
+                            <input type="text" name="criteria_{{ id }}" class="form-control" data-toggle="tooltip"
+                                   data-placement="left"
+                                   title="Set test case criteria" value="success">
+                        </td>
+
+
+                    </tr>
+
+                {% endfor %}
+
+            {% endif %}
+
+
             </tbody>
 
         </table>

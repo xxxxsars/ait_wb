@@ -61,16 +61,28 @@
 
                 {% if is_script %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url "script_create" %}">Create</a>
+                        <a class="nav-link" href="{% url "script_create" %}">Create TestScript</a>
                     </li>
                 {% endif %}
 
 
                 {% if is_project %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url "project_create" %}">Create</a>
+                        <a class="nav-link" href="{% url "project_create" %}">Create Project</a>
                     </li>
                 {% endif %}
+
+
+
+                {% if is_ait %}
+                    {% if request.user.is_staff %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url "ait_upload" %}">Upload AIT</a>
+                        </li>
+                    {% endif %}
+                {% endif %}
+
+
             </ul>
 
 

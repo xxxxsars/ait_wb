@@ -42,7 +42,7 @@ def modify_index(request,task_id):
                     handle_update_file(request.FILES['file'], task_name)
                 except Exception as e:
                     error_message = "Upload file is no valid zip file."
-                    return render(request, "modify.html", locals())
+                    return render(request, "script_modify.html", locals())
 
 
             # handle post task information
@@ -66,16 +66,16 @@ def modify_index(request,task_id):
                 # handle render post value
                 if input_argument.search(post_arg) != None:
                     error_message = "Your arguments only allow number, letter and underline."
-                    return render(request, "modify.html", locals())
+                    return render(request, "script_modify.html", locals())
 
                 if post_arg in posted_args:
                     error_message = "Your parameters only allow unique values."
-                    return render(request, "modify.html", locals())
+                    return render(request, "script_modify.html", locals())
                 posted_args.append(post_arg)
 
                 if valid_default_value(post_value) == False:
                     error_message = "Your default value does not match the rule."
-                    return render(request, "modify.html", locals())
+                    return render(request, "script_modify.html", locals())
 
 
 
@@ -106,12 +106,12 @@ def modify_index(request,task_id):
                 for arg in arguments:
                     if input_argument.search(arg)!=None:
                             error_message = "Your arguments only allow number, letter and underline."
-                            return render(request, "modify.html", locals())
+                            return render(request, "script_modify.html", locals())
 
                 # check new argument not deplicate
                 if len( [item for item, count in collections.Counter(arguments).items() if count > 1])>0:
                     error_message = "Your parameters only allow unique values."
-                    return render(request, "modify.html", locals())
+                    return render(request, "script_modify.html", locals())
 
 
                 for i, e in enumerate(arguments):
@@ -121,7 +121,7 @@ def modify_index(request,task_id):
 
                     if argument in db_args:
                         error_message = "Your parameters only allow unique values."
-                        return render(request, "modify.html", locals())
+                        return render(request, "script_modify.html", locals())
                     new_args.append(Arguments(argument=argument, description=description, default_value=value,task_id=up))
 
 
@@ -144,7 +144,7 @@ def modify_index(request,task_id):
             render_value = False
 
 
-    return render(request, "modify.html", locals())
+    return render(request, "script_modify.html", locals())
 
 
 

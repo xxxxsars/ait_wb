@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import api_view,authentication_classes,permission_classes
 from rest_framework.response import Response
+from rest_framework.permissions import IsAdminUser
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 
@@ -41,6 +42,7 @@ class DeleteTestCaseView(viewsets.ModelViewSet):
     queryset = Upload_TestCase.objects.all()
     serializer_class = TaskSerializer
     authentication_classes = [ BasicAuthentication]
+    # permission_classes = (IsAdminUser,)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

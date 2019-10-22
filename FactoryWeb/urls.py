@@ -34,6 +34,8 @@ urlpatterns = [
 
     url("^project/", include("project.urls")),
 
+    url("^ait/", include("ait.urls")),
+
 ]
 
 

@@ -25,14 +25,17 @@
             <table>
                 <tr>
                     <td>
-                        <a href="{% url "list_project" %}"><img name='icon' class="rounded" src="{% static "pic/project.png" %}"></a>
+                        <a href="{% url "list_script" %}"><img name='icon' class="rounded"
+                                                               src="{% static "pic/test_script.png" %}"></a>
                     </td>
                 </tr>
                 <tr>
-                     <td style="text-align: center">
-                        Project
+                    <td style="text-align: center">
+                        TestScript
                     </td>
+
                 </tr>
+
             </table>
 
         </div>
@@ -41,15 +44,36 @@
             <table>
                 <tr>
                     <td>
-                        <a href="{% url "list_script" %}"><img name='icon' class="rounded" src="{% static "pic/test_script.png" %}"></a>
+                        <a href="{% url "list_project" %}"><img name='icon' class="rounded"
+                                                                src="{% static "pic/project.png" %}"></a>
                     </td>
                 </tr>
                 <tr>
                     <td style="text-align: center">
-                       TestScript
+                        Project
+                    </td>
+                </tr>
+            </table>
+
+
+        </div>
+
+
+        <div class="col-md-4 brd">
+            <table>
+                <tr>
+                    <td>
+                        <a href="{% url "ait_download" %}"><img name='icon' class="rounded"
+                                                                src="{% static "pic/download.png" %}"></a>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align: center">
+                        AIT
                     </td>
 
                 </tr>
+
             </table>
         </div>
 

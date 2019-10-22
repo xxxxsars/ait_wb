@@ -29,12 +29,14 @@ def list_project(request):
         user_instance = User.objects.get(username=username)
         datas = Project.objects.filter(owner_user=user_instance)
 
+        print(datas)
+
 
     return render(request, "project_list.html", locals())
 
 
 @login_required(login_url="/user/login")
-def create_project_index(request):
+def create_project(request):
     is_project = True
 
     if request.POST:
@@ -60,8 +62,50 @@ def create_project_index(request):
     return render(request,"create.html",locals())
 
 
+@login_required(login_url="/user/login")
+def modify_project(request,project_name):
+    is_project = True
+    is_modify = True
+
+    username =request.user.username
 
 
+    # check project is valid
+    if not request.user.is_staff:
+        project_list = [ prj[0] for prj in Project.objects.filter(owner_user=User.objects.get(username=username)).values_list("project_name") ]
+    else:
+        project_list = [ prj[0] for prj in Project.objects.all().values_list("project_name") ]
+    if project_name not in project_list:
+        return Http404
+
+
+    task_ids =[ prj.task_id.task_id  for prj in  Project_task.objects.filter(project_name=project_name)]
+
+    arg_dict = {}
+    task_dict = {}
+
+    test_dict = {}
+    for task_id in task_ids:
+        task_instance= Upload_TestCase.objects.get(task_id=task_id)
+        project_instance = Project.objects.get(project_name=project_name)
+        args = Project_task_argument.objects.filter(project_name=project_instance).filter(task_id=task_instance)
+
+        arg_dict[task_id] = list(args.values())
+        task_dict[task_id] = task_instance.task_name
+
+        test_dict[task_id] = {task_instance.task_name:Project_task.objects.filter(project_name=project_instance).get(task_id=task_instance)}
+
+    arg_json = json.dumps(arg_dict)
+
+    print(test_dict)
+
+    return render(request, "set_argument.html", locals())
+
+
+
+
+
+# todo post token to all page is token not valid return Http404
 @login_required(login_url="/user/login/")
 def select_script(request,project_name):
     is_project = True
