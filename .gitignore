@@ -2,6 +2,7 @@
 .idea
 upload_folder/*
 download_folder/*
+ait_jar/*
 
 
 # Created by https://www.gitignore.io

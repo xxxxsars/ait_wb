@@ -26,10 +26,10 @@ def download_index(request):
 def download(request):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if platform.system() == "Windows":
-        file_path = path + r'\ait_config\\' + "AIT.jar"
+        file_path = path + r'\ait_jar\\' + "AIT.jar"
 
     else:
-        file_path = path + '/ait_config/' + "AIT.jar"
+        file_path = path + '/ait_jar/' + "AIT.jar"
 
 
     file = open(file_path, 'rb')
@@ -85,10 +85,10 @@ def handle_uploaded_file(f):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     if platform.system() == "Windows":
-        save_path = path + r'\ait_config\\' + "AIT.jar"
+        save_path = path + r'\ait_jar\\' + "AIT.jar"
 
     else:
-        save_path = path + '/ait_config/' + "AIT.jar"
+        save_path = path + '/ait_jar/' + "AIT.jar"
 
 
     with open(save_path, 'wb+') as destination:
