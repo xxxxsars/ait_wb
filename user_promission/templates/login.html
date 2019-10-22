@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block head %}
+    <title>Login</title>
+    <link rel="stylesheet" type="text/css" href="{% static "css/user_infomation.css" %}">
+{% endblock %}
+
+
+{% block css %}
+<style>
+    #content{
+        width: 28em;
+
+    }
+    tr{
+        height: 50px;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+    <div id="content" >
+     <div id="content_header">
+        Sign in
+    </div>
+    {% if f.errors %}
+        <div id="error_message">
+            {% for field, errors in f.errors.items %}
+                {{ errors}}
+            {% endfor %}
+        </div>
+    {% endif %}
+    <form action="" method="post">{% csrf_token %}
+    <table align="center">
+        <tr>
+            <td><label for="id_username">UserName：</label></td>
+            <td >{{ f.username }}</td>
+        </tr>
+
+        <tr>
+            <td><label for="password">PassWord：</label></td>
+            <td>{{ f.password }}</td>
+        </tr>
+
+        <tr>
+            <td><input    type="submit" value="Login"></td><td></td>
+        </tr>
+
+    </table>
+    </form>
+
+    </div>
+{% endblock %}

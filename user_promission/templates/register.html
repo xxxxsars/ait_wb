@@ -1,0 +1,104 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register Page</title>
+    <script src="{% static "jquery/dist/jquery.js" %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static "css/user_infomation.css" %}">
+
+    <script>
+        $(document).ready(function () {
+            var sucess_text = $('#sucess_message').text();
+            var regex =/\w+/;
+            if(sucess_text.match(regex)!=null){
+                window.setTimeout(function () {
+                location.href = "/user/login/";
+                }, 3000);
+            }
+
+            $("#register_submit").click(
+                function () {
+                    var newPassword = $("#password").val();
+                    var repeatPassword = $("#repeatPassword").val();
+                    if (newPassword!=repeatPassword) {
+                        alert("您輸入的用戶密碼與重複密碼不符合請重新輸入！");
+                    }
+
+
+                }
+            )
+        })
+    </script>
+
+</head>
+<body>
+
+<div id="header">
+    <div id="branding">
+        <h1 id="site-name"><a href="/index/">Home</a></h1></div>
+            <div id="user-tools">
+                Welcome,<strong>{{ username }}</strong>.
+                <a href="/">View site</a> /
+                <a href="{% url "logout" %}">Log out</a>
+            </div>
+</div>
+
+
+
+
+
+
+<form action="" method="post" >
+    {% csrf_token %}
+
+    <div id="content" >
+    <div id="content_header" style="background: white;color: #0f0f0f">請輸入註冊資訊</div>
+    {% if f.errors %}
+        <div id="error_message">
+            {% for field, errors in f.errors.items %}
+                {{ errors}}
+            {% endfor %}
+        </div>
+    {% endif %}
+
+        <table id="register_table" align="center">
+            <tr>
+                <td><label for="id_username">使用者帳號:</label></td>
+                <td> {{ f.username }}</td>
+            </tr>
+
+            <tr>
+                <td><label for="password">使用者密碼：</label></td>
+                <td>{{ f.password }}</td>
+            </tr>
+
+            <tr>
+                <td><label for="repeatPassword">請再輸入一次密碼：</label></td>
+                <td>{{ f.repeatPassword }}</td>
+            </tr>
+
+            <tr>
+                <td><label for="id_email">請輸入常用信箱：</label></td>
+                <td>{{ f.email }}</td>
+            </tr>
+
+
+            <tr>
+                <td COLSPAN=2> {{ f.captcha }}</td>
+
+            </tr>
+
+            <tr>
+                <td></td>
+                <td style="float: right"><input type="submit" value="註冊"></td>
+            </tr>
+        </table>
+     <div id="sucess_message">{{ susessful }}</div>
+    </div>
+</form>
+
+
+</body>
+
+</html>
