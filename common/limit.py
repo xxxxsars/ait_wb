@@ -15,7 +15,7 @@ input_task_name = re.compile(r"[^\w|_|\s]+")
 input_argument = re.compile(r"[^\w|_]+")
 
 
-input_project_name = re.compile(r"\w{7}")
+input_project_name = re.compile(r"^\w{7}$")
 
 
 def valid_default_value(value):
