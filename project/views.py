@@ -142,7 +142,6 @@ def select_script(request,project_name):
         if "conflicted" in request.POST:
             confilct_files = str(request.POST["conflict_files"]).split(",")
             render_di = eval(request.POST["ini_content"])
-            task_names = str(request.POST["task_list"]).split(",")
 
             chose_map = {}
             for cf in confilct_files:
@@ -153,7 +152,7 @@ def select_script(request,project_name):
         # handle the set_argument submit action ,it will get all tab parameter
         else:
             task_ids = []
-            task_names = []
+
 
             arg_reg = set_parameter_arg
             other_reg = set_parameter_other
@@ -175,7 +174,7 @@ def select_script(request,project_name):
                     parmeter = arg_reg.search(k).group(2)
                     argument = v[0]
 
-                    task_names.append(task_name)
+
 
                     if task_id in result_dict:
                         pd = result_dict[task_id]
@@ -210,7 +209,7 @@ def select_script(request,project_name):
             # check conflict files
             cf = conflict_files(result_dict)
 
-
+            print(cf)
             result_dict["project_name"] = project_name
             if len(cf.keys()) != 0:
                 cf_tasks = get_conflict_tasks(cf)
@@ -265,6 +264,8 @@ def download(request,token):
 
             # compress all file to zip file
             task_list = str(request.POST["task_list"]).split(",")
+            print(task_list)
+
             if "chose_files" in request.POST:
                 chose_map = eval(request.POST["chose_files"])
                 conflict_archive_folder(task_list,token,chose_map)
@@ -454,11 +455,11 @@ def task_files(task_list):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     task_files = {}
-    for task_name in task_list:
+    for task_id in task_list:
         if platform.system() == "Windows":
-            file_path = path + r'\upload_folder\\' + task_name
+            file_path = path + r'\upload_folder\\' + task_id
         else:
-            file_path = path + '/upload_folder/' + task_name
+            file_path = path + '/upload_folder/' + task_id
 
         # add source pyfile
         file_list = []
@@ -468,7 +469,7 @@ def task_files(task_list):
                 aFile = os.path.join(root, sfile)
                 file_list.append(os.path.relpath(aFile, file_path))
 
-        task_files[task_name] = file_list
+        task_files[task_id] = file_list
 
     return task_files
 
@@ -476,11 +477,11 @@ def task_files(task_list):
 def conflict_files(result_dict):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    task_list = []
-    for k, v in result_dict.items():
-        task_list.append(v["task_name"])
+    task_list = list(result_dict.keys())
+
 
     file_map = task_files(task_list)
+
 
     new_files = {}
 
@@ -494,11 +495,12 @@ def conflict_files(result_dict):
 
         for f in fs:
             if f in new_files.keys():
-                # check md5 ,if not same will append to the deduplicate list
-                if md5(os.path.join(file_path, f)) != new_files[f]:
+                # check md5 ,if  same will append to the deduplicate list
+                if md5(os.path.join(file_path, f)) == new_files[f]:
                     dedup.append(f)
             else:
                 new_files[f] = md5(os.path.join(file_path, f))
+
     dedup_map = {}
     for k, fs in file_map.items():
         file_list = []

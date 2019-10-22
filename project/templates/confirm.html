@@ -34,7 +34,7 @@
         $(function () {
             <!--pass value to download needs-->
             $("#export_form").on("submit", function (e) {
-                var task_name = {{ task_names | safe }};
+                var task_list = {{ task_ids | safe }};
                 var ini_content = "";
                 $("#sort-task li p").each(function () {
                     lines = ($(this).html().split('<br>'));
@@ -52,7 +52,7 @@
                 $("#result_dict").remove();
 
                 $(this).append('<input  id="task_list" type="hidden" name="task_list"/>');
-                $("#task_list").val(task_name);
+                $("#task_list").val(task_list);
 
 
                 $(this).append('<input  id="ini_content" type="hidden" name="ini_content"/>');
@@ -82,7 +82,6 @@
             <!--pass value to chose needs-->
             $("#chose_form").one("submit", function (e) {
 
-                var task_name = {{ task_names | safe }};
                 var ini_content = '{{ render_di |escapejs }}';
                 var conflict_files = {{ cf_tasks.keys|get_list|safe  }}
 
