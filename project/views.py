@@ -496,7 +496,7 @@ def conflict_files(result_dict):
         for f in fs:
             if f in new_files.keys():
                 # check md5 ,if  same will append to the deduplicate list
-                if md5(os.path.join(file_path, f)) == new_files[f]:
+                if md5(os.path.join(file_path, f)) != new_files[f]:
                     dedup.append(f)
             else:
                 new_files[f] = md5(os.path.join(file_path, f))
