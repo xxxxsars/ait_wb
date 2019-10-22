@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "rest_framework",
-    'user_information',
+    'user_promission',
     "FactoryWeb",
     'test_script.upload',
     'test_script.update',
