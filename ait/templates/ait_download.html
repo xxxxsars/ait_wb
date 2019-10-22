@@ -52,7 +52,7 @@
         {% for data in datas %}
         <tr>
             <td>{{ data.version }}</td>
-            <td>{{ data.time |date:'Y M d H'}}</td>
+            <td>{{ data.time |date:'Y M d'}}</td>
             <td>  <a href="{% url "release_note" data.version %}" >Announcement</a></td>
 
         </tr>
