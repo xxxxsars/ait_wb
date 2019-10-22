@@ -39,7 +39,6 @@
         }
 
 
-
     </style>
 {% endblock %}
 
@@ -51,27 +50,60 @@
     <script>
 
         $(document).ready(function () {
-            var t = $('#project_table').DataTable({
-                "dom": '<"top"i>rt<"bottom"flp><"clear">',
-                "autoWidth": true,
-                "scrollX": true,
-                "columnDefs": [
-                    {
-                        "searchable": false,
-                        "orderable": false,
-                        "targets": 0,
-                        "width": "5%",
-                    },
-                    {
-                        "width": "60%",
-                        "targets": 1,
-                    },
-                    {
-                        "width": "30%",
-                        "targets": 2,
-                    },],
-                "order": [[1, 'asc']]
-            });
+
+
+
+            {% if request.user.is_staff %}
+                var t = $('#project_table').DataTable({
+                    "dom": '<"top"i>rt<"bottom"flp><"clear">',
+                    "autoWidth": true,
+                    "scrollX": true,
+                    "columnDefs": [
+                        {
+                            "searchable": false,
+                            "orderable": false,
+                            "targets": 0,
+                            "width": "5%",
+                        },
+                        {
+                            "width": "40%",
+                            "targets": 1,
+                        },
+                        {
+                            "width": "30%",
+                            "targets": 2,
+                        },
+                        {
+                            "width": "25%",
+                            "targets": 3,
+                        },],
+                    "order": [[1, 'asc']]
+                });
+            {% else %}
+                var t = $('#project_table').DataTable({
+                    "dom": '<"top"i>rt<"bottom"flp><"clear">',
+                    "autoWidth": true,
+                    "scrollX": true,
+                    "columnDefs": [
+                        {
+                            "searchable": false,
+                            "orderable": false,
+                            "targets": 0,
+                            "width": "5%",
+                        },
+                        {
+                            "width": "60%",
+                            "targets": 1,
+                        },
+                        {
+                            "width": "30%",
+                            "targets": 2,
+                        },],
+                    "order": [[1, 'asc']]
+                });
+
+
+            {% endif %}
 
             t.on('order.dt search.dt', function () {
                 t.column(0, {search: 'applied', order: 'applied'}).nodes().each(function (cell, i) {
@@ -82,13 +114,16 @@
     </script>
 {% endblock %}
 {% block body %}
-    <h3>[ {{ username |title}} ]  Project</h3>
+    <h3>[ {{ username |title }} ] Project</h3>
 
     <table id="project_table" class="display" style="width:100%">
         <thead>
         <tr>
             <th></th>
             <th>Project Name</th>
+            {% if request.user.is_staff %}
+                <th>Onwer User</th>
+            {% endif %}
             <th></th>
         </tr>
         </thead>
@@ -98,6 +133,9 @@
             <tr>
                 <td style="text-align: center"></td>
                 <td>{{ data.project_name }}</td>
+                {% if request.user.is_staff %}
+                    <td>{{ data.owner_user }}</td>
+                {% endif %}
                 <td style="text-align: center;min-width:100px ">
 
                     <button type="button"
