@@ -47,22 +47,23 @@ class DeleteTestCaseView(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=True)
+
         if serializer.is_valid():
-            task_name = serializer.data["task_name"]
-            remove_upload_file(task_name)
+            task_id = serializer.data["task_id"]
+            remove_upload_file(task_id)
             self.perform_destroy(instance)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-def remove_upload_file(task_name):
+def remove_upload_file(task_id):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     if platform.system() == "Windows":
-        source_folder = path + r'\upload_folder\\' + task_name
+        source_folder = path + r'\upload_folder\\' + task_id
 
     else:
-        source_folder = path + '/upload_folder/' + task_name
+        source_folder = path + '/upload_folder/' + task_id
 
     # remove  script file
     try:
