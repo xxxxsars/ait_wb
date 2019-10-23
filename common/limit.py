@@ -65,7 +65,9 @@ def modify_task_id(old_id,new_id):
     task_name  =task_instance.task_name
 
     id = new_id+get_serial_number(new_id)
-    print(id)
+
+
+
     new_task_instance = Upload_TestCase.objects.create(task_id=id,
                                                        task_name="",
                                                        description=task_instance.description,
@@ -82,6 +84,21 @@ def modify_task_id(old_id,new_id):
     task_instance.delete()
     new_task_instance.task_name= task_name
     new_task_instance.save()
+
+
+    # modify the save path
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    if platform.system() == "Windows":
+        source_path = path + r'\upload_folder\\'
+
+
+    else:
+        source_path = path + '/upload_folder/'
+
+    os.rename(os.path.join(source_path, old_id), os.path.join(source_path, id))
+
+
 
 
 #must back your upload folder and database
@@ -110,15 +127,29 @@ def get_serial_number(task_id):
         serial = re.search(r'(\d{2})$', data["task_id"]).group(1)
         serials.append(int(serial))
 
+    print(serials)
 
-    serial_number = max(serials)+1
+    # get not increment the smallest serial number
+    tmp =  [i for i in range(100)]
+    not_increment =[]
+    for i in tmp[:max(serials)]:
+        if i not in serials:
+            not_increment.append(i)
+
+
+    if len(not_increment) !=0:
+        serial_number = min(not_increment)
+
+    # if not increment get max serials add 1
+    else:
+        serial_number = max(serials)+1
 
     if serial_number >99:
         raise ValueError("Your serial id is gather than 99.")
 
-    max_serial = "%02d" % serial_number
+    serial = "%02d" % serial_number
 
-    return max_serial
+    return serial
 
 
 
@@ -128,5 +159,4 @@ def get_serial_number(task_id):
 
 
 if __name__ =="__main__":
-    modify_task_id("120000","0000")
-
+    modify_task_id("000000","0000")

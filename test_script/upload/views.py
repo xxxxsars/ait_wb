@@ -68,8 +68,9 @@ def upload_index(request):
 
     return render(request,"upload.html",locals())
 
+
 def get_serial_number(task_id):
-    datas = Upload_TestCase.objects.filter(task_id__iregex=r"^%s\d{2}"%task_id).values()
+    datas = Upload_TestCase.objects.filter(task_id__iregex=r"^%s\d{2}" % task_id).values()
     if len(datas) == 0:
         return "00"
     serials = []
@@ -78,14 +79,26 @@ def get_serial_number(task_id):
         serials.append(int(serial))
 
 
-    serial_number = max(serials)+1
+    # get not increment the smallest serial number
+    tmp = [i for i in range(100)]
+    not_increment = []
+    for i in tmp[:max(serials)]:
+        if i not in serials:
+            not_increment.append(i)
 
-    if serial_number >99:
+    if len(not_increment) != 0:
+        serial_number = min(not_increment)
+
+    # if not increment get max serials add 1
+    else:
+        serial_number = max(serials) + 1
+
+    if serial_number > 99:
         raise ValueError("Your serial id is gather than 99.")
 
-    max_serial = "%02d" % serial_number
+    serial = "%02d" % serial_number
 
-    return max_serial
+    return serial
 
 def handle_uploaded_file(f,task_id):
     path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
