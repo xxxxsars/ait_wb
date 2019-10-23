@@ -49,6 +49,19 @@
 
     <script>
 
+
+        $(function () {
+            $('#project_table tbody .dt-edit').each(function () {
+                $(this).on('click', function (evt) {
+                    $this = $(this);
+                    var editRow = $this.parents('tr');
+                    project_name = editRow.attr("id");
+                    console.log(project_name)
+                    location.href = "/project/modify/" + project_name;
+                });
+            });
+        });
+
         $(document).ready(function () {
 
 
@@ -110,6 +123,8 @@
                     cell.innerHTML = i + 1;
                 });
             }).draw();
+
+
         });
     </script>
 {% endblock %}
@@ -130,7 +145,7 @@
 
         <tbody>
         {% for data in datas %}
-            <tr>
+            <tr id="{{ data.project_name }}">
                 <td style="text-align: center"></td>
                 <td>{{ data.project_name }}</td>
                 {% if request.user.is_staff %}
