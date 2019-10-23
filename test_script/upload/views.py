@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from test_script.upload.forms import *
 from test_script.upload.models import *
-import os
+import os,re
 import zipfile
 import platform
 
@@ -45,7 +45,7 @@ def upload_index(request):
             task_id = id +serial_number
 
 
-            handle_uploaded_file(request.FILES['file'],task_name)
+            handle_uploaded_file(request.FILES['file'],task_id)
 
 
             up = Upload_TestCase.objects.create(task_id=task_id,   task_name=task_name,description = task_descript,  script_name=script_name)
@@ -87,7 +87,7 @@ def get_serial_number(task_id):
 
     return max_serial
 
-def handle_uploaded_file(f,task_name):
+def handle_uploaded_file(f,task_id):
     path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
     if platform.system() == "Windows":
@@ -106,7 +106,7 @@ def handle_uploaded_file(f,task_name):
 
 
     with zipfile.ZipFile(source_zip, 'r') as zip_ref:
-        zip_ref.extractall(unzip_path+task_name)
+        zip_ref.extractall(unzip_path+task_id)
 
     # remove zip file
     os.remove(source_zip)
