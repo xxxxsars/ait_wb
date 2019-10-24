@@ -33,7 +33,6 @@ def list_project(request):
 
     return render(request, "project_list.html", locals())
 
-
 @login_required(login_url="/user/login")
 def create_project(request):
     is_project = True
@@ -56,7 +55,6 @@ def create_project(request):
         c = CreateProjectForm()
 
     return render(request, "create.html", locals())
-
 
 @login_required(login_url="/user/login")
 def modify_project(request, project_name):
@@ -265,7 +263,6 @@ def select_script(request, project_name):
 
     return render(request, "script_list.html", locals())
 
-
 def download(request, token):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if platform.system() == "Windows":
@@ -273,16 +270,16 @@ def download(request, token):
     else:
         file_path = path + '/download_folder/' + "%s.zip" % token
 
-    # if had been download only provide download service not record data
-    if request.POST['item_moved'] =="False":
-        file = open(file_path, 'rb')
-        response = StreamingHttpResponse(file)
-        response['Content-Type'] = 'application/octet-stream'
-        response['Content-Disposition'] = 'attachment;filename="%s.zip"' % datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-        return response
+    if request.POST:
+        # if testScript not been resorted will only provide file download service
+        if request.POST['item_moved'] =="False":
+            file = open(file_path, 'rb')
+            response = StreamingHttpResponse(file)
+            response['Content-Type'] = 'application/octet-stream'
+            response['Content-Disposition'] = 'attachment;filename="%s.zip"' % datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+            return response
 
-    else:
-        if request.POST:
+        else:
             post_args = eval(request.POST['result_dict'])
             username = request.user.username
 
@@ -306,21 +303,21 @@ def download(request, token):
             response['Content-Disposition'] = 'attachment;filename="%s.zip"' % datetime.now().strftime(
                 '%Y-%m-%d_%H-%M-%S')
 
-            # save all project paramters to database
+
+            project_name = ""
             for task_id, argumes in post_args.items():
                 project_name = argumes['project_name']
 
-
-
+            # save all project parameter to database
             save_project_info(post_args)
 
             # save those file to owner user folder
             save_project_files(token, username, project_name)
 
             return response
-        else:
-            return Http404
 
+    else:
+        return Http404
 
 def save_project_info(datas):
     for task_id, argumes in datas.items():
@@ -400,7 +397,6 @@ def archive_folder(task_list, token):
 
     zf.close()
 
-
 def conflict_archive_folder(task_list, token, chose_files):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -456,7 +452,6 @@ def conflict_archive_folder(task_list, token, chose_files):
     os.remove(ini_path)
     zf.close()
 
-
 def detail_error_message(conflict_dict):
     task_list = list(conflict_dict.keys())
 
@@ -465,7 +460,6 @@ def detail_error_message(conflict_dict):
     for t in task_list[1:]:
         content += ' [%s]' % t
     return content
-
 
 def gen_ini_str(task_id, argumet_dict):
     di = argumet_dict[task_id]
@@ -486,7 +480,6 @@ def gen_ini_str(task_id, argumet_dict):
         script_path, arg_str, di["timeout"], di["exitcode"], di["retry"], di["sleep"], di["criteria"])
 
     return title + content
-
 
 def task_files(task_list):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -509,7 +502,6 @@ def task_files(task_list):
         task_files[task_id] = file_list
 
     return task_files
-
 
 def conflict_files(result_dict):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -547,14 +539,12 @@ def conflict_files(result_dict):
 
     return dedup_map
 
-
 def md5(fname):
     hash_md5 = hashlib.md5()
     with open(fname, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
-
 
 def get_conflict_tasks(conflict_dict):
     # get conflict file
@@ -576,7 +566,6 @@ def get_conflict_tasks(conflict_dict):
         conflict_task[cf] = tasks
     return conflict_task
 
-
 def save_project_files(token, username, project_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -594,7 +583,6 @@ def save_project_files(token, username, project_name):
 
     with zipfile.ZipFile(source_zip, 'r') as zip_ref:
         zip_ref.extractall(dest_path)
-
 
 def valid_user(username):
     if User.objects.filter(username=username).exists():
