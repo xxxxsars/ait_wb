@@ -166,157 +166,214 @@
 
 
         $(document).ready(function () {
-            $("#pass_value").hide();
+                $("#pass_value").hide();
 
-            //global array ,it save selected task id
-            var rows_selected = [];
-
-
-            $("#myForm").on("submit", function (e) {
-
-                if (rows_selected.length <= 0) {
-                    alert("You must select at least one test case.");
-                    e.preventDefault();
-                    return false;
-                }
-                $("#pass_value").val(rows_selected);
-                {#e.preventDefault();#}
-
-            });
+                //global array ,it save selected task id
+                var rows_selected = [];
 
 
-            //data tables parameter
-            var table = $('#task-table').DataTable({
-                "dom": '<"top"i>rt<"bottom"flp><"clear">',
-                "autoWidth": true,
-                "scrollX": true,
-                columnDefs: [{
-                    'targets': 0,
-                    'searchable': false,
-                    'orderable': false,
-                    'width': '1%',
-                    'className': 'dt-body-center',
-                    'render': function (data, type, full, meta) {
-                        return '<input type="checkbox">';
+                $("#myForm").on("submit", function (e) {
+
+                    if (rows_selected.length <= 0) {
+                        alert("You must select at least one test case.");
+                        e.preventDefault();
+                        return false;
                     }
+                    $("#pass_value").val(rows_selected);
+                    {#e.preventDefault();#}
 
-                }],
-                'rowCallback': function (row, data, dataIndex) {
-                    // Get row ID
-                    var taskID = data[1];
-
-                    // If row ID is in the list of selected row IDs
-                    if ($.inArray(taskID, rows_selected) !== -1) {
-                        $(row).find('input[type="checkbox"]').prop('checked', true);
-                        $(row).addClass('selected');
-                    }
-                },
-                order: [[1, 'asc']],
-
-            });
-
-
-            //datable filter with regex
-            $(".condition-select").change(function () {
-                var r1 = $('#platform :selected').val();
-
-
-                if (!r1) {
-                    r1 = "."
-                }
-
-                var selected = [];
-
-                var brands = $('#interface option:selected');
-                $(brands).each(function (index, brand) {
-                    selected.push([$(this).val()]);
                 });
 
 
-                if (selected.length === 0) {
-                    r2 = "."
-                } else {
-                    r2 = "[" + selected.join("|") + "]"
+                //data tables parameter
+                var table = $('#task-table').DataTable({
+                    "dom": '<"top"i>rt<"bottom"flp><"clear">',
+                    "autoWidth": true,
+                    "scrollX": true,
+                    columnDefs: [{
+                        'targets': 0,
+                        'searchable': false,
+                        'orderable': false,
+                        'width': '1%',
+                        'className': 'dt-body-center',
+                        'render': function (data, type, full, meta) {
+                            return '<input type="checkbox">';
+                        }
+
+                    }],
+                    'rowCallback': function (row, data, dataIndex) {
+                        // Get row ID
+                        var taskID = data[1];
+
+                        // If row ID is in the list of selected row IDs
+                        if ($.inArray(taskID, rows_selected) !== -1) {
+                            $(row).find('input[type="checkbox"]').prop('checked', true);
+                            $(row).addClass('selected');
+                        }
+                    },
+                    order: [[1, 'asc']],
+
+                });
+
+
+                //clean datable filter
+                $("#clean").click(function () {
+                    var control = $("#interface");
+                    control.selectpicker('val', valuesOf(control.find('option')));
+                    allOptionIsSelected = true;
+                    control.data('allOptionIsSelected', allOptionIsSelected);
+
+
+                    $("#platform").val('All');
+                    $("#platform").selectpicker("refresh");
+
+
+                    $('#task-table').DataTable().column(1).search("", true,).draw();
+
+
+                });
+
+
+                function valuesOf(elements) {
+                    return $.map(elements, function (element) {
+                        return element.value;
+                    });
                 }
 
-                $('#task-table').DataTable().column(1).search("^" + r1 + "{1}" + r2 + "{1}", true,).draw();
-            });
 
-            //clean datable filter
-            $("#clean").click(function () {
-
-                $(".condition-select ").val('default');
-                $(".condition-select ").selectpicker("refresh");
+                //handle interface selected ,the all select item
+                function toggleSelectAll(control) {
+                    var allOptionIsSelected = (control.val() || []).indexOf("All") > -1;
 
 
-                $('#task-table').DataTable().column(1).search("", true,).draw();
-
-
-            });
-
-            // handle click on checkbox
-            $('#task-table tbody').on('click', 'input[type="checkbox"]', function (e) {
-
-
-                var $row = $(this).closest('tr');
-
-                // Get row data
-                var data = table.row($row).data();
-
-                // Get task ID
-                var taskID = data[1];
-
-
-                // Determine whether row ID is in the list of selected row IDs
-                var index = $.inArray(taskID, rows_selected);
-
-                // If checkbox is checked and row ID is not in list of selected row IDs
-                if (this.checked && index === -1) {
-                    rows_selected.push(taskID);
-
-                    // Otherwise, if checkbox is not checked and row ID is in list of selected row IDs
-                } else if (!this.checked && index !== -1) {
-                    rows_selected.splice(index, 1);
+                    if (control.data('allOptionIsSelected') != allOptionIsSelected) {
+                        // User clicked 'All' option
+                        if (allOptionIsSelected) {
+                            // Can't use .selectpicker('selectAll') because multiple "change" events will be triggered
+                            control.selectpicker('val', valuesOf(control.find('option')));
+                        } else {
+                            control.selectpicker('val', []);
+                        }
+                    } else {
+                        // User clicked other option
+                        if (allOptionIsSelected && control.val().length != control.find('option').length) {
+                            // All options were selected, user deselected one option
+                            // => unselect 'All' option
+                            control.selectpicker('val', valuesOf(control.find('option:selected[value!=All]')));
+                            allOptionIsSelected = false;
+                        } else if (!allOptionIsSelected && control.val().length == control.find('option').length - 1) {
+                            // Not all options were selected, user selected all options except 'All' option
+                            // => select 'All' option too
+                            control.selectpicker('val', valuesOf(control.find('option')));
+                            allOptionIsSelected = true;
+                        }
+                    }
+                    control.data('allOptionIsSelected', allOptionIsSelected);
                 }
 
-                if (this.checked) {
-                    $row.addClass('selected');
-                } else {
-                    $row.removeClass('selected');
-                }
 
-                // Update state of "Select all" control
-                updateDataTableSelectAllCtrl(table);
-
-                // Prevent click event from propagating to parent
-                e.stopPropagation();
-            });
-
-            // handle click on table cells with checkboxes
-            $('#task-table').on('click', 'tbody td, thead th:first-child', function (e) {
-                $(this).parent().find('input[type="checkbox"]').trigger('click');
-            });
-
-            // handle click on "Select all" control
-            $('thead input[name="select_all"]', table.table().container()).on('click', function (e) {
-                if (this.checked) {
-                    $('#task-table tbody input[type="checkbox"]:not(:checked)').trigger('click');
-                } else {
-                    $('#task-table tbody input[type="checkbox"]:checked').trigger('click');
-                }
-
-                // Prevent click event from propagating to parent
-                e.stopPropagation();
-            });
-
-            // handle table draw event
-            table.on('draw', function () {
-                // Update state of "Select all" control
-                updateDataTableSelectAllCtrl(table);
-            });
+                $('#interface').selectpicker().change(function () {
+                    toggleSelectAll($(this));
+                }).trigger('change');
 
 
-        });
+                //datable filter with regex
+                $(".condition-select").change(function () {
+                        var r1 = $('#platform :selected').val();
+
+                        if (!r1 || r1 == "All") {
+                            r1 = "."
+                        }
+
+                        var selected = [];
+                        var brands = $('#interface option:selected');
+                        $(brands).each(function (index, brand) {
+                            selected.push($(this).val());
+                        });
+
+                        if (selected.length === 0) {
+
+                            r2 = "."
+                        } else {
+
+                            if (selected.includes('All')) {
+
+
+                                r2 = "."
+                            } else {
+                                r2 = "[" + selected.join("|") + "]"
+                            }
+
+                        }
+                        console.log("^" + r1 + "{1}" + r2 + "{1}");
+                        $('#task-table').DataTable().column(1).search("^" + r1 + "{1}" + r2 + "{1}", true,).draw();
+                    }
+                );
+
+                // handle click on checkbox
+                $('#task-table tbody').on('click', 'input[type="checkbox"]', function (e) {
+
+
+                    var $row = $(this).closest('tr');
+
+                    // Get row data
+                    var data = table.row($row).data();
+
+                    // Get task ID
+                    var taskID = data[1];
+
+
+                    // Determine whether row ID is in the list of selected row IDs
+                    var index = $.inArray(taskID, rows_selected);
+
+                    // If checkbox is checked and row ID is not in list of selected row IDs
+                    if (this.checked && index === -1) {
+                        rows_selected.push(taskID);
+
+                        // Otherwise, if checkbox is not checked and row ID is in list of selected row IDs
+                    } else if (!this.checked && index !== -1) {
+                        rows_selected.splice(index, 1);
+                    }
+
+                    if (this.checked) {
+                        $row.addClass('selected');
+                    } else {
+                        $row.removeClass('selected');
+                    }
+
+                    // Update state of "Select all" control
+                    updateDataTableSelectAllCtrl(table);
+
+                    // Prevent click event from propagating to parent
+                    e.stopPropagation();
+                });
+
+                // handle click on table cells with checkboxes
+                $('#task-table').on('click', 'tbody td, thead th:first-child', function (e) {
+                    $(this).parent().find('input[type="checkbox"]').trigger('click');
+                });
+
+                // handle click on "Select all" control
+                $('thead input[name="select_all"]', table.table().container()).on('click', function (e) {
+                    if (this.checked) {
+                        $('#task-table tbody input[type="checkbox"]:not(:checked)').trigger('click');
+                    } else {
+                        $('#task-table tbody input[type="checkbox"]:checked').trigger('click');
+                    }
+
+                    // Prevent click event from propagating to parent
+                    e.stopPropagation();
+                });
+
+                // handle table draw event
+                table.on('draw', function () {
+                    // Update state of "Select all" control
+                    updateDataTableSelectAllCtrl(table);
+                });
+
+
+            }
+        );
     </script>
 {% endblock %}
 
@@ -333,7 +390,8 @@
                         <label for="platform" class="condition-lable">Platform:</label>
                         <select class="condition-select form-control selectpicker  show-tick" data-width="170px"
                                 id="platform"
-                                title="Nothing selected" multiple data-max-options="1">
+                                title="All">
+                            <option value="All" selected="selected">All</option>
                             <option value="0">Windows</option>
                             <option value="1">Mac</option>
                             <option value="2">Windows/Mac</option>
@@ -341,27 +399,27 @@
                     </div>
                 </form>
             </td>
-
-
             <td>
                 <form class="form-inline" role="form">
                     <div class="form-group">
                         <label for="interface" class="condition-lable">Interface:</label>
-                        <select class="condition-select form-control selectpicker" id="interface" data-width="170px"
-                                multiple>
-                            <option value="0">USB</option>
-                            <option value="1">Type-C</option>
-                            <option value="2">TBT</option>
-                            <option value="3">HDMI</option>
-                            <option value="4">Display</option>
-                            <option value="5">ETH</option>
-                            <option value="6">INTERACTIVE</option>
-                            <option value="7">Audio</option>
-                            <option value="8">IC</option>
-                            <option value="9">PD</option>
+                        <select id="interface" class="selectpicker condition-select" multiple data-width="170px"
+                                data-selected-text-format="count>2">
+                            <option value="All" selected="selected">All</option>
+                            <option value="0" class="other">USB</option>
+                            <option value="1" class="other">Type-C</option>
+                            <option value="2" class="other">TBT</option>
+                            <option value="3" class="other">HDMI</option>
+                            <option value="4" class="other">Display</option>
+                            <option value="5" class="other">ETH</option>
+                            <option value="6" class="other">INTERACTIVE</option>
+                            <option value="7" class="other">Audio</option>
+                            <option value="8" class="other">IC</option>
+                            <option value="9" class="other">PD</option>
                         </select>
                     </div>
                 </form>
+
             </td>
 
 
@@ -420,11 +478,11 @@
                                 <i class="fas fa-edit"></i>
                             </button>
 
-                             {% if request.user.is_staff %}
-                            <button type="button"
-                                    class="edit_btn btn btn-danger btn-xs   btn-md center-block dt-delete"><i
-                                    class="fas fa-trash"></i>
-                            </button>
+                            {% if request.user.is_staff %}
+                                <button type="button"
+                                        class="edit_btn btn btn-danger btn-xs   btn-md center-block dt-delete"><i
+                                        class="fas fa-trash"></i>
+                                </button>
                             {% endif %}
 
                         </td>
