@@ -62,7 +62,10 @@ def upload(request):
 
             version = request.POST['version']
             release_note = request.POST['release_note']
-            AIT_release.objects.create(version=version,release_note=release_note)
+            if version !="" and release_note !="":
+
+                AIT_release.objects.create(version=version,release_note=release_note)
+
             handle_uploaded_file(request.FILES['file'])
             susessful = "Upload AIT was successfully!!"
             # clean all data
