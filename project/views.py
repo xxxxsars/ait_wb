@@ -29,9 +29,6 @@ def list_project(request):
         user_instance = User.objects.get(username=username)
         datas = Project.objects.filter(owner_user=user_instance)
 
-        print(datas)
-
-
     return render(request, "project_list.html", locals())
 
 
@@ -97,7 +94,6 @@ def modify_project(request,project_name):
 
     arg_json = json.dumps(arg_dict)
 
-    print(test_dict)
 
     return render(request, "set_argument.html", locals())
 
@@ -111,6 +107,7 @@ def select_script(request,project_name):
     is_project = True
     datas = Upload_TestCase.objects.all()
 
+    token = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(30))
     # if project name not existed ,will show bad requests
     if (Project.objects.filter(project_name=project_name).exists()==False):
         raise SuspiciousOperation("Invalid request!")
@@ -142,21 +139,21 @@ def select_script(request,project_name):
         if "conflicted" in request.POST:
             confilct_files = str(request.POST["conflict_files"]).split(",")
             render_di = eval(request.POST["ini_content"])
+            task_ids = str(request.POST["task_list"]).split(",")
+            result_dict = eval(request.POST['result_dict'])
 
             chose_map = {}
             for cf in confilct_files:
-                chose_map[cf] = request.POST[cf]
+                if len(cf) >0:
+                    chose_map[cf] = request.POST[cf]
 
             return render(request, "confirm.html", locals())
 
         # handle the set_argument submit action ,it will get all tab parameter
         else:
             task_ids = []
-
-
             arg_reg = set_parameter_arg
             other_reg = set_parameter_other
-
             result_dict = {}
 
             for k, v in dict(request.POST.lists()).items():
@@ -192,14 +189,10 @@ def select_script(request,project_name):
                 append_dict["retry"] = request.POST["retry_%s" % task_id]
                 append_dict["sleep"] = request.POST["sleep_%s" % task_id]
                 append_dict["criteria"] = request.POST["criteria_%s" % task_id]
+                append_dict["project_name"] = project_name
 
             render_str = ""
             render_di = {}
-
-
-
-            token = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(30))
-
 
 
             for task_id in task_ids:
@@ -209,11 +202,8 @@ def select_script(request,project_name):
             # check conflict files
             cf = conflict_files(result_dict)
 
-            print(cf)
-            result_dict["project_name"] = project_name
             if len(cf.keys()) != 0:
                 cf_tasks = get_conflict_tasks(cf)
-
                 disable_download = True
                 err_message = "You have some conflicting files.Please select the file to be compressed into TestCase zip. "
 
@@ -255,16 +245,13 @@ def download(request,token):
 
             post_args = eval(request.POST['result_dict'])
             username = request.user.username
-            project_name = post_args["project_name"]
 
-            post_args.pop("project_name")
             # save ini
             with open( os.path.join(os.path.join(path,"download_folder"),"%s.ini"%token),"w") as f:
                 f.write(request.POST["ini_content"])
 
             # compress all file to zip file
             task_list = str(request.POST["task_list"]).split(",")
-            print(task_list)
 
             if "chose_files" in request.POST:
                 chose_map = eval(request.POST["chose_files"])
@@ -281,9 +268,10 @@ def download(request,token):
 
 
             #save all project paramters to database
-            project_instance = Project.objects.get(project_name=project_name)
-
             for task_id,argumes in post_args.items():
+                project_name = argumes['project_name']
+                project_instance = Project.objects.get(project_name=project_name)
+
                 task_instance = Upload_TestCase.objects.get(task_id=task_id)
                 Project_task.objects.create(project_name=project_instance,
                                             task_id=task_instance,
