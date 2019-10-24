@@ -174,7 +174,7 @@
     <div class="text-right" style="padding-bottom: 30px">
 
 
-        <button id="allsubmit" type="submit" class="btn btn-primary" form="myForm">Next <i
+        <button id="allsubmit" type="submit" class="btn btn-primary">Next <i
                 class="fas fa-forward"></i>
         </button>
 
@@ -199,33 +199,33 @@
 
             {% if is_modify %}
 
-                {% for id,name in task_dict.items %}
+                {% for id,project_arg in test_dict.items %}
                 <tr>
                     <td class="details-control"></td>
                     <td class="task_id">{{ id }}</td>
-                    <td>{{ name }}</td>
+                    <td>{{ project_arg| lookup:"task_name" }}</td>
                     <td><input type="text" name="timeout_{{ id }}" class="form-control" data-toggle="tooltip"
                                data-placement="left"
-                               title="Test case timeout value" value="30"></td>
+                               title="Test case timeout value" value="{{ project_arg| lookup:"task_args"|lookup:"timeout" }}"></td>
                     <td><input type="text" name="exitcode_{{ id }}" class="form-control" data-toggle="tooltip"
                                data-placement="left"
                                title=" Pass condition 'exitCode to be define for exit(0) and exit(1)'"
-                               value="exitCode">
+                               value="{{ project_arg| lookup:"task_args"|lookup:"exit_code" }}">
                     </td>
                     <td>
                         <input type="text" name="retry_{{ id }}" class="form-control" data-toggle="tooltip"
                                data-placement="left"
-                               title="Retry count" value="3">
+                               title="Retry count" value="{{ project_arg| lookup:"task_args"|lookup:"retry_count" }}">
                     </td>
                     <td>
                         <input type="text" name="sleep_{{ id }}" class="form-control" data-toggle="tooltip"
                                data-placement="left"
-                               title="Sleep time" value="0">
+                               title="Sleep time" value="{{ project_arg| lookup:"task_args"|lookup:"sleep_time" }}">
                     </td>
                     <td>
                         <input type="text" name="criteria_{{ id }}" class="form-control" data-toggle="tooltip"
                                data-placement="left"
-                               title="Set test case criteria" value="success">
+                               title="Set test case criteria" value="{{ project_arg| lookup:"task_args"|lookup:"criteria" }}">
                     </td>
 
 

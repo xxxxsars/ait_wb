@@ -64,13 +64,8 @@
                     $("#chose_files").val(chose_files);
                 {% endif %}
 
-
-
                 $(this).append('<input  id="result_dict" type="hidden" name="result_dict" />');
                 $("#result_dict").val(result_dict);
-
-                <!--if download the tasks will not be sorted.-->
-                $("#sort-task").sortable("disable");
 
             });
         });
@@ -78,14 +73,32 @@
 
         $(document).ready(function () {
 
+            //if on modify page ,it item had been move will create new testScript.ini
+            $('#sort-task').sortable({
+                start: function (event, ui) {
+                    ui.item.data('start_pos', ui.item.index());
+                },
+                stop: function (event, ui) {
+                    var start_pos = ui.item.data('start_pos');
+                    if (start_pos != ui.item.index()) {
+                        // the item got moved
+                        $("#item_moved").val("True")
+                    } else {
+                        // the item was returned to the same position
+                         $("#item_moved").val("False")
+                    }
+                },
+            });
+
 
             <!--pass value to chose needs-->
             $("#chose_form").one("submit", function (e) {
-                 var result_dict = JSON.stringify({{ result_dict|safe }});
-                var ini_content = '{{ render_di |escapejs }}';
-                var conflict_files = {{ cf_tasks.keys|get_list|safe  }}
                 var task_list = {{ task_ids | safe }};
+                var ini_content = '{{ render_di |escapejs }}';
+                var result_dict = JSON.stringify({{ result_dict|safe }});
 
+
+                var conflict_files = {{ cf_tasks.keys|get_list|safe  }};
 
                 $(this).append('<input  id="task_list" type="hidden" name="task_list"/>');
                 $("#task_list").val(task_list);
@@ -206,6 +219,9 @@
         <form id="export_form" action="{% url "export_task" token %}" method="post">{% csrf_token %}
             <button id="save" type="submit" class="btn btn-primary btn-lg btn-block"> Download & Save Project
             </button>
+
+
+            <input id="item_moved" type="hidden" name="item_moved"/>
         </form>
     {% endif %}
 
