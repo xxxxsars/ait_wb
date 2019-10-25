@@ -27,12 +27,24 @@ from project.models import *
 def list_project(request):
     is_project = True
     username = request.user.username
+
+
+    # clean not selected task project
+    for p in Project.objects.all():
+        if len(Project_task.objects.filter(project_name=p)) == 0:
+            p.delete()
+
+
     if request.user.is_staff:
         datas = Project.objects.all()
+
 
     else:
         user_instance = User.objects.get(username=username)
         datas = Project.objects.filter(owner_user=user_instance)
+
+
+
 
     return render(request, "project_list.html", locals())
 

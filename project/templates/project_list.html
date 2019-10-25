@@ -48,7 +48,21 @@
 
 
     <script>
-
+            function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
 
         $(function () {
             $('#project_table tbody .dt-edit').each(function () {
@@ -61,6 +75,68 @@
                 });
             });
         });
+
+
+
+
+        $(function () {
+
+            $('#project_table tbody .dt-delete').each(function () {
+
+                $(this).on('click', function (evt) {
+                    $this = $(this);
+                    var dtRow = $this.parents('tr');
+
+                    if (confirm("Are you sure to delete this row?")) {
+
+                        projectName = dtRow.attr("id");
+
+                        console.log(projectName)
+
+                        var csrftoken = getCookie('csrftoken');
+
+                        $.ajax({
+                            url: "/project/delete/" + projectName, // the endpoint,commonly same url
+                            type: 'DELETE',
+                            data: {
+                                csrfmiddlewaretoken: csrftoken,
+                            },
+
+                            success: function (json) {
+                                console.log(json); // another sanity check
+
+                            },
+
+                            //處理失敗時會做的動作
+                            error: function (xhr, errmsg, err) {
+                                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                            }
+                        });
+
+
+                        var table = $('#project_table').DataTable();
+                        table.row(dtRow).remove().draw(false);
+                    }
+                });
+
+
+            });
+
+
+            $('#task-table tbody .dt-edit').each(function () {
+
+                $(this).on('click', function (evt) {
+                    $this = $(this);
+                    var editRow = $this.parents('tr');
+                    taskID = editRow.attr("id");
+
+                    location.href = "/testCase/modify/" + taskID;
+                });
+            });
+
+
+        });
+
 
         $(document).ready(function () {
                 var t = $('#project_table').DataTable({

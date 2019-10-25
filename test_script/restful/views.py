@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 import zipfile, os, shutil, platform
 
 from test_script.update.forms import *
-from test_script.update.serializer import *
+from test_script.restful.serializer import *
 
 
 
@@ -42,6 +42,7 @@ class DeleteTestCaseView(viewsets.ModelViewSet):
     queryset = Upload_TestCase.objects.all()
     serializer_class = TaskSerializer
     authentication_classes = [ BasicAuthentication]
+    http_method_names = ['delete']
     # permission_classes = (IsAdminUser,)
 
     def destroy(self, request, *args, **kwargs):

@@ -29,10 +29,11 @@ urlpatterns = [
 
     url("^testCase/",include("test_script.upload.urls")),
     url("^testCase/",include("test_script.update.urls")),
-    url("^testCase/",include("restful.urls")),
+    url("^testCase/",include("test_script.restful.urls")),
     url("^testCase/", include("test_script.list.urls")),
 
     url("^project/", include("project.urls")),
+    url('^project/',include("project.restful.urls")),
 
     url("^ait/", include("ait.urls")),
 
