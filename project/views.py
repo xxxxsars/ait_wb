@@ -4,6 +4,8 @@ from django.http import StreamingHttpResponse, Http404
 from django.contrib.auth.models import User
 from django.core.exceptions import SuspiciousOperation
 from django.forms.models import model_to_dict
+from django.http import JsonResponse
+from django.shortcuts import redirect
 
 
 import platform
@@ -46,10 +48,10 @@ def create_project(request):
             user_instance = User.objects.get(username=user_name)
 
             prj = Project.objects.create(project_name=project_name, owner_user=user_instance)
-
-            susessful = "Create Project [%s]  was successfully!" % project_name
-
+            return redirect('/project/select/'+project_name)
+        else:
             return render(request, "create.html", locals())
+
 
     else:
         c = CreateProjectForm()
