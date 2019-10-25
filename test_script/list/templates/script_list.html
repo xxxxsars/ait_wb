@@ -53,6 +53,29 @@
             $('[data-toggle="tooltip"]').tooltip()
         });
 
+
+
+
+        $(function () {
+            $(".platform").each(function () {
+                var row = $(this).parent('tr');
+                taskID = row.attr("id");
+
+                platform_id = taskID.slice(0,1)
+
+                if (platform_id == "0"){
+                    $(this).append("<i class=\"fab fa-windows\"></i> Win")
+                }else if (platform_id == "1"){
+                    $(this).append("<i class=\"fab fa-apple\"></i> Mac")
+                }else{
+                     $(this).append("<i class=\"fas fa-laptop\"></i>All")
+                }
+
+            })
+        });
+
+
+
         $(function () {
 
             $('#task-table tbody .dt-delete').each(function () {
@@ -168,6 +191,7 @@
         $(document).ready(function () {
                 $("#pass_value").hide();
 
+
                 //global array ,it save selected task id
                 var rows_selected = [];
 
@@ -215,7 +239,7 @@
                             $(row).addClass('selected');
                         }
                     },
-                    order: [[1, 'asc']],
+                    order: [[2, 'asc']],
 
                 });
 
@@ -457,6 +481,7 @@
             <thead>
             <tr>
                 <th><input name="select_all" value="1" type="checkbox"></th>
+                <th>Platform</th>
                 <th>ID</th>
                 <th>Task Case Name</th>
                 <th>Description</th>
@@ -469,7 +494,9 @@
             <tbody>
             {% for data in  datas %}
                 <tr id="{{ data.task_id }}">
+
                     <td></td>
+                    <td class="platform"></td>
                     <td>{{ data.task_id }}</td>
                     <td>{{ data.task_name }}</td>
                     <td>{{ data.description }}</td>
