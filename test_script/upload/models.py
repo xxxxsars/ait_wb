@@ -7,7 +7,8 @@ from django.db import models
 class Upload_TestCase(models.Model):
     task_id = models.CharField(max_length=255, unique=True, primary_key=True)
     task_name = models.CharField(max_length=255, unique=True)
-    description = models.CharField(max_length=255)
+    sample = models.CharField(max_length=255,default="")
+    description =  models.TextField()
     script_name = models.CharField(max_length=255)
 
     class Meta:

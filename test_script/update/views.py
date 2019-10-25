@@ -34,6 +34,7 @@ def modify_index(request, task_id):
             task_name = request.POST["task_name"]
             task_descript = request.POST["task_description"]
             script_name = request.POST["script_name"]
+            sample = request.POST["sample"]
 
             if "file" in request.FILES:
                 try:
@@ -46,6 +47,7 @@ def modify_index(request, task_id):
             up = Upload_TestCase.objects.get(task_id=task_id)
             up.script_name = script_name
             up.description = task_descript
+            up.sample = sample
 
             # handle modify argument
             arg_infos = Arguments.objects.filter(task_id=task_info)

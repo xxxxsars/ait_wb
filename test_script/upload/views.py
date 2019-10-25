@@ -23,6 +23,7 @@ def upload_index(request):
             task_name = request.POST["task_name"]
             task_descript = request.POST["task_description"]
             script_name = request.POST["script_name"]
+            sample = request.POST["sample"]
 
             descripts = request.POST.getlist("description")
             arguments = request.POST.getlist("argument")
@@ -39,7 +40,7 @@ def upload_index(request):
             handle_uploaded_file(request.FILES['file'], task_id)
 
             up = Upload_TestCase.objects.create(task_id=task_id, task_name=task_name, description=task_descript,
-                                                script_name=script_name)
+                                                script_name=script_name,sample=sample)
 
             for i, e in enumerate(arguments):
                 argument = arguments[i]

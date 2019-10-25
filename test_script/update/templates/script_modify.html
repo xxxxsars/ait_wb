@@ -53,12 +53,11 @@
 
             {% if render_value %}
                 $("input[name='task_id']").val('{{ task_info.task_id }}').attr("readonly", "readonly");
-                $("input[name='task_name']").val('{{ task_info.task_name }}').attr("readonly", "readonly");
+                $("input[name='task_name']").val('{{ task_info.task_name }}');
                 $("input[name='task_description']").val('{{ task_info.description }}');
                 $("input[name='script_name']").val('{{ task_info.script_name }}');
             {% else %}
                 $("input[name='task_id']").val('{{ task_info.task_id }}').attr("readonly", "readonly");
-                $("input[name='task_name']").val('{{ task_info.task_name }}').attr("readonly", "readonly");
             {% endif %}
 
 
@@ -186,7 +185,7 @@
         <label for="test_case_name">TestCase Name：</label>{{ u.task_name }}
         <label for="descript">TestCase Description：</label>{{ u.task_description }}
         <label for="script">Script Name：</label>{{ u.script_name }}
-
+        <label for="sample">Sample：</label>{{ u.sample }}
         <label for="upload">Upload Zip file：</label>
         <div class="input-group">
             <div class="custom-file">
