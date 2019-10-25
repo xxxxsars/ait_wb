@@ -17,8 +17,9 @@ import zipfile
 import hashlib
 import json
 import shutil
+import re
 
-from common.limit import set_parameter_arg, set_parameter_other
+from common.limit import set_parameter_arg, set_parameter_other,task_id_reg
 from project.forms import *
 from project.models import *
 
@@ -136,7 +137,10 @@ def modify_project(request, project_name):
             render_str = ""
             render_di = {}
 
-            for task_id in task_ids:
+            project_owner_user = Project.objects.get(project_name=project_name).owner_user.username
+            sotred_ids = sorted_task_ids(project_name, project_owner_user)
+
+            for task_id in sotred_ids:
                 render_di[task_id] = gen_ini_str(task_id, result_dict) + "\n"
             return render(request, "confirm.html", locals())
 
@@ -607,3 +611,28 @@ def valid_user(username):
         return True
     else:
         return False
+
+
+def sorted_task_ids(project_name, user_name):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    # path =os.path.dirname(os.path.abspath(__file__))
+    if platform.system() == "Windows":
+        root_path = path + r'\download_folder\\' + user_name
+
+
+    else:
+        root_path = path + '/download_folder/' + user_name
+
+    ini_path = os.path.join(os.path.join(root_path, project_name), "testScript.ini")
+
+    sorted_ids = []
+
+    r = re.compile("^\[.*_(%s\d{2})_.*\]$" % task_id_reg)
+    with open(ini_path, "r") as f:
+        for line in f.readlines():
+            matched = r.search(line)
+            if matched:
+                sorted_ids.append(matched.group(1))
+
+
+    return sorted_ids

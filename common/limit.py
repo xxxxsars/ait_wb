@@ -10,7 +10,8 @@ set_parameter_other = re.compile(r"^\w+_([0-9A]{6})$")
 
 
 # form regex
-input_task_id = re.compile(r"^[0-2][0-9A]\d{2}$")
+task_id_reg = r"[0-2][0-9A]\d{2}"
+input_task_id = re.compile("^"+task_id_reg+"$")
 input_task_name = re.compile(r"[^\w|_|\s]+")
 input_argument = re.compile(r"[^\w|_]+")
 
