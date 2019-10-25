@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>QSI FactoryLine Web</title>
+    <title>Quanta Storage AIT</title>
+
+
+    <link rel="icon" type="image/png" href="http://www.qsitw.com/rs/img/favicons/favicon-96x96.png" sizes="96x96">
 
     <!--import css path-->
     <link type="text/css" rel="stylesheet" href="{% static "bower_components/bootstrap/dist/css/bootstrap.min.css" %}">
@@ -49,7 +52,13 @@
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="{% url "index" %}">Factory Line Web Page</a>
+  <a class="navbar-brand" href="{% url "index" %}">
+    <img type="image/png" src="{% static "pic/qsi_icon.png" %}" width="30" height="30" class="d-inline-block align-top" alt="">
+    Quanta Storage AIT
+  </a>
+
+
+
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
