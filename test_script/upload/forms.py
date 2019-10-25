@@ -2,18 +2,19 @@ from django import forms
 import zipfile
 from test_script.upload.models import *
 
-from common.limit import input_task_id,input_argument,input_script_name,input_zip_file_name,input_task_name,valid_default_value
+from common.limit import input_task_id, input_argument, input_script_name, input_zip_file_name, input_task_name, \
+    valid_default_value
 
 
 class UploadFileForm(forms.Form):
     task_id = forms.CharField(max_length=255, required=True, widget=forms.TextInput(attrs={'class': 'form-control'}),
                               error_messages={'required': 'ID is empyt!', "invalid": "Please insert valid ID"})
     task_name = forms.CharField(max_length=255, required=True,
-                                     widget=forms.TextInput(attrs={'class': 'form-control'}),
-                                     error_messages={'required': 'TestCase Name is empyt!',
-                                                     "invalid": "Please insert valid TestCase Name."})
+                                widget=forms.TextInput(attrs={'class': 'form-control'}),
+                                error_messages={'required': 'TestCase Name is empyt!',
+                                                "invalid": "Please insert valid TestCase Name."})
     task_description = forms.CharField(max_length=255, required=True,
-                                            widget=forms.TextInput(attrs={'class': 'form-control'}))
+                                       widget=forms.TextInput(attrs={'class': 'form-control'}))
     script_name = forms.CharField(max_length=255, required=True,
                                   widget=forms.TextInput(attrs={'class': 'form-control'}),
                                   error_messages={'required': 'Script Name is empty!',
@@ -45,16 +46,16 @@ class UploadFileForm(forms.Form):
 
     def clean_script_name(self):
         script_name = self.cleaned_data['script_name']
-        r =input_script_name
+        r = input_script_name
 
-        if r.search(script_name) ==None:
-            raise forms.ValidationError('Your Script Name suffix must contains ".py" and name only allow number, letter and underline.')
-
+        if r.search(script_name) == None:
+            raise forms.ValidationError(
+                'Your Script Name suffix must contains ".py" and name only allow number, letter and underline.')
 
     def clean_file(self):
         file = self.cleaned_data.get("file", False)
 
-        if input_zip_file_name.search(str(file))==None:
+        if input_zip_file_name.search(str(file)) == None:
             raise forms.ValidationError("Upload file is no valid zip file.")
 
         try:
@@ -75,17 +76,15 @@ class ArgumentForm(forms.Form):
     description = forms.CharField(max_length=255, widget=forms.TextInput(attrs={'class': 'form-control'}))
 
     default_value = forms.CharField(max_length=255, required=True,
-                                     widget=forms.TextInput(attrs={'class': 'form-control'}),
-                                     error_messages={'required': 'Default value is empyt!',
-                                                     "invalid": "Please insert valid Default Value."})
-
+                                    widget=forms.TextInput(attrs={'class': 'form-control'}),
+                                    error_messages={'required': 'Default value is empyt!',
+                                                    "invalid": "Please insert valid Default Value."})
 
     def clean_argument(self):
         argument = self.cleaned_data['argument']
         r = input_argument
         if r.search(argument) != None:
             raise forms.ValidationError("Your arguments only allow number, letter and underline.")
-
 
     def clean_default_value(self):
         default_value = self.cleaned_data['default_value']

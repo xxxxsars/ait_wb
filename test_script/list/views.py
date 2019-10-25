@@ -6,7 +6,6 @@ from test_script.upload.models import *
 import json
 
 
-
 @login_required(login_url="/user/login/")
 def list_task(request):
     is_script = True
@@ -15,11 +14,10 @@ def list_task(request):
     return render(request, "script_list.html", locals())
 
 
-
 def confirm(request):
     if request.POST:
         print(request.POST)
-    task_ids = list(Upload_TestCase.objects.values_list("task_id",flat=True))
+    task_ids = list(Upload_TestCase.objects.values_list("task_id", flat=True))
     arg_dict = {}
     for task_id in task_ids:
         task_info = Upload_TestCase.objects.get(task_id=task_id)
@@ -28,5 +26,3 @@ def confirm(request):
 
     arg_json = json.dumps(arg_dict)
     return render(request, "test.html", locals())
-
-

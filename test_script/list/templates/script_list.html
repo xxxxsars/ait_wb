@@ -54,26 +54,23 @@
         });
 
 
-
-
         $(function () {
             $(".platform").each(function () {
                 var row = $(this).parent('tr');
                 taskID = row.attr("id");
 
-                platform_id = taskID.slice(0,1)
+                platform_id = taskID.slice(0, 1)
 
-                if (platform_id == "0"){
+                if (platform_id == "0") {
                     $(this).append("<i class=\"fab fa-windows\"></i> Win")
-                }else if (platform_id == "1"){
+                } else if (platform_id == "1") {
                     $(this).append("<i class=\"fab fa-apple\"></i> Mac")
-                }else{
-                     $(this).append("<i class=\"fas fa-laptop\"></i>All")
+                } else {
+                    $(this).append("<i class=\"fas fa-laptop\"></i>All")
                 }
 
             })
         });
-
 
 
         $(function () {
@@ -227,8 +224,17 @@
                         'render': function (data, type, full, meta) {
                             return '<input type="checkbox">';
                         }
+                    },
+                        {% if is_script%}
+                            {
+                                "width": "10%",
+                                "targets": 5,
+                            }
+                        {% endif %}
 
-                    }],
+
+
+                    ],
                     'rowCallback': function (row, data, dataIndex) {
                         // Get row ID
                         var taskID = data[1];
@@ -348,7 +354,7 @@
                     var data = table.row($row).data();
 
                     // Get task ID
-                    var taskID = data[1];
+                    var taskID = data[2];
 
 
                     // Determine whether row ID is in the list of selected row IDs
@@ -487,7 +493,7 @@
                 <th>Description</th>
 
                 {% if is_script %}
-                    <th></th>
+                    <th>Action</th>
                 {% endif %}
             </tr>
             </thead>
@@ -502,7 +508,7 @@
                     <td>{{ data.description }}</td>
 
                     {% if is_script %}
-                        <td style="text-align: center;min-width:100px ">
+                        <td>
 
                             <button type="button"
                                     class="delete_btn btn btn-primary btn-xs  btn-md center-block dt-edit">

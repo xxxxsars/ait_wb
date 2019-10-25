@@ -17,12 +17,12 @@ baseurl:        ""
 url:            "https://getbootstrap.com"
 encoding:       UTF-8
 exclude:
-  - docs/4.3/assets/scss/
+- docs/4.3/assets/scss/
 
 plugins:
-  - jekyll-redirect-from
-  - jekyll-sitemap
-  - jekyll-toc
+- jekyll-redirect-from
+- jekyll-sitemap
+- jekyll-toc
 
 # Social
 title:              Bootstrap
@@ -64,5 +64,5 @@ toc:
   min_level:        2
   max_level:        4
   no_toc_section_class:
-    - "bd-callout"
-    - "bd-example"
+  - "bd-callout"
+  - "bd-example"

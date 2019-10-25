@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('upload', '0002_arguments_default_value'),
         ('project', '0006_auto_20191021_1520'),

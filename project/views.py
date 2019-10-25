@@ -7,7 +7,6 @@ from django.forms.models import model_to_dict
 from django.http import JsonResponse
 from django.shortcuts import redirect
 
-
 import platform
 import os
 import random
@@ -19,7 +18,7 @@ import json
 import shutil
 import re
 
-from common.limit import set_parameter_arg, set_parameter_other,task_id_reg
+from common.limit import set_parameter_arg, set_parameter_other, task_id_reg
 from project.forms import *
 from project.models import *
 
@@ -29,12 +28,10 @@ def list_project(request):
     is_project = True
     username = request.user.username
 
-
     # clean not selected task project
     for p in Project.objects.all():
         if len(Project_task.objects.filter(project_name=p)) == 0:
             p.delete()
-
 
     if request.user.is_staff:
         datas = Project.objects.all()
@@ -44,10 +41,8 @@ def list_project(request):
         user_instance = User.objects.get(username=username)
         datas = Project.objects.filter(owner_user=user_instance)
 
-
-
-
     return render(request, "project_list.html", locals())
+
 
 @login_required(login_url="/user/login")
 def create_project(request):
@@ -62,7 +57,7 @@ def create_project(request):
             user_instance = User.objects.get(username=user_name)
 
             prj = Project.objects.create(project_name=project_name, owner_user=user_instance)
-            return redirect('/project/select/'+project_name)
+            return redirect('/project/select/' + project_name)
         else:
             return render(request, "create.html", locals())
 
@@ -72,10 +67,9 @@ def create_project(request):
 
     return render(request, "create.html", locals())
 
+
 @login_required(login_url="/user/login")
 def modify_project(request, project_name):
-
-
     is_project = True
     is_modify = True
 
@@ -91,10 +85,7 @@ def modify_project(request, project_name):
     if project_name not in project_list:
         return Http404
 
-
-
-
-    if request.method =="POST":
+    if request.method == "POST":
         if request.POST:
             token = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(30))
             task_ids = []
@@ -150,7 +141,6 @@ def modify_project(request, project_name):
         arg_dict = {}
         task_dict = {}
 
-
         for task_id in task_ids:
             task_instance = Upload_TestCase.objects.get(task_id=task_id)
             project_instance = Project.objects.get(project_name=project_name)
@@ -158,15 +148,16 @@ def modify_project(request, project_name):
 
             arg_dict[task_id] = list(args.values())
 
-            tmp_dict = {"task_name":task_instance.task_name}
+            tmp_dict = {"task_name": task_instance.task_name}
             tmp_dict["task_args"] = model_to_dict(Project_task.objects.filter(project_name=project_instance).get(
-                    task_id=task_instance))
+                task_id=task_instance))
 
             task_dict[task_id] = tmp_dict
 
         arg_json = json.dumps(arg_dict)
 
     return render(request, "set_argument.html", locals())
+
 
 @login_required(login_url="/user/login/")
 def select_script(request, project_name):
@@ -182,6 +173,7 @@ def select_script(request, project_name):
 
         # render the set_argument page ,it data get from list page
         if "task_ids" in request.POST:
+            print(request.POST)
             task_ids = (request.POST['task_ids']).split(",")
             arg_dict = {}
             task_dict = {}
@@ -278,6 +270,7 @@ def select_script(request, project_name):
 
     return render(request, "script_list.html", locals())
 
+
 def download(request, token):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if platform.system() == "Windows":
@@ -287,11 +280,12 @@ def download(request, token):
 
     if request.POST:
         # if testScript not been resorted will only provide file download service
-        if request.POST['item_moved'] =="False":
+        if request.POST['item_moved'] == "False":
             file = open(file_path, 'rb')
             response = StreamingHttpResponse(file)
             response['Content-Type'] = 'application/octet-stream'
-            response['Content-Disposition'] = 'attachment;filename="%s.zip"' % datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+            response['Content-Disposition'] = 'attachment;filename="%s.zip"' % datetime.now().strftime(
+                '%Y-%m-%d_%H-%M-%S')
             return response
 
         else:
@@ -318,7 +312,6 @@ def download(request, token):
             response['Content-Disposition'] = 'attachment;filename="%s.zip"' % datetime.now().strftime(
                 '%Y-%m-%d_%H-%M-%S')
 
-
             project_name = ""
             for task_id, argumes in post_args.items():
                 project_name = argumes['project_name']
@@ -334,16 +327,15 @@ def download(request, token):
     else:
         return Http404
 
+
 def save_project_info(datas):
     for task_id, argumes in datas.items():
         project_name = argumes['project_name']
         project_instance = Project.objects.get(project_name=project_name)
         task_instance = Upload_TestCase.objects.get(task_id=task_id)
 
-
-
-        p ,created = Project_task.objects.get_or_create(project_name=project_instance,
-                         task_id=task_instance)
+        p, created = Project_task.objects.get_or_create(project_name=project_instance,
+                                                        task_id=task_instance)
         # whatever it created ,all need modify it value.
         p.criteria = argumes['criteria']
         p.exit_code = argumes["exitcode"]
@@ -354,15 +346,13 @@ def save_project_info(datas):
 
         db_args = Arguments.objects.filter(task_id=task_id)
         for arg in db_args:
-            a,created = Project_task_argument.objects.get_or_create(argument=arg.argument,
-                                      project_name=project_instance,
-                                      task_id=task_instance)
+            a, created = Project_task_argument.objects.get_or_create(argument=arg.argument,
+                                                                     project_name=project_instance,
+                                                                     task_id=task_instance)
 
             # whatever it created ,all need modify it value.
-            a.default_value =argumes[arg.argument]
+            a.default_value = argumes[arg.argument]
             a.save()
-
-
 
 
 def archive_folder(task_list, token):
@@ -411,6 +401,7 @@ def archive_folder(task_list, token):
     os.remove(ini_path)
 
     zf.close()
+
 
 def conflict_archive_folder(task_list, token, chose_files):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -467,6 +458,7 @@ def conflict_archive_folder(task_list, token, chose_files):
     os.remove(ini_path)
     zf.close()
 
+
 def detail_error_message(conflict_dict):
     task_list = list(conflict_dict.keys())
 
@@ -475,6 +467,7 @@ def detail_error_message(conflict_dict):
     for t in task_list[1:]:
         content += ' [%s]' % t
     return content
+
 
 def gen_ini_str(task_id, argumet_dict):
     di = argumet_dict[task_id]
@@ -495,6 +488,7 @@ def gen_ini_str(task_id, argumet_dict):
         script_path, arg_str, di["timeout"], di["exitcode"], di["retry"], di["sleep"], di["criteria"])
 
     return title + content
+
 
 def task_files(task_list):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -517,6 +511,7 @@ def task_files(task_list):
         task_files[task_id] = file_list
 
     return task_files
+
 
 def conflict_files(result_dict):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -554,12 +549,14 @@ def conflict_files(result_dict):
 
     return dedup_map
 
+
 def md5(fname):
     hash_md5 = hashlib.md5()
     with open(fname, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
+
 
 def get_conflict_tasks(conflict_dict):
     # get conflict file
@@ -580,6 +577,7 @@ def get_conflict_tasks(conflict_dict):
                 tasks.append(k)
         conflict_task[cf] = tasks
     return conflict_task
+
 
 def save_project_files(token, username, project_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -605,6 +603,7 @@ def save_project_files(token, username, project_name):
 
     with zipfile.ZipFile(source_zip, 'r') as zip_ref:
         zip_ref.extractall(dest_path)
+
 
 def valid_user(username):
     if User.objects.filter(username=username).exists():
@@ -633,6 +632,5 @@ def sorted_task_ids(project_name, user_name):
             matched = r.search(line)
             if matched:
                 sorted_ids.append(matched.group(1))
-
 
     return sorted_ids

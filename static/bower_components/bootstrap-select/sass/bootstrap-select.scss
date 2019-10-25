@@ -1,8 +1,12 @@
 @import "variables";
 
 @keyframes bs-notify-fadeOut {
-  0% {opacity: 0.9;}
-  100% {opacity: 0;}
+  0% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 // Mixins
@@ -12,13 +16,13 @@
 
 @mixin box-sizing($fmt) {
   -webkit-box-sizing: $fmt;
-     -moz-box-sizing: $fmt;
-          box-sizing: $fmt;
+  -moz-box-sizing: $fmt;
+  box-sizing: $fmt;
 }
 
 @mixin box-shadow($fmt) {
   -webkit-box-shadow: $fmt;
-          box-shadow: $fmt;
+  box-shadow: $fmt;
 }
 
 @function fade($color, $amnt) {
@@ -36,7 +40,8 @@ select.selectpicker {
 }
 
 .bootstrap-select {
-  width: 220px \0; /*IE9 and below*/
+  width: 220px \0
+; /*IE9 and below*/
   vertical-align: middle;
 
   // The selectpicker button

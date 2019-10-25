@@ -1,27 +1,21 @@
 from django.shortcuts import render
-from django.http import HttpResponse,HttpResponseRedirect
-from django.shortcuts import render_to_response,render
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import render_to_response, render
 from django.contrib import auth
 from django.contrib.auth.models import User
 from django.contrib import messages
 from .forms import LoginForm
 
-#將url定義的name轉回網址
+# 將url定義的name轉回網址
 from django.urls import reverse
-
 
 from django.core.mail import send_mail
 
 
-
-
 def login(request):
-
-
     login_page = True
     if request.user.is_authenticated:
         return HttpResponseRedirect(reverse('index'))
-
 
     if request.method == "POST":
 
@@ -39,16 +33,15 @@ def login(request):
                 auth.login(request, user)
                 return HttpResponseRedirect(reverse('index'))
             else:
-                 return render(request,'login.html',locals())
+                return render(request, 'login.html', locals())
 
 
 
     else:
         f = LoginForm()
-    return render(request,'login.html',locals())
+    return render(request, 'login.html', locals())
+
 
 def logout(request):
     auth.logout(request)
     return HttpResponseRedirect(reverse('login'))
-
-

@@ -28,7 +28,7 @@
         }
 
         td.details-control {
-            background: url('{% static "pic/plus.png" %}')no-repeat center center;
+            background: url('{% static "pic/plus.png" %}') no-repeat center center;
             cursor: pointer;
         }
 
@@ -52,7 +52,6 @@
             box-shadow: none;
             width: 350px;
         }
-
 
         .form-control {
             border: 0;
@@ -85,7 +84,7 @@
                     '<td>' + task_info[i]['argument'] + '：</td>' +
                     '<td>' +
                     '<input  data-toggle="tooltip" data-placement="left"' +
-                    'title=\'' + description + '\'type="text" name="arg_' + task_id + '_' + argment + '" class="arguments form-control" value=\'' + default_value + '\'>'+
+                    'title=\'' + description + '\'type="text" name="arg_' + task_id + '_' + argment + '" class="arguments form-control" value=\'' + default_value + '\'>' +
                     '</td>' +
                     '</tr>';
                 tr_content += add

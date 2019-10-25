@@ -48,7 +48,7 @@
 
 
     <script>
-            function getCookie(name) {
+        function getCookie(name) {
             var cookieValue = null;
             if (document.cookie && document.cookie != '') {
                 var cookies = document.cookie.split(';');
@@ -75,8 +75,6 @@
                 });
             });
         });
-
-
 
 
         $(function () {
@@ -139,23 +137,26 @@
 
 
         $(document).ready(function () {
-                var t = $('#project_table').DataTable({
-                    "dom": '<"top"i>rt<"bottom"flp><"clear">',
-                    "autoWidth": true,
-                    "scrollX": true,
+            var t = $('#project_table').DataTable({
+                "dom": '<"top"i>rt<"bottom"flp><"clear">',
+                "autoWidth": true,
+                "scrollX": true,
 
-                    {% if datas.count <= 10 %}
-                        "bPaginate": false,
-                    {% endif %}
-                    "columnDefs": [
-                        {
-                            "searchable": false,
-                            "orderable": false,
-                            "targets": 0,
-                            "width": "5%",
-                        },],
-                    "order": [[1, 'asc']]
-                });
+                {% if datas.count <= 10 %}
+                    "bPaginate": false,
+                {% endif %}
+                columnDefs: [
+                    {
+                        "searchable": false,
+                        "orderable": false,
+                        "targets": 0,
+                        "width": "%",
+                    }, {
+                        "targets": 5,
+                        "width": "15%",
+                    }],
+                "order": [[1, 'asc']]
+            });
 
 
             t.on('order.dt search.dt', function () {
@@ -169,8 +170,8 @@
     </script>
 {% endblock %}
 {% block body %}
-    <h3>[ {{ username |title }} ] Project</h3>
-
+    <p style="text-align: center;font-weight:600;font-size: 26px;">[ {{ username |title }} ] Project</p>
+    <br>
     <table id="project_table" class="hover" style="width:100%">
         <thead>
         <tr>
@@ -200,7 +201,7 @@
                 <td>
                     {{ data.time|date:'h:i A' }}
                 </td>
-                <td style="text-align: center;min-width:100px ">
+                <td>
 
                     <button type="button"
                             class="btn btn-primary btn-xs  btn-md center-block dt-edit">

@@ -2,7 +2,7 @@ import os
 
 from rest_framework import status
 from rest_framework import viewsets
-from rest_framework.decorators import api_view,authentication_classes,permission_classes
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
@@ -12,7 +12,6 @@ import zipfile, os, shutil, platform
 
 from test_script.update.forms import *
 from test_script.restful.serializer import *
-
 
 
 @api_view(["POST"])
@@ -37,12 +36,12 @@ def DeleteArgumentView(request, format=None):
         return Response(status=status.HTTP_200_OK)
 
 
-
 class DeleteTestCaseView(viewsets.ModelViewSet):
     queryset = Upload_TestCase.objects.all()
     serializer_class = TaskSerializer
-    authentication_classes = [ BasicAuthentication]
+    authentication_classes = [BasicAuthentication]
     http_method_names = ['delete']
+
     # permission_classes = (IsAdminUser,)
 
     def destroy(self, request, *args, **kwargs):

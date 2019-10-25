@@ -89,7 +89,7 @@
             });
 
             $("#remove_argument").click(function (e) {
-                 var removelines = {{ a.fields |length}};
+                var removelines = {{ a.fields |length}};
 
                 for (var i = 0; i < removelines; i++) {
                     $("#new_argument input").last().remove();
@@ -103,7 +103,6 @@
                 }
 
             });
-
 
 
             <!--delete specific argument-->
@@ -134,7 +133,7 @@
                             }
                         });
 
-                       dtRow.remove();
+                        dtRow.remove();
                     }
                 });
             });
@@ -249,7 +248,7 @@
 
     </form>
 
-{#    <form action="{% url "script_update" %}">#}
-{#        <button class="btn btn-secondary" type="submit"><i class="fas fa-undo"></i> Back to Query</button>#}
-{#    </form>#}
+    {#    <form action="{% url "script_update" %}">#}
+    {#        <button class="btn btn-secondary" type="submit"><i class="fas fa-undo"></i> Back to Query</button>#}
+    {#    </form>#}
 {% endblock %}

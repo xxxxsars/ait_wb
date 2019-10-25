@@ -85,7 +85,7 @@
                         $("#item_moved").val("True")
                     } else {
                         // the item was returned to the same position
-                         $("#item_moved").val("False")
+                        $("#item_moved").val("False")
                     }
                 },
             });
@@ -217,7 +217,8 @@
         {#        <a href="{% url "export_task" %}" id="save" class="btn btn-primary btn-lg btn-block" role="button"><i class="fas fa-download"></i>Download</a>#}
 
         <form id="export_form" action="{% url "export_task" token %}" method="post">{% csrf_token %}
-            <button id="save" type="submit" class="btn btn-success btn-lg btn-block"> <i class="fas fa-download"></i> Download & Save Project
+            <button id="save" type="submit" class="btn btn-success btn-lg btn-block"><i class="fas fa-download"></i>
+                Download & Save Project
             </button>
 
 

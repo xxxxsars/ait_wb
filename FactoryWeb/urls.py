@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from django.conf.urls import url,include
+from django.conf.urls import url, include
 from FactoryWeb import settings
 from .error_views import *
 from django.views.static import serve
@@ -23,24 +23,23 @@ from FactoryWeb.view import *
 
 urlpatterns = [
     url('admin/', admin.site.urls),
-    url("^$",index,name="index"),
+    url("^$", index, name="index"),
     url(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
     url("^user/", include("user_promission.urls")),
 
-    url("^testCase/",include("test_script.upload.urls")),
-    url("^testCase/",include("test_script.update.urls")),
-    url("^testCase/",include("test_script.restful.urls")),
+    url("^testCase/", include("test_script.upload.urls")),
+    url("^testCase/", include("test_script.update.urls")),
+    url("^testCase/", include("test_script.restful.urls")),
     url("^testCase/", include("test_script.list.urls")),
 
     url("^project/", include("project.urls")),
-    url('^project/',include("project.restful.urls")),
+    url('^project/', include("project.restful.urls")),
 
     url("^ait/", include("ait.urls")),
 
 ]
 
-
-if settings.DEBUG==False:
+if settings.DEBUG == False:
     handler404 = error_404
 
     handler500 = error_500
