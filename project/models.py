@@ -6,6 +6,8 @@ from test_script.upload.models  import *
 class Project(models.Model):
     project_name = models.CharField(max_length=255,unique=True,primary_key=True)
     owner_user =models.ForeignKey(User,on_delete=models.CASCADE)
+    time = models.DateTimeField(auto_now_add=True)
+
 
     class Meta:
         db_table = "project"

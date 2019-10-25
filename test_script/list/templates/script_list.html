@@ -190,6 +190,10 @@
                     "dom": '<"top"i>rt<"bottom"flp><"clear">',
                     "autoWidth": true,
                     "scrollX": true,
+
+                    {% if datas.count <= 10 %}
+                        "bPaginate": false,
+                    {% endif %}
                     columnDefs: [{
                         'targets': 0,
                         'searchable': false,
