@@ -16,6 +16,7 @@ from datetime import datetime
 import zipfile
 import hashlib
 import json
+import shutil
 
 from common.limit import set_parameter_arg, set_parameter_other
 from project.forms import *
@@ -133,26 +134,22 @@ def modify_project(request, project_name):
         arg_dict = {}
         task_dict = {}
 
-        test_dict = {}
+
         for task_id in task_ids:
             task_instance = Upload_TestCase.objects.get(task_id=task_id)
             project_instance = Project.objects.get(project_name=project_name)
             args = Project_task_argument.objects.filter(project_name=project_instance).filter(task_id=task_instance)
 
             arg_dict[task_id] = list(args.values())
-            task_dict[task_id] = task_instance.task_name
 
             tmp_dict = {"task_name":task_instance.task_name}
             tmp_dict["task_args"] = model_to_dict(Project_task.objects.filter(project_name=project_instance).get(
                     task_id=task_instance))
 
-            test_dict[task_id] = tmp_dict
+            task_dict[task_id] = tmp_dict
 
         arg_json = json.dumps(arg_dict)
 
-        print(arg_json)
-
-        # print(test_dict)
     return render(request, "set_argument.html", locals())
 
 @login_required(login_url="/user/login/")
@@ -582,6 +579,13 @@ def save_project_files(token, username, project_name):
 
     if not os.path.exists(dest_path):
         os.makedirs(dest_path)
+
+    else:
+        for root, dirs, files in os.walk(dest_path):
+            for f in files:
+                os.unlink(os.path.join(root, f))
+            for d in dirs:
+                shutil.rmtree(os.path.join(root, d))
 
     with zipfile.ZipFile(source_zip, 'r') as zip_ref:
         zip_ref.extractall(dest_path)
