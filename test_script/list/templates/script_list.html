@@ -497,21 +497,31 @@
 
                     {% if is_script %}
                         <td>
-                            <div class="btn-group">
+
+                            {% if request.user.is_staff %}
+                                <div class="btn-group">
                                 <button type="button"
                                         class="delete_btn btn btn-primary btn-xs  btn-md center-block dt-edit">
                                     <i class="fas fa-edit"></i>
                                 </button>
 
-                                {% if request.user.is_staff %}
-                                    <button type="button"
-                                            class="edit_btn btn btn-danger btn-xs   btn-md center-block dt-delete">
-                                        <i
-                                                class="fas fa-trash"></i>
-                                    </button>
-                                {% endif %}
+
+                                <button type="button"
+                                        class="edit_btn btn btn-danger btn-xs   btn-md center-block dt-delete">
+                                    <i
+                                            class="fas fa-trash"></i>
+                                </button>
+
                             </div>
 
+                                {% else %}
+                                <div class="text-center">
+                                <button type="button"
+                                        class="delete_btn btn btn-primary btn-xs  btn-md center-block dt-edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                </div>
+                                {% endif %}
                         </td>
                     {% endif %}
                 </tr>
