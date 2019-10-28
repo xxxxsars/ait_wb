@@ -66,7 +66,7 @@
                 } else if (platform_id == "1") {
                     $(this).append("<i class=\"fab fa-apple  fa-fw\"></i> Mac OS")
                 } else {
-                    $(this).append("<i class=\"fas fa-laptop fa-fw\"></i> All Platform")
+                    $(this).append("<i class=\"fas fa-laptop fa-fw\"></i> All")
                 }
 
             })
@@ -215,10 +215,15 @@
                         'render': function (data, type, full, meta) {
                             return '<input type="checkbox">';
                         }
+                    }, {
+                        "width": "10%",
+                        "targets": 1,
                     },
+
+
                         {% if is_script%}
                             {
-                                "width": "10%",
+                                "width": "15%",
                                 "targets": 5,
                             }
                         {% endif %}
