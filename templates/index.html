@@ -3,13 +3,13 @@
 
 {% block css %}
     <style>
-       img[name=icon] {
+        img[name=icon] {
             width: 150px;
             height: 150px;
 
         }
 
-         a.category img:hover {
+        a.category img:hover {
             position: relative;
             top: -5px;
         }
@@ -19,14 +19,14 @@
 
 {% block body %}
 
-    <div class="row d-flex justify-content-center">
+    <div class="row justify-content-md-center">
 
-        <div class="col-md-4 brd col-md-offset-2">
+        <div class="col">
             <table>
                 <tr>
                     <td>
-                        <a  class="category" href="{% url "list_script" %}"><img name='icon' class="rounded"
-                                                               src="{% static "pic/test_script.png" %}"></a>
+                        <a class="category" href="{% url "list_script" %}"><img name='icon' class="rounded"
+                                                                                src="{% static "pic/test_script.png" %}"></a>
                     </td>
                 </tr>
                 <tr>
@@ -40,12 +40,12 @@
 
         </div>
 
-        <div class="col-md-4 brd">
+        <div class="col">
             <table>
                 <tr>
                     <td>
-                        <a  class="category"  href="{% url "list_project" %}"><img name='icon' class="rounded"
-                                                                src="{% static "pic/project.png" %}"></a>
+                        <a class="category" href="{% url "list_project" %}"><img name='icon' class="rounded"
+                                                                                 src="{% static "pic/project.png" %}"></a>
                     </td>
                 </tr>
                 <tr>
@@ -59,12 +59,12 @@
         </div>
 
 
-        <div class="col-md-4 brd">
+        <div class="col">
             <table>
                 <tr>
                     <td>
                         <a class="category" href="{% url "ait_download" %}"><img name='icon' class="rounded"
-                                                                src="{% static "pic/download.png" %}"></a>
+                                                                                 src="{% static "pic/download.png" %}"></a>
                     </td>
                 </tr>
                 <tr>

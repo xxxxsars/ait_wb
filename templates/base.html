@@ -50,69 +50,60 @@
 
 
 <body>
-
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <a class="navbar-brand" href="{% url "index" %}">
-    <img type="image/png" src="{% static "pic/qsi_icon.png" %}" width="30" height="30" class="d-inline-block align-top" alt="">
-    Quanta Storage AIT
-  </a>
-
-
-
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-
-    {% if login_page == None %}
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav mr-auto">
-
-                {% if is_script %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url "script_create" %}">Create TestScript</a>
-                    </li>
-                {% endif %}
+{% if login_page == None %}
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="{% url "index" %}">
+            <img type="image/png" src="{% static "pic/qsi_icon.png" %}" width="30" height="30"
+                 class="d-inline-block align-top" alt="">
+            Quanta Storage AIT
+        </a>
 
 
-                {% if is_project %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url "project_create" %}">Create Project</a>
-                    </li>
-                {% endif %}
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
+        {% if login_page == None %}
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mr-auto">
 
-
-                {% if is_ait %}
-                    {% if request.user.is_staff %}
+                    {% if is_script %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url "ait_upload" %}">Upload AIT</a>
+                            <a class="nav-link" href="{% url "script_create" %}">Create TestScript</a>
                         </li>
                     {% endif %}
-                {% endif %}
 
 
-            </ul>
-
-
-            <ul class="nav navbar-nav navbar-right">
-                <li><a class="nav-link" href="{% url "login" %}"><i class="fas fa-sign-in-alt"></i> Log in</a></li>
-                <li><a class="nav-link" href="{% url "logout" %}">Log out</a></li>
-                {% if request.user.is_authenticated %}
-                    {% if request.user.is_staff %}
-                        <li><a class="nav-link" href="/admin/"><i class="fas fa-user"></i>{{ request.user.username }}
-                        </a>
-                        </li>
-                    {% else %}
-                        <li class="navbar-text"><i class="fas fa-user"></i>{{ request.user.username }}
+                    {% if is_project %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url "project_create" %}">Create Project</a>
                         </li>
                     {% endif %}
-                {% endif %}
-            </ul>
-        </div>
-    {% endif %}
-</nav>
 
+
+
+                    {% if is_ait %}
+                        {% if request.user.is_staff %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url "ait_upload" %}">Upload AIT</a>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+
+
+                </ul>
+
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a class="nav-link" href="{% url "login" %}"><i class="fas fa-sign-in-alt"></i> Log in</a></li>
+                    <li><a class="nav-link" href="{% url "logout" %}">Log out</a></li>
+                    <li class="navbar-text"><i class="fas fa-user"></i>{{ request.user.username }}</li>
+                </ul>
+            </div>
+        {% endif %}
+    </nav>
+{% endif %}
 <br>
 
 <div class="container">

@@ -59,14 +59,14 @@
                 var row = $(this).parent('tr');
                 taskID = row.attr("id");
 
-                platform_id = taskID.slice(0, 1)
+                platform_id = taskID.slice(0, 1);
 
                 if (platform_id == "0") {
-                    $(this).append("<i class=\"fab fa-windows\"></i> Win")
+                    $(this).append("<i class=\"fab fa-windows  fa-fw\"></i> Windows")
                 } else if (platform_id == "1") {
-                    $(this).append("<i class=\"fab fa-apple\"></i> Mac")
+                    $(this).append("<i class=\"fab fa-apple  fa-fw\"></i> Mac OS")
                 } else {
-                    $(this).append("<i class=\"fas fa-laptop\"></i>All")
+                    $(this).append("<i class=\"fas fa-laptop fa-fw\"></i> All Platform")
                 }
 
             })
@@ -128,8 +128,6 @@
 
 
         });
-
-
 
 
         function updateDataTableSelectAllCtrl(table) {
@@ -406,70 +404,62 @@
 
 
 {% block body %}
-    <table id="condition" cellpadding="3" cellspacing="0" border="0" style="width: 100%; margin: 0 auto 2em auto;">
 
-        <tr id="filter_col1" data-column="0">
-
-
-            <td>
-                <form class="form-inline" role="form">
-                    <div class="form-group">
-                        <label for="platform" class="condition-lable">Platform:</label>
-                        <select class="condition-select form-control selectpicker  show-tick" data-width="170px"
-                                id="platform"
-                                title="All">
-                            <option value="All" selected="selected">All</option>
-                            <option value="0">Windows</option>
-                            <option value="1">Mac</option>
-                            <option value="2">Windows/Mac</option>
-                        </select>
-                    </div>
-                </form>
-            </td>
-            <td>
-                <form class="form-inline" role="form">
-                    <div class="form-group">
-                        <label for="interface" class="condition-lable">Interface:</label>
-                        <select id="interface" class="selectpicker condition-select" multiple data-width="170px"
-                                data-selected-text-format="count>2">
-                            <option value="All" selected="selected">All</option>
-                            <option value="0" class="other">USB</option>
-                            <option value="1" class="other">Type-C</option>
-                            <option value="2" class="other">TBT</option>
-                            <option value="3" class="other">HDMI</option>
-                            <option value="4" class="other">Display</option>
-                            <option value="5" class="other">ETH</option>
-                            <option value="6" class="other">INTERACTIVE</option>
-                            <option value="7" class="other">Audio</option>
-                            <option value="8" class="other">IC</option>
-                            <option value="9" class="other">PD</option>
-                        </select>
-                    </div>
-                </form>
-
-            </td>
-
-
-            <td>
-                <div class="text-right">
-
-                    <button id="clean" type="button" class="btn btn-success"><i class="fas fa-redo"></i> Clean Filter
-                    </button>
-
-                    {% if is_project %}
-                        <button id="submit" type="submit" class="btn btn-primary" form="myForm">Next <i
-                                class="fas fa-forward"></i>
-                        </button>
-                    {% endif %}
+    <div class="row">
+        <div class="col">
+            <form class="form-inline" role="form">
+                <div class="form-group">
+                    <label for="platform" class="condition-lable">Platform:</label>
+                    <select class="condition-select form-control selectpicker  show-tick"
+                            id="platform"
+                            title="All">
+                        <option value="All" selected="selected">All</option>
+                        <option value="0">Windows</option>
+                        <option value="1">Mac</option>
+                        <option value="2">Windows/Mac</option>
+                    </select>
                 </div>
-            </td>
+            </form>
+        </div>
+
+        <div class="col">
+            <form class="form-inline" role="form">
+                <div class="form-group">
+                    <label for="interface" class="condition-lable">Interface:</label>
+                    <select id="interface" class="selectpicker condition-select" multiple
+                            data-selected-text-format="count>2">
+                        <option value="All" selected="selected">All</option>
+                        <option value="0" class="other">USB</option>
+                        <option value="1" class="other">Type-C</option>
+                        <option value="2" class="other">TBT</option>
+                        <option value="3" class="other">HDMI</option>
+                        <option value="4" class="other">Display</option>
+                        <option value="5" class="other">ETH</option>
+                        <option value="6" class="other">INTERACTIVE</option>
+                        <option value="7" class="other">Audio</option>
+                        <option value="8" class="other">IC</option>
+                        <option value="9" class="other">PD</option>
+                    </select>
+                </div>
+            </form>
+        </div>
 
 
-        </tr>
-    </table>
+        <div class="col">
+            <div class="text-right">
 
+                <button id="clean" type="button" class="btn btn-success"><i class="fas fa-redo"></i> Clean Filter
+                </button>
 
+                {% if is_project %}
+                    <button id="submit" type="submit" class="btn btn-primary" form="myForm">Next <i
+                            class="fas fa-forward"></i>
+                    </button>
+                {% endif %}
+            </div>
+        </div>
 
+    </div>
 
 
 
@@ -502,18 +492,20 @@
 
                     {% if is_script %}
                         <td>
-
-                            <button type="button"
-                                    class="delete_btn btn btn-primary btn-xs  btn-md center-block dt-edit">
-                                <i class="fas fa-edit"></i>
-                            </button>
-
-                            {% if request.user.is_staff %}
+                            <div class="btn-group">
                                 <button type="button"
-                                        class="edit_btn btn btn-danger btn-xs   btn-md center-block dt-delete"><i
-                                        class="fas fa-trash"></i>
+                                        class="delete_btn btn btn-primary btn-xs  btn-md center-block dt-edit">
+                                    <i class="fas fa-edit"></i>
                                 </button>
-                            {% endif %}
+
+                                {% if request.user.is_staff %}
+                                    <button type="button"
+                                            class="edit_btn btn btn-danger btn-xs   btn-md center-block dt-delete">
+                                        <i
+                                                class="fas fa-trash"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
 
                         </td>
                     {% endif %}
@@ -524,4 +516,6 @@
         </table>
         <input name="task_ids" id="pass_value">
     </form>
+
+
 {% endblock %}
