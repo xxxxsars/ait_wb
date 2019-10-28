@@ -45,6 +45,7 @@ def modify_index(request, task_id):
 
             # handle post task information
             up = Upload_TestCase.objects.get(task_id=task_id)
+            up.task_name = task_name
             up.script_name = script_name
             up.description = task_descript
             up.sample = sample
