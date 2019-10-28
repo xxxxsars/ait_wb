@@ -129,14 +129,7 @@
 
         });
 
-        function filterColumn(i) {
-            $('#task-table').DataTable().column(i).search(
-                $('#col' + i + '_filter').val(),
-                true,
-            ).draw();
 
-
-        }
 
 
         function updateDataTableSelectAllCtrl(table) {
@@ -262,7 +255,7 @@
                     $("#platform").selectpicker("refresh");
 
 
-                    $('#task-table').DataTable().column(1).search("", true,).draw();
+                    $('#task-table').DataTable().column(2).search("", true,).draw();
 
 
                 });
@@ -340,7 +333,7 @@
 
                         }
                         console.log("^" + r1 + "{1}" + r2 + "{1}");
-                        $('#task-table').DataTable().column(1).search("^" + r1 + "{1}" + r2 + "{1}", true,).draw();
+                        $('#task-table').DataTable().column(2).search("^" + r1 + "{1}" + r2 + "{1}", true,).draw();
                     }
                 );
 
