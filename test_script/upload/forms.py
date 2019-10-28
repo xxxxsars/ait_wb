@@ -27,6 +27,10 @@ class UploadFileForm(forms.Form):
                            error_messages={'required': 'Please update zip file.',
                                            "invalid": "Please update valid zip file"})
 
+    attachment = forms.FileField(widget=forms.FileInput(attrs={'class': 'custom-file-input', "id": "inputGroupFile04"}),required=False)
+
+
+
     def clean_task_id(self):
         task_id = self.cleaned_data['task_id']
         if Upload_TestCase.objects.filter(task_id=task_id).count():
@@ -44,7 +48,7 @@ class UploadFileForm(forms.Form):
 
         r = input_task_name
         if r.search(task_name) != None:
-            raise forms.ValidationError("Your arguments only allow number, letter and underline.")
+            raise forms.ValidationError("Your TestCase Name only allow number, letter and underline.")
 
     def clean_script_name(self):
         script_name = self.cleaned_data['script_name']
@@ -52,7 +56,7 @@ class UploadFileForm(forms.Form):
 
         if r.search(script_name) == None:
             raise forms.ValidationError(
-                'Your Script Name suffix must contains ".py" and name only allow number, letter and underline.')
+                'Your Script Name needs to contain a filename extension and the name only allow number, letter and underline.')
 
     def clean_file(self):
         file = self.cleaned_data.get("file", False)

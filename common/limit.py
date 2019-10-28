@@ -24,7 +24,7 @@ def valid_default_value(value):
     return True
 
 
-input_script_name = re.compile("^[\w|_]+.py$")
+input_script_name = re.compile("^[\w|_]+\.\w+$")
 input_zip_file_name = re.compile(r"\.zip$")
 
 import os

@@ -61,7 +61,7 @@ class UpdateFileForm(forms.Form):
 
         r = input_task_name
         if r.search(task_name) != None:
-            raise forms.ValidationError("Your arguments only allow number, letter and underline.")
+            raise forms.ValidationError("Your TestCase Name only allow number, letter and underline.")
 
     def clean_script_name(self):
         script_name = self.cleaned_data['script_name']
