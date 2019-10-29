@@ -132,11 +132,3 @@ def get_serial_number(task_id):
     return serial
 
 
-if __name__ == "__main__":
-    # modify_task_id("000000","0000")
-
-    from project.models import *
-
-    for p in Project.objects.all():
-        if len(Project_task.objects.filter(project_name=p)) == 0:
-            p.delete()

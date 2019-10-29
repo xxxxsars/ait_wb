@@ -173,7 +173,6 @@ def select_script(request, project_name):
 
         # render the set_argument page ,it data get from list page
         if "task_ids" in request.POST:
-            print(request.POST)
             task_ids = (request.POST['task_ids']).split(",")
             arg_dict = {}
             task_dict = {}
@@ -357,17 +356,10 @@ def save_project_info(datas):
 
 def archive_folder(task_list, token):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    config_path = handle_path(path,"ait_config")
+    dest_path = handle_path(path,"download_folder")
+    script_path ="TestScriptRes"
 
-    if platform.system() == "Windows":
-        config_path = path + r"\ait_config\\"
-        dest_path = path + r"\download_folder\\"
-        script_path = "TestScriptRes\\"
-
-    else:
-        config_path = path + "/ait_config/"
-        dest_path = path + "/download_folder/"
-
-        script_path = "TestScriptRes/"
 
     ini_path = os.path.join(dest_path, "%s.ini" % token)
 
@@ -375,24 +367,25 @@ def archive_folder(task_list, token):
 
     zf = zipfile.ZipFile(os.path.join(dest_path, dest_zip), mode='w')
 
-    for task_name in task_list:
-
-        if platform.system() == "Windows":
-            file_path = path + r'\upload_folder\\' + task_name
-        else:
-            file_path = path + '/upload_folder/' + task_name
+    compressed_file = []
+    for task_id in task_list:
+        file_path = handle_path(path,"upload_folder",task_id)
 
         # add source pyfile
+        attach_path = handle_path(file_path, "attachment")
         for root, folders, files in os.walk(file_path):
             for sfile in files:
-                aFile = os.path.join(root, sfile)
-                zf.write(aFile, os.path.join(script_path, os.path.relpath(aFile, file_path)))
+                #ignore attachment path
+                if root != attach_path:
+                    if sfile not in compressed_file:
+                        aFile = os.path.join(root, sfile)
+                        zf.write(aFile, os.path.join(script_path, os.path.relpath(aFile, file_path)))
+                        compressed_file.append(sfile)
 
     # add default configuration
     for root, folders, files in os.walk(config_path):
         for sfile in files:
             aFile = os.path.join(root, sfile)
-
             zf.write(aFile, os.path.relpath(aFile, config_path))
 
     # add ini
@@ -406,17 +399,10 @@ def archive_folder(task_list, token):
 def conflict_archive_folder(task_list, token, chose_files):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    if platform.system() == "Windows":
-        config_path = path + r"\ait_config\\"
-        dest_path = path + r"\download_folder\\"
-        script_path = "TestScriptRes\\"
-        file_path = path + r'\upload_folder\\'
-
-    else:
-        config_path = path + "/ait_config/"
-        dest_path = path + "/download_folder/"
-        script_path = "TestScriptRes/"
-        file_path = path + '/upload_folder/'
+    config_path = handle_path(path, "ait_config")
+    dest_path = handle_path(path, "download_folder")
+    script_path = "TestScriptRes"
+    file_path =handle_path(path,"upload_folder")
 
     ini_path = os.path.join(dest_path, "%s.ini" % token)
 
@@ -429,21 +415,27 @@ def conflict_archive_folder(task_list, token, chose_files):
         chose_files_path.append(os.path.join(os.path.join(file_path, task), file))
 
     compressed_file = []
-    for task_name in task_list:
-        source_file_path = os.path.join(file_path, task_name)
+    for task_id in task_list:
+        source_file_path = handle_path(file_path, task_id)
+        attach_path = handle_path(source_file_path, "attachment")
+
+
         # add source pyfile
         for root, folders, files in os.walk(source_file_path):
             for sfile in files:
-                aFile = os.path.join(root, sfile)
-                dest_file = os.path.relpath(aFile, source_file_path)
+                # ignore attachment path
+                if root != attach_path:
+                    aFile = os.path.join(root, sfile)
+                    dest_file = os.path.relpath(aFile, source_file_path)
 
-                if dest_file in list(chose_files.keys()):
-                    if aFile in chose_files_path:
+                    if dest_file in list(chose_files.keys()):
+                        if aFile in chose_files_path:
+                            zf.write(aFile, os.path.join(script_path, dest_file))
+
+                    # if had compress file not compress again
+                    elif sfile not in compressed_file:
                         zf.write(aFile, os.path.join(script_path, dest_file))
-                # if had compress file not compress again
-                elif sfile not in compressed_file:
-                    zf.write(aFile, os.path.join(script_path, dest_file))
-                    compressed_file.append(sfile)
+                        compressed_file.append(sfile)
 
     # add default configuration
     for root, folders, files in os.walk(config_path):
