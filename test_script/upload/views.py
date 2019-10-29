@@ -7,13 +7,13 @@ import os, re
 import zipfile
 import platform
 
+from common.common import handle_path
 
 # Create your views here.
 
 @login_required(login_url="/user/login/")
 def upload_index(request):
     is_script = True
-
     if request.method == 'POST':
         a = ArgumentForm(request.POST)
         u = UploadFileForm(request.POST, request.FILES)
@@ -38,6 +38,10 @@ def upload_index(request):
             task_id = id + serial_number
 
             handle_uploaded_file(request.FILES['file'], task_id)
+
+
+            if 'attachment' in request.FILES:
+               handle_attachment(request.FILES['attachment'],task_id)
 
             up = Upload_TestCase.objects.create(task_id=task_id, task_name=task_name, description=task_descript,
                                                 script_name=script_name,sample=sample)
@@ -88,23 +92,29 @@ def get_serial_number(task_id):
     return serial
 
 
+
+def handle_attachment(f,task_id):
+    path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    save_path = handle_path(path,"upload_folder",task_id,"attachment")
+
+    with open(os.path.join(save_path,f.name), 'wb+') as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
+
+
+
+
 def handle_uploaded_file(f, task_id):
     path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-    if platform.system() == "Windows":
-        source_zip = path + r'\upload_folder\\' + f.name
-        unzip_path = path + r'\upload_folder\\'
-
-    else:
-        source_zip = path + '/upload_folder/' + f.name
-        unzip_path = path + '/upload_folder/'
+    source_zip = os.path.join(handle_path(path,"upload_folder"),f.name)
+    unzip_path = os.path.join(handle_path(path,"upload_folder"),task_id)
 
     with open(source_zip, 'wb+') as destination:
         for chunk in f.chunks():
             destination.write(chunk)
 
     with zipfile.ZipFile(source_zip, 'r') as zip_ref:
-        zip_ref.extractall(unzip_path + task_id)
+        zip_ref.extractall(unzip_path)
 
     # remove zip file
     os.remove(source_zip)

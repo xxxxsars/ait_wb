@@ -11,6 +11,7 @@ import collections
 from test_script.update.forms import *
 from test_script.upload.forms import *
 from common.limit import input_argument, valid_default_value
+from common.common import handle_path
 
 
 @login_required(login_url="/user/login/")
@@ -38,10 +39,13 @@ def modify_index(request, task_id):
 
             if "file" in request.FILES:
                 try:
-                    handle_update_file(request.FILES['file'], task_name)
+                    handle_update_file(request.FILES['file'], id)
                 except Exception as e:
                     error_message = "Upload file is no valid zip file."
                     return render(request, "script_modify.html", locals())
+
+            if 'attachment' in request.FILES:
+               handle_update_attachment(request.FILES['attachment'],id)
 
             # handle post task information
             up = Upload_TestCase.objects.get(task_id=task_id)
@@ -134,20 +138,36 @@ def modify_index(request, task_id):
     return render(request, "script_modify.html", locals())
 
 
+
+def handle_update_attachment(f,task_id):
+    path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    save_path = handle_path(path,"upload_folder",task_id,"attachment")
+
+
+    try:
+        shutil.rmtree(save_path)
+    except Exception:
+        pass
+
+
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+
+
+    with open(os.path.join(save_path,f.name), 'wb+') as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
+
+
+
 # handle_update_file will remove all unzip folder
-def handle_update_file(f, task_name):
+def handle_update_file(f, task_id):
     if input_zip_file_name.search(str(f.name)) == None:
         raise Exception("Upload file is no valid zip file.")
 
     path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-    if platform.system() == "Windows":
-        source_zip = path + r'\upload_folder\\' + f.name
-        unzip_path = path + r'\upload_folder\\'
-
-    else:
-        source_zip = path + '/upload_folder/' + f.name
-        unzip_path = path + '/upload_folder/'
+    source_zip = os.path.join(handle_path(path,"upload_folder"),f.name)
+    unzip_path = os.path.join(handle_path(path,"upload_folder"),task_id)
 
     with open(source_zip, 'wb+') as destination:
         for chunk in f.chunks():
@@ -166,12 +186,17 @@ def handle_update_file(f, task_name):
         raise Exception("Upload file is no valid zip file.")
 
     # remove old script file
-    try:
-        shutil.rmtree(unzip_path + task_name)
-    except Exception:
-        pass
+    for file in os.listdir(unzip_path):
+        if file !="attachment":
+            file_path = os.path.join(unzip_path,file)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+            else:
+                shutil.rmtree(file_path)
+
+
 
     with zipfile.ZipFile(source_zip, 'r') as zip_ref:
-        zip_ref.extractall(unzip_path + task_name)
+        zip_ref.extractall(unzip_path)
 
     os.remove(source_zip)

@@ -13,6 +13,8 @@ import zipfile, os, shutil, platform
 from test_script.update.forms import *
 from test_script.restful.serializer import *
 
+from common.common import handle_path
+
 
 @api_view(["POST"])
 @authentication_classes((BasicAuthentication,))
@@ -57,13 +59,9 @@ class DeleteTestCaseView(viewsets.ModelViewSet):
 
 
 def remove_upload_file(task_id):
-    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-    if platform.system() == "Windows":
-        source_folder = path + r'\upload_folder\\' + task_id
-
-    else:
-        source_folder = path + '/upload_folder/' + task_id
+    source_folder = os.path.join(handle_path(path, "upload_folder"), task_id)
 
     # remove  script file
     try:
