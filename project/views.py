@@ -19,6 +19,7 @@ import shutil
 import re
 
 from common.limit import set_parameter_arg, set_parameter_other, task_id_reg
+from common.common import handle_path
 from project.forms import *
 from project.models import *
 
@@ -86,8 +87,27 @@ def modify_project(request, project_name):
         return Http404
 
     if request.method == "POST":
-        if request.POST:
-            token = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(30))
+        token = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(30))
+
+        # handle the "confirm.htnl"  the  conflict file
+        if "conflicted" in request.POST:
+
+            # get task_ids and result_dict from not conflict page.
+            task_ids = str(request.POST["task_list"]).split(",")
+            result_dict = eval(request.POST['result_dict'])
+
+            confilct_files = str(request.POST["conflict_files"]).split(",")
+            render_di = eval(request.POST["ini_content"])
+
+            chose_map = {}
+            for cf in confilct_files:
+                if len(cf) > 0:
+                    chose_map[cf] = request.POST[cf]
+
+            return render(request, "confirm.html", locals())
+
+
+        else:
             task_ids = []
             result_dict = {}
 
@@ -132,7 +152,20 @@ def modify_project(request, project_name):
             sotred_ids = sorted_task_ids(project_name, project_owner_user)
 
             for task_id in sotred_ids:
+
                 render_di[task_id] = gen_ini_str(task_id, result_dict) + "\n"
+
+            # check conflict files
+            cf = conflict_files(result_dict)
+
+            if len(cf.keys()) != 0:
+                cf_tasks = get_conflict_tasks(cf)
+                disable_download = True
+                err_message = "You have some conflicting files.Please select the file to be compressed into TestCase zip. "
+
+                return render(request, "confirm.html", locals())
+
+
             return render(request, "confirm.html", locals())
 
 
@@ -164,12 +197,13 @@ def select_script(request, project_name):
     is_project = True
     datas = Upload_TestCase.objects.all()
 
-    token = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(30))
+
     # if project name not existed ,will show bad requests
     if (Project.objects.filter(project_name=project_name).exists() == False):
         raise SuspiciousOperation("Invalid request!")
 
     if request.POST:
+        token = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(30))
 
         # render the set_argument page ,it data get from list page
         if "task_ids" in request.POST:
