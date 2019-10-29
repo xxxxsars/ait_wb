@@ -23,11 +23,11 @@ class UploadFileForm(forms.Form):
                                                   "invalid": "Please insert valid script name."})
 
     file = forms.FileField(required=True,
-                           widget=forms.FileInput(attrs={'class': 'custom-file-input', "id": "inputGroupFile04"}),
+                           widget=forms.FileInput(attrs={'class': 'custom-file-input', "id": "zip_file"}),
                            error_messages={'required': 'Please update zip file.',
                                            "invalid": "Please update valid zip file"})
 
-    attachment = forms.FileField(widget=forms.FileInput(attrs={'class': 'custom-file-input', "id": "inputGroupFile04"}),required=False)
+    attachment = forms.FileField(widget=forms.FileInput(attrs={'class': 'custom-file-input', "id": "attachment_file"}),required=False)
 
 
 

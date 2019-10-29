@@ -56,7 +56,7 @@
                 $("input[name='task_name']").val('{{ task_info.task_name }}');
                 $("textarea[name='task_description']").val('{{ task_info.description }}');
                 $("input[name='script_name']").val('{{ task_info.script_name }}');
-                $("input[name='sample']").val('{{ task_info.sample }}');
+                $("input[name='sample']").val('{{ task_info.sample |escapejs}}');
             {% else %}
                 $("input[name='task_id']").val('{{ task_info.task_id }}').attr("readonly", "readonly");
             {% endif %}
@@ -72,14 +72,14 @@
 
             $("#add_argument").click(function () {
 
-                var info = '<label for=\"argument\">Argument：</label> {{ a.argument }}<label for="default_value">Default Value：</label>{{ a.default_value }}<label for="description">Description：</label>{{ a.description }}';
+                var info = '<tr>' +
+                    '<td>{{ a.argument }}</td>' +
+                    '<td>{{ a.default_value }}</td>' +
+                    '<td>{{ a.description }}</td>' +
+                    '<td>'+
+                    '</td></tr>';
                 if (rowCount < max_fields) {
-                    $("#new_argument").append(info);
-                    $("#new_argument").css({
-                        "border": "1px solid #9d9d9d",
-                        "border-radius": "4px",
-                        "padding": "10px"
-                    });
+                    $("#task-table tbody").append(info);
                     rowCount += 1;
 
                 }
@@ -89,21 +89,12 @@
             });
 
             $("#remove_argument").click(function (e) {
-                var removelines = {{ a.fields |length}};
-
-                for (var i = 0; i < removelines; i++) {
-                    $("#new_argument input").last().remove();
-                    $("#new_argument label").last().remove();
-                }
-
-                rowCount -= 1;
                 {# orginal argument colume cant be remove#}
-                if (rowCount <= 1) {
-                    $("#new_argument").css({"border": "", "border-radius": "", "padding": ""});
+                if ($("#task-table  tbody tr").length > 1) {
+                    $("#task-table tbody tr").last().remove();
+                    rowCount -= 1;
                 }
-
             });
-
 
             <!--delete specific argument-->
             var taskID = $("input[name=task_id]").val();
@@ -152,6 +143,7 @@
 
 {% block body %}
     <h3>Modify TeseCase</h3>
+    <br>
     {% if u.errors %}
         {% for field in u %}
             {% for error in field.errors %}
@@ -182,29 +174,104 @@
 
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}
 
-        <label for="id">ID：</label>{{ u.task_id }}
-        <label for="test_case_name">TestCase Name：</label>{{ u.task_name }}
-        <label for="descript">TestCase Description：</label>{{ u.task_description }}
-        <label for="script">Script Name：</label>{{ u.script_name }}
-        <label for="sample">Sample：</label>{{ u.sample }}
-        <label for="upload">Upload Zip file：</label>
-        <div class="input-group">
-            <div class="custom-file">
-                <input type="file" name="file" class="custom-file-input" id="customFileLang" lang="zn">
-                <label class="custom-file-label" for="customFileLang">Only allow Zip file</label>
+        <div class="row">
+            <div class="col-md-5">
+                <div class="form-group row">
+                    <label for="id" class="col-sm-4 col-form-label">ID</label>
+                    <div class="col-sm-8">
+                        {{ u.task_id }}
+                    </div>
+                </div>
+
             </div>
+
+            <div class="col-md-7">
+                <div class="form-group row">
+                    <label for="test_case_name" class="col-sm-3 col-form-label">TestCase Name</label>
+
+                    <div class="col-sm-9">
+                        {{ u.task_name }}
+                    </div>
+                </div>
+            </div>
+
         </div>
+
+        <div class="row">
+            <div class="col-md-5">
+                <div class="form-group row">
+
+
+                    <label for="script" class="col-sm-4 col-form-label">Script Name</label>
+
+                    <div class="col-sm-8">{{ u.script_name }}</div>
+                </div>
+            </div>
+
+            <div class="col-md-7">
+                <div class="form-group row">
+                    <label for="sample" class="col-sm-3 col-form-label">Sample
+
+                    </label>
+                    <div class="col-sm-9"> {{ u.sample }}</div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="form-group row">
+            <div class="col">
+                <label for="descript">TestCase Description</label>{{ u.task_description }}
+            </div>
+
+        </div>
+        <br>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <div class="custom-file">
+                        {{ u.attachment }}
+                        <label class="custom-file-label" for="attachment_file">Please Upload attachment</label>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-md-6">
+                <div class="input-group">
+                    <div class="custom-file">
+                        {{ u.file }}
+                        <label class="custom-file-label" for="zip_file">Please Upload TestScript zip file</label>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
 
         <br>
 
+        <div class="text-right">
 
+            <button class="btn btn btn-outline-success" type="button" id="add_argument">
+                New
+            </button>
+
+            <button class="btn btn btn-outline-danger" type="button" id="remove_argument">
+                Delete
+            </button>
+
+
+        </div>
         <table class="table table-bordered" id="task-table">
-            <thead class="thead-dark">
+            <thead>
             <tr>
                 <th scope="col" style="width: 20%">Argument</th>
                 <th scope="col" style="width: 20%">Default Value</th>
                 <th scope="col" style="width: 50%">Description</th>
-                <th style="width: 10%">Actions</th>
+                <th style="width: 10%;text-align: center">Actions</th>
             </tr>
             </thead>
             <tbody>
@@ -222,8 +289,8 @@
                     <td><input name="des_{{ arg.argument }}" type="text" class="form-control"
                                value="{{ arg.description }}">
                     </td>
-                    <td>
-                        <button type="button" class="btn btn-danger btn-xs dt-delete">Delete
+                    <td style="text-align: center">
+                        <button type="button" class="btn btn-outline-danger dt-delete"><i class="fas fa-times"></i>
                         </button>
                     </td>
 
@@ -234,17 +301,18 @@
         </table>
 
 
-        <br>
-        <button class="btn btn-success" type="button" id="add_argument"><i class="fas fa-plus"></i> Add</button>
-        <button class="btn btn-danger" type="button" id="remove_argument"><i class="fas fa-minus"></i> Remove</button>
-
         <div id="new_argument">
 
         </div>
 
 
         <br>
-        <button class="btn btn-primary" type="submit"><i class="fas fa-edit"></i> Modify</button>
+
+
+        <div class="text-center">
+            <button class="btn btn-outline-primary btn-lg" type="submit">Save</button>
+        </div>
+
 
     </form>
 
