@@ -54,7 +54,7 @@
             {% if render_value %}
                 $("input[name='task_id']").val('{{ task_info.task_id }}').attr("readonly", "readonly");
                 $("input[name='task_name']").val('{{ task_info.task_name }}');
-                $("textarea[name='task_description']").val('{{ task_info.description }}');
+                $("textarea[name='task_description']").val('{{ task_info.description |escapejs }}');
                 $("input[name='script_name']").val('{{ task_info.script_name }}');
                 $("input[name='sample']").val('{{ task_info.sample |escapejs}}');
             {% else %}
