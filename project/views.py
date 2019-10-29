@@ -23,6 +23,8 @@ from common.common import handle_path
 from project.forms import *
 from project.models import *
 
+from test_script.list.views import no_attach_tasks
+
 
 @login_required(login_url="/user/login/")
 def list_project(request):
@@ -196,7 +198,7 @@ def modify_project(request, project_name):
 def select_script(request, project_name):
     is_project = True
     datas = Upload_TestCase.objects.all()
-
+    no_att_tasks = no_attach_tasks()
 
     # if project name not existed ,will show bad requests
     if (Project.objects.filter(project_name=project_name).exists() == False):

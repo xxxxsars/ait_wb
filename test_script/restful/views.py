@@ -1,4 +1,6 @@
 import os
+from django.http import StreamingHttpResponse
+from django.contrib.auth.decorators import login_required
 
 from rest_framework import status
 from rest_framework import viewsets
@@ -68,3 +70,21 @@ def remove_upload_file(task_id):
         shutil.rmtree(source_folder)
     except Exception:
         pass
+
+
+@login_required(login_url="/user/login/")
+def attach_download(request,task_id):
+    path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    file_root = handle_path(path,"upload_folder",task_id,"attachment")
+
+
+    files =[f for f in os.listdir(file_root) if os.path.isfile(os.path.join(file_root,f))]
+
+
+    file_name = files[0]
+
+    file = open(os.path.join(file_root,file_name), 'rb')
+    response = StreamingHttpResponse(file)
+    response['Content-Type'] = 'application/octet-stream'
+    response['Content-Disposition'] = 'attachment;filename="%s"'%file_name
+    return response
