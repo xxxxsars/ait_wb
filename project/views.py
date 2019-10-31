@@ -96,9 +96,9 @@ def create_project(request):
                     if pn not in part_number:
                         Project_PN.objects.get(part_number=pn,project_name=project_instance).delete()
 
-
-
             susessful = "Create [ %s ] was successfully! "%project_name
+
+            create_project_folder(user_name,project_name,part_number)
             return render(request, "create.html", locals())
 
         else:
@@ -109,6 +109,33 @@ def create_project(request):
         c = CreateProjectForm()
 
     return render(request, "create.html", locals())
+
+
+
+
+def create_project_folder(username, project_name,part_numbers):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    if platform.system() == "Windows":
+        source_path = path + r'\download_folder\\'
+
+    else:
+        source_path = path + '/download_folder/'
+
+
+    root_path = os.path.join(os.path.join(source_path, username), project_name)
+
+    if not os.path.exists(root_path):
+        os.makedirs(root_path)
+
+
+    for part_number in part_numbers:
+        part_numver_path = os.path.join(root_path,part_number)
+        if not os.path.exists(part_numver_path):
+            os.makedirs(part_numver_path)
+
+
+
 
 @login_required(login_url='/usr/login')
 def set_station(request,project_name,part_number):
@@ -132,12 +159,6 @@ def set_station(request,project_name,part_number):
     project_instance = Project.objects.get(owner_user=user_instance,project_name=project_name)
     if not Project_PN.objects.filter(project_name=project_instance,part_number=part_number).exists():
         return Http404
-
-
-
-
-
-
 
 
 
