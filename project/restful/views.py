@@ -10,6 +10,7 @@ from project.models import *
 
 import os, platform, shutil
 
+from common.common import handle_path
 
 # # Create your views here.
 # class DeleteProjectPNView(viewsets.ModelViewSet):
@@ -50,12 +51,14 @@ def DeleteProjectPNView(request):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         pn_instance = Project_PN.objects.filter(project_name=project_name,part_number=part_number)
-
+        owner_user = Project.objects.get(project_name=project_name).owner_user.username
         if pn_instance.exists() ==False:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
         pn_instance.delete()
+
+        delete_pn_file(owner_user,project_name,part_number)
         return Response(status=status.HTTP_200_OK)
 
 
@@ -74,19 +77,20 @@ class DeleteProjectView(viewsets.ModelViewSet):
         project_name = instance.project_name
         owner_user = instance.owner_user.username
 
-        delet_project_file(owner_user, project_name)
+        delete_project_file(owner_user, project_name)
         # print(request.user)
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-def delet_project_file(username, project_name):
+
+def delete_pn_file(username, project_name,part_number):
     path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    pn_path = handle_path(path,"download_folder",username,project_name,part_number)
+    shutil.rmtree(pn_path)
 
-    if platform.system() == "Windows":
-        project_path = path + r"\download_folder\\" + username
 
-    else:
-        project_path = path + "/download_folder/" + username
-
+def delete_project_file(username, project_name):
+    path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    project_path = handle_path(path,"download_folder",username)
     shutil.rmtree(os.path.join(project_path, project_name))

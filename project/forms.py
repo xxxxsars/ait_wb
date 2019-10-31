@@ -15,10 +15,6 @@ class CreateProjectForm(forms.Form):
                                    error_messages={'required': 'PartNumber is empyt!',
                                                    "invalid": "Please insert valid PartNumber"})
 
-    # station_name = forms.CharField(max_length=255, required=True,
-    #                                widget=forms.TextInput(attrs={'class': 'form-control'}),
-    #                                error_messages={'required': 'Station Name is empyt!',
-    #                                                "invalid": "Please insert valid Station Name"})
     def clean_project_name(self):
         project_name = self.cleaned_data["project_name"]
         # if Project.objects.filter(project_name=project_name).count():
@@ -30,3 +26,9 @@ class CreateProjectForm(forms.Form):
             raise forms.ValidationError("Your Project Name not match the Project Name rules.")
 
 
+
+class SetStationForm(forms.Form):
+    station_name = forms.CharField(max_length=255, required=True,
+                                   widget=forms.TextInput(attrs={'class': 'form-control'}),
+                                   error_messages={'required': 'Station Name is empyt!',
+                                                   "invalid": "Please insert valid Station Name"})

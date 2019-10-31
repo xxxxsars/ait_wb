@@ -2,16 +2,6 @@
 {% load staticfiles %}
 {% load filter %}
 
-
-{% block head %}
-    <script src={% static "bower_components/bootstrap-treeview/dist/bootstrap-treeview.min.js" %}></script>
-
-
-    <link type="text/css" rel="stylesheet"
-          href="{% static "bower_components/bootstrap-treeview/dist/bootstrap-treeview.min.css" %}">
-
-{% endblock %}
-
 {% block js %}
     <script>
         function getCookie(name) {
@@ -33,11 +23,13 @@
         function table_clone() {
             return '<tr>' +
                 '<td class="pn_input"><input type="text" name="part_number" class="form-control" maxlength="255" required="" id="id_part_number"></td>' +
-                '<td style="text-align: center;"><button class="btn btn-outline-primary btn-set-station"  type="button" disabled >Set Station</button></td>' +
                 '</tr>';
         }
 
         $(document).ready(function () {
+
+
+
             //auto close alert  after 4 seconds.
             $(".alert").delay(4000).slideUp(200, function () {
                 $(this).alert('close');
@@ -101,18 +93,30 @@
                 });
 
 
+                $("#set_station").click(function () {
 
-
-                $(".btn-set-station").each(function () {
-                    $(this).click(function () {
-
-                        var part_number = $(this).closest("tr").find('input[name="part_number"]').val();
-                        var project_name = $('input[name="project_name"]').val();
-                        console.log(part_number, project_name)
-
-                        location.href = "/project/set_station/" + project_name +'/'+part_number;
-                    })
+                    $.ajax({
+                        url: '/project/create/',
+                        type: 'post',
+                        data: $('#create_project').serialize(),
+                        success: function () {
+                            console.log("success")
+                        }
+                    });
+                    var project_name = $('input[name="project_name"]').val();
+                    location.href = "/project/set_station/" + project_name
                 });
+
+                {% comment %}                $(".btn-set-station").each(function () {
+                                    $(this).click(function () {
+
+                                        var part_number = $(this).closest("tr").find('input[name="part_number"]').val();
+                                        var project_name = $('input[name="project_name"]').val();
+                                        console.log(part_number, project_name)
+
+                                        location.href = "/project/set_station/" + project_name + '/' + part_number;
+                                    })
+                                });{% endcomment %}
 
 
 
@@ -197,9 +201,7 @@
 
 {% block body %}
     <h3>Create Project</h3>
-
-
-
+    <br>
     {% if c.errors %}
 
         {% for field in c %}
@@ -260,16 +262,14 @@
         <table class="table table-bordered" id="part-number-table">
             <thead>
             <tr>
-                <th scope="col" width="80%">Part Number</th>
-                <th scope="col" style="text-align: center">Action</th>
+                <th scope="col">Part Number</th>
+
             </tr>
             </thead>
             <tbody>
             <tr>
                 <td class="pn_input">{{ c.part_number }}</td>
-                <td style="text-align: center;">
-                    <button class="btn btn-outline-primary btn-set-station" type="button">Set Station</button>
-                </td>
+
             </tr>
 
             </tbody>
@@ -277,14 +277,23 @@
 
 
         {#        <div class="position-absolute bottom-center">#}
-        <div class=text-center>
-            <button class="btn btn-outline-primary btn-lg" type="submit">Save Project</button>
-        </div>
+
+
+
+        {% if datas and c.errors|trans_not  and errors|trans_not %}
+            <div class=text-center>
+                <button class="btn btn-outline-primary" type="submit">Save</button>
+
+                <button class="btn btn-outline-primary" type="button" id="set_station">Next <i
+                        class="fas fa-forward"></i></button>
+            </div>
+        {% else %}
+
+            <div class=text-center>
+                <button class="btn btn-outline-primary" type="submit">Save</button>
+            </div>
+        {% endif %}
     </form>
-
-
-
-
 
 
 {% endblock %}

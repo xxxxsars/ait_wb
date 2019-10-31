@@ -1,2 +1,124 @@
 {% extends "base.html" %}
 {% load staticfiles %}
+{% load filter %}
+
+
+
+
+{% block css %}
+    <style>
+        h3 {
+            text-align: center;
+        }
+
+    </style>
+{% endblock %}
+
+
+{% block js %}
+    <script>
+
+
+        function table_clone() {
+            return '<tr>' +
+                '<td class="pn_input"><input type="text" name="station_name" class="form-control" maxlength="255" required="" id="id_station_name"></td>' +
+                '<td style="text-align: center;">\n' +
+                '<button class="btn btn-outline-primary btn-set-station" type="button" disabled>Select TestScript</button>\n' +
+                '</td>' +
+                '</tr>'
+        }
+
+        $(document).ready(function () {
+
+            //auto close alert  after 4 seconds.
+            $(".alert").delay(4000).slideUp(200, function () {
+                $(this).alert('close');
+            });
+
+
+            var rowCount = 0;
+
+            rowCount = $("#station-table tbody tr").length;
+
+
+
+
+
+
+
+            $("#add_station").click(function () {
+                var clone_html = table_clone();
+                $("#station-table tbody").append(clone_html);
+                rowCount += 1;
+                 console.log("in",rowCount);
+            });
+
+            $("#remove_station").click(function () {
+                if (rowCount > 1) {
+                    var remove_tr = $("#station-table tbody tr").last();
+                    remove_tr.remove();
+                    rowCount -= 1;
+                }
+
+            });
+        });
+    </script>
+{% endblock %}}
+{% block body %}
+    <h3>Set [ {{ project_name }} ] Station</h3>
+    <br>
+        {% if c.errors %}
+
+        {% for field in s %}
+            {% for error in field.errors %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>{{ error|escape }}</strong>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    {% endif %}
+
+    <form id="set_station_table" enctype="multipart/form-data" method="post" action="">{% csrf_token %}
+
+        <div class="text-right">
+
+            <button class="btn btn btn-outline-success" type="button" id="add_station">
+                Add
+            </button>
+
+            <button class="btn btn btn-outline-danger" type="button" id="remove_station">
+                Delete
+            </button>
+
+
+        </div>
+
+
+        <table class="table table-bordered" id="station-table">
+            <thead>
+            <tr>
+                <th scope="col" width="80%">Station Name</th>
+                <th scope="col" style="text-align: center">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="pn_input">{{ s.station_name }}</td>
+                <td style="text-align: center;">
+                    <button class="btn btn-outline-primary btn-set-station" type="button">Select TestScript</button>
+                </td>
+            </tr>
+
+            </tbody>
+
+        </table>
+
+                <div class=text-center>
+            <button class="btn btn-outline-primary btn-lg" type="submit">Save Station</button>
+        </div>
+    </form>
+
+{% endblock %}

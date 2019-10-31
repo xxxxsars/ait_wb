@@ -97,7 +97,6 @@ def create_project(request):
                         Project_PN.objects.get(part_number=pn,project_name=project_instance).delete()
 
             susessful = "Create [ %s ] was successfully! "%project_name
-
             create_project_folder(user_name,project_name,part_number)
             return render(request, "create.html", locals())
 
@@ -113,32 +112,12 @@ def create_project(request):
 
 
 
-def create_project_folder(username, project_name,part_numbers):
-    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-    if platform.system() == "Windows":
-        source_path = path + r'\download_folder\\'
-
-    else:
-        source_path = path + '/download_folder/'
-
-
-    root_path = os.path.join(os.path.join(source_path, username), project_name)
-
-    if not os.path.exists(root_path):
-        os.makedirs(root_path)
-
-
-    for part_number in part_numbers:
-        part_numver_path = os.path.join(root_path,part_number)
-        if not os.path.exists(part_numver_path):
-            os.makedirs(part_numver_path)
 
 
 
 
 @login_required(login_url='/usr/login')
-def set_station(request,project_name,part_number):
+def set_station(request,project_name):
 
     username = request.user.username
     # check project is valid
@@ -150,19 +129,30 @@ def set_station(request,project_name,part_number):
     else:
         project_list = [prj[0] for prj in Project.objects.all().values_list("project_name")]
 
-    if project_name not in project_list:
+    if project_name not in project_list or not valid_user(username):
         return Http404
 
+    print(project_name)
+    # # check part number is valid
+    # user_instance = User.objects.get(username=username)
+    # project_instance = Project.objects.get(owner_user=user_instance,project_name=project_name)
+    # if not Project_PN.objects.filter(project_name=project_instance,part_number=part_number).exists():
+    #     return Http404
 
-    # check part number is valid
-    user_instance = User.objects.get(username=username)
-    project_instance = Project.objects.get(owner_user=user_instance,project_name=project_name)
-    if not Project_PN.objects.filter(project_name=project_instance,part_number=part_number).exists():
-        return Http404
+    if request.POST:
+        print(request.POST)
+        s = SetStationForm(request.POST)
+        if s.is_valid():
+            datas = dict(request.POST)
+            stations = list(filter(None, request.POST.getlist("station_name")))
 
 
+        else:
+            datas = dict(request.POST)
+            return render(request, "set_station.html", locals())
 
-
+    else:
+        s = SetStationForm()
     return render(request,"set_station.html",locals())
 
 
@@ -730,6 +720,29 @@ def save_project_files(token, username, project_name):
     with zipfile.ZipFile(source_zip, 'r') as zip_ref:
         zip_ref.extractall(dest_path)
 
+
+
+
+def create_project_folder(username, project_name,part_numbers):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    if platform.system() == "Windows":
+        source_path = path + r'\download_folder\\'
+
+    else:
+        source_path = path + '/download_folder/'
+
+
+    root_path = os.path.join(os.path.join(source_path, username), project_name)
+
+    if not os.path.exists(root_path):
+        os.makedirs(root_path)
+
+
+    for part_number in part_numbers:
+        part_numver_path = os.path.join(root_path,part_number)
+        if not os.path.exists(part_numver_path):
+            os.makedirs(part_numver_path)
 
 def valid_user(username):
     if User.objects.filter(username=username).exists():

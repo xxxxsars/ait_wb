@@ -9,5 +9,5 @@ urlpatterns = [
     url("^download/(?P<token>\w{30})/$", download, name="export_task"),
     url("^modify/(?P<project_name>\w{7})/$", modify_project, name="project_modify"),
 
-    url("^set_station/(?P<project_name>\w{7})/(?P<part_number>\w+)/$",set_station)
+    url("^set_station/(?P<project_name>\w{7})/$",set_station)
 ]
