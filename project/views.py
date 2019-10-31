@@ -33,8 +33,15 @@ def list_project(request):
 
     # clean not selected task project
     for p in Project.objects.all():
-        if len(Project_task.objects.filter(project_name=p)) == 0:
+
+        pn_instance = Project_PN.objects.filter(project_name_id=p)
+
+        if len(pn_instance) ==0:
             p.delete()
+
+
+        # if len(Project_task.objects.filter(project_name=p)) == 0:
+        #     p.delete()
 
     if request.user.is_staff:
         datas = Project.objects.all()
@@ -52,23 +59,93 @@ def create_project(request):
     is_project = True
 
     if request.POST:
+        # project_create
         c = CreateProjectForm(request.POST)
         user_name = request.user.username
-
         if c.is_valid() and valid_user(user_name):
+            datas = dict(request.POST)
             project_name = request.POST['project_name']
+            part_number = list(filter(None, request.POST.getlist("part_number")))
+
+
+            # if not modify will be check the project had repeat on db
+            if   "is_modify" not in  request.POST:
+                if Project.objects.filter(project_name=project_name).count():
+                    errors = "Your Project Name cannot be repeated.Please modify your project name."
+                    return  render(request, "create.html", locals())
+
             user_instance = User.objects.get(username=user_name)
 
-            prj = Project.objects.create(project_name=project_name, owner_user=user_instance)
-            return redirect('/project/select/' + project_name)
-        else:
+            # if project was existed ,not create it
+            if not (Project.objects.filter(project_name=project_name, owner_user=user_instance).exists()):
+                project_instance = Project.objects.create(project_name=project_name, owner_user=user_instance)
+                for pn in part_number:
+                    pn_instance = Project_PN.objects.create(part_number=pn, project_name=project_instance)
+
+            else:
+                project_instance =Project.objects.get(project_name=project_name, owner_user=user_instance)
+                project_pns = [p.part_number  for p in Project_PN.objects.filter(project_name=project_instance)]
+                for post_pn in part_number:
+                    if post_pn not in project_pns:
+                        pn_instance = Project_PN.objects.create(part_number=post_pn, project_name=project_instance)
+
+
+                # if db part number not in post part_number
+                # ,it means part number may be modify ,it new will be added old will be removed.
+                for pn in project_pns:
+                    if pn not in part_number:
+                        Project_PN.objects.get(part_number=pn,project_name=project_instance).delete()
+
+
+
+            susessful = "Create [ %s ] was successfully! "%project_name
             return render(request, "create.html", locals())
 
-
+        else:
+            datas = dict(request.POST)
+            return render(request, "create.html", locals())
     else:
+
         c = CreateProjectForm()
 
     return render(request, "create.html", locals())
+
+@login_required(login_url='/usr/login')
+def set_station(request,project_name,part_number):
+
+    username = request.user.username
+    # check project is valid
+    if not request.user.is_staff:
+        project_list = [prj[0] for prj in
+                        Project.objects.filter(owner_user=User.objects.get(username=username)).values_list(
+                            "project_name")]
+
+    else:
+        project_list = [prj[0] for prj in Project.objects.all().values_list("project_name")]
+
+    if project_name not in project_list:
+        return Http404
+
+
+    # check part number is valid
+    user_instance = User.objects.get(username=username)
+    project_instance = Project.objects.get(owner_user=user_instance,project_name=project_name)
+    if not Project_PN.objects.filter(project_name=project_instance,part_number=part_number).exists():
+        return Http404
+
+
+
+
+
+
+
+
+
+
+    return render(request,"set_station.html",locals())
+
+
+
 
 
 @login_required(login_url="/user/login")

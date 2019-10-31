@@ -13,10 +13,27 @@ class Project(models.Model):
         db_table = "project"
 
 
-class Project_task(models.Model):
+class Project_PN(models.Model):
+    part_number = models.CharField(max_length=255)
     project_name = models.ForeignKey(Project, on_delete=models.CASCADE)
-    task_id = models.ForeignKey(Upload_TestCase, on_delete=models.CASCADE)
 
+    class Mega:
+        db_table = "project_pn"
+        unique_together = (('project_name', 'part_number'),)
+
+
+class Project_Station(models.Model):
+    project_pn_id = models.ForeignKey(Project_PN, on_delete=models.CASCADE)
+    station_name = models.CharField(max_length=255)
+
+    class Mega:
+        db_table = "project_station"
+        unique_together = (('project_pn_id', 'station_name'),)
+
+
+class Project_task(models.Model):
+    station_id = models.ForeignKey(Project_Station, on_delete=models.CASCADE)
+    task_id = models.ForeignKey(Upload_TestCase, on_delete=models.CASCADE)
     timeout = models.IntegerField(default=30)
     exit_code = models.CharField(max_length=20, default="exitCode")
     retry_count = models.IntegerField(default=3)
@@ -25,24 +42,15 @@ class Project_task(models.Model):
 
     class Meta:
         db_table = "project_task"
-        unique_together = (('task_id', 'project_name'),)
+        unique_together = (('task_id', 'station_id'),)
 
 
 class Project_task_argument(models.Model):
     argument = models.CharField(max_length=255)
     default_value = models.CharField(max_length=255, default="null")
-
-    project_name = models.ForeignKey(Project, on_delete=models.CASCADE)
+    station_id = models.ForeignKey(Project_Station, on_delete=models.CASCADE)
     task_id = models.ForeignKey(Upload_TestCase, on_delete=models.CASCADE)
 
     class Meta:
         db_table = "project_task_arguments"
-        unique_together = (('task_id', 'project_name', 'argument'),)
-
-
-class Download_log(models.Model):
-    token = models.CharField(max_length=30, primary_key=True)
-    time = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = "download_log"
+        unique_together = (('task_id', 'station_id', 'argument'),)

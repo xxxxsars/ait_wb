@@ -7,6 +7,8 @@ from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 router.register(r'delete', DeleteProjectView)
 
+
 urlpatterns = [
-    url("", include(router.urls))
+    url("", include(router.urls)),
+    url("pn_delete/$", DeleteProjectPNView),
 ]
