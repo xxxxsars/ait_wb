@@ -28,8 +28,6 @@
 
         $(document).ready(function () {
 
-
-
             //auto close alert  after 4 seconds.
             $(".alert").delay(4000).slideUp(200, function () {
                 $(this).alert('close');
@@ -94,7 +92,6 @@
 
 
                 $("#set_station").click(function () {
-
                     $.ajax({
                         url: '/project/create/',
                         type: 'post',
@@ -107,16 +104,6 @@
                     location.href = "/project/set_station/" + project_name
                 });
 
-                {% comment %}                $(".btn-set-station").each(function () {
-                                    $(this).click(function () {
-
-                                        var part_number = $(this).closest("tr").find('input[name="part_number"]').val();
-                                        var project_name = $('input[name="project_name"]').val();
-                                        console.log(part_number, project_name)
-
-                                        location.href = "/project/set_station/" + project_name + '/' + part_number;
-                                    })
-                                });{% endcomment %}
 
 
 
@@ -157,7 +144,7 @@
                                     },
 
                                     success: function (json) {
-                                        console.log(json); // another sanity check
+                                       remove_tr.remove();
 
                                     },
 
@@ -168,7 +155,7 @@
                                 });
                             {% endif %}
 
-                            remove_tr.remove();
+
                         }
                     } else {
                         remove_tr.remove();
@@ -228,9 +215,13 @@
 
 
     {% if susessful %}
-        <div class="alert alert-success">
-            <strong> {{ susessful }}</strong>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>{{ susessful }}</strong>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
         </div>
+
     {% endif %}
 
     <form id="create_project" enctype="multipart/form-data" method="post" action="">{% csrf_token %}

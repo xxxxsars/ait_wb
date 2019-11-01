@@ -2,7 +2,21 @@
 {% load staticfiles %}
 {% load filter %}
 
+{% block head %}
+    <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
 
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/datatables.net-dt/css/jquery.dataTables.min.css" %}">
+
+    <script src={% static "bower_components/datatables.net/js/jquery.dataTables.min.js" %}></script>
+
+
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/datatables.net-dt/css/select.dataTables.min.css" %}">
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/datatables.net-dt/css/query.dataTables.min.css" %}">
+
+{% endblock %}
 
 
 {% block css %}
@@ -11,22 +25,78 @@
             text-align: center;
         }
 
+        td.details-control {
+            background: url('{% static "pic/plus.png" %}') no-repeat center center;
+            cursor: pointer;
+        }
+
+        tr.shown td.details-control {
+            background: url('{% static "pic/minus.png" %}') no-repeat center center;
+        }
+
+        input[type="text"].station_name,
+        select.form-control {
+
+            width: 350px;
+        }
+
+        input[type="text"].station_name:focus,
+        select.form-control:focus {
+
+            width: 350px;
+        }
     </style>
 {% endblock %}
 
 
 {% block js %}
     <script>
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        });
 
 
-        function table_clone() {
-            return '<tr>' +
-                '<td class="pn_input"><input type="text" name="station_name" class="form-control" maxlength="255" required="" id="id_station_name"></td>' +
-                '<td style="text-align: center;">\n' +
-                '<button class="btn btn-outline-primary btn-set-station" type="button" disabled>Select TestScript</button>\n' +
-                '</td>' +
-                '</tr>'
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
         }
+
+        function table_clone(part_number) {
+            return '                <tr>\n' +
+                '                    <td colspan="3">\n' +
+                '                        <div class="input-group mb-3">\n' +
+                '                        <div style="margin-left: 10%"><input type="text" name="' + part_number + '"' +
+                '                                                                 class="form-control station_name"' +
+                '                                                                 placeholder="Set station name" maxlength="255"' +
+                '                                                                 required="" id="id_station_name"> </div>' +
+                '                        <div class="input-group-append">\n' +
+                '                            <button class="btn btn-outline-primary select-script" type="button" data-toggle="tooltip" data-placement="top" title="Select TestScrpit" disabled><i class="fas fa-share"></i>\</button>' +
+                '                        </div>\n' +
+                '                        </div>\n' +
+                '                    </td>\n' +
+                '                </tr>'
+        }
+
+
+        $(function () {
+            $(document).on("click", ".select-script", function () {
+                var part_number = ($(this).closest("tbody").attr("class").split(" ")[0]);
+
+                console.log("in")
+            });
+
+        });
 
         $(document).ready(function () {
 
@@ -36,9 +106,53 @@
             });
 
 
-            var rowCount = 0;
+            var project_name = '{{ project_name|escapejs }}';
 
-            rowCount = $("#station-table tbody tr").length;
+            //if had datas means posted ,even the result current ,will set the post value to all station input
+            {% if datas %}
+                {% for pn in datas|lookup:"all_pn" %}
+                    var row = {{ datas|lookup:pn |safe}}
+                    var rowCount = row.length;
+                    if (rowCount > 1) {
+                        for (i = 2; i <= rowCount; i++) {
+                            $("#part-table tbody.{{ pn }}").append(table_clone('{{pn}}'))
+                        }
+                    }
+
+                    $("#part-table tbody.{{ pn }}").each(function () {
+
+                        var values = {{  datas|lookup:pn|safe }}
+
+                            $(this).find("input[name='{{ pn }}']").each(function (i) {
+                                $(this).val(values[i])
+
+                            })
+
+                    });
+
+
+                {% endfor %}
+
+
+
+            {% endif %}
+
+
+
+            {% if datas and errors|trans_not %}
+                $('input[name="station_name"]').attr("readonly", "readonly");
+
+                $(".select-script").each(function () {
+                    $(this).prop("disabled", false)
+                });
+
+            {% else %}
+                $(".select-script").each(function () {
+
+
+                    $(this).attr("disabled", "disabled")
+                });
+            {% endif %}
 
 
 
@@ -46,79 +160,161 @@
 
 
 
-            $("#add_station").click(function () {
-                var clone_html = table_clone();
-                $("#station-table tbody").append(clone_html);
-                rowCount += 1;
-                 console.log("in",rowCount);
+            $("#part-table tbody").find(".st-add").each(function () {
+                $(this).click(function (e) {
+                    e.stopPropagation();
+                    var part_number = ($(this).closest("tr").find(".part_number_col").text());
+                    var append_target = $($(this).closest("tr").attr("data-target"));
+
+
+                    $(append_target).append(table_clone(part_number))
+                })
             });
 
-            $("#remove_station").click(function () {
-                if (rowCount > 1) {
-                    var remove_tr = $("#station-table tbody tr").last();
-                    remove_tr.remove();
-                    rowCount -= 1;
-                }
 
+            $("#part-table tbody").find(".st-remove").each(function () {
+                $(this).click(function (e) {
+
+                    e.stopPropagation();
+                    var append_target = $($(this).closest("tr").attr("data-target"));
+
+
+                    var rowCount = append_target.find('input').length;
+                    var remove_tr = append_target.find('tr').last();
+
+
+                    if (rowCount > 1) {
+
+
+                        var last_tr_station = remove_tr.find('input').val();
+                        var part_number = (remove_tr.closest("tbody").attr("class").split(" ")[2]);
+
+                        if (last_tr_station != "") {
+                            if (confirm("Are you sure to delete this row?")) {
+                                $.ajax({
+                                    url: "/project/station_delete/", // the endpoint,commonly same url
+                                    type: 'POST',
+                                    data: {
+                                        csrfmiddlewaretoken: getCookie("csrftoken"),
+                                        "project_name": project_name,
+                                        "part_number": part_number,
+                                        "station_name": last_tr_station
+                                    },
+
+                                    success: function (json) {
+
+                                        remove_tr.remove()
+                                    },
+
+                                    //處理失敗時會做的動作
+                                    error: function (xhr, errmsg, err) {
+                                        console.log("part number not in database"); // provide a bit more info about the error to the console
+                                    }
+                                });
+                            }
+
+                        } else {
+                            remove_tr.remove()
+                        }
+
+                    }
+
+                })
             });
+
+
         });
     </script>
 {% endblock %}}
 {% block body %}
-    <h3>Set [ {{ project_name }} ] Station</h3>
+    <h3>Project [ {{ project_name }} ] set station name </h3>
     <br>
-        {% if c.errors %}
+    {% if errors %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>{{ errors }}</strong>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
 
-        {% for field in s %}
-            {% for error in field.errors %}
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <strong>{{ error|escape }}</strong>
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            {% endfor %}
-        {% endfor %}
     {% endif %}
 
-    <form id="set_station_table" enctype="multipart/form-data" method="post" action="">{% csrf_token %}
-
-        <div class="text-right">
-
-            <button class="btn btn btn-outline-success" type="button" id="add_station">
-                Add
+    {% if susessful %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>{{ susessful }}</strong>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
             </button>
-
-            <button class="btn btn btn-outline-danger" type="button" id="remove_station">
-                Delete
-            </button>
-
-
         </div>
 
+    {% endif %}
 
-        <table class="table table-bordered" id="station-table">
+
+    <form id="set_station_form" enctype="multipart/form-data" method="post" action="">{% csrf_token %}
+        <table class="table  table-hover" id="part-table">
             <thead>
             <tr>
-                <th scope="col" width="80%">Station Name</th>
-                <th scope="col" style="text-align: center">Action</th>
+                <th style="width: 10%;text-align: center">Stations</th>
+                <th>PartNumber</th>
+                <th style="width:20%;text-align: center">Add/Del Station Name</th>
             </tr>
             </thead>
-            <tbody>
-            <tr>
-                <td class="pn_input">{{ s.station_name }}</td>
-                <td style="text-align: center;">
-                    <button class="btn btn-outline-primary btn-set-station" type="button">Select TestScript</button>
-                </td>
-            </tr>
 
-            </tbody>
+            {% for pn in pn_instances %}
+                <tbody>
+                <tr class="clickable" data-toggle="collapse" data-target="#group-of-rows-{{ forloop.counter }}"
+                    aria-expanded="false"
+                    aria-controls="group-of-rows-1">
+                    <td style="text-align: center"><i class="fa fa-plus" aria-hidden="true"></i></td>
+                    <td class="part_number_col">{{ pn.part_number }}</td>
+                    <td>
+                        <div class="text-center">
+                            <div class="btn-group">
+                                <button type="button"
+                                        class="btn btn-outline-success btn-xs  btn-md center-block st-add">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                <button type="button"
+                                        class=" btn btn-outline-danger btn-xs   btn-md center-block st-remove"><i
+                                        class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </td>
 
+                </tr>
+                </tbody>
+
+                <tbody id="group-of-rows-{{ forloop.counter }}" class="collapse show {{ pn.part_number }}">
+                <tr>
+                    <td colspan="3">
+                        <div class="input-group mb-3">
+
+                            <div style="margin-left: 10%"><input type="text" name="{{ pn.part_number }}"
+                                                                 class="form-control station_name"
+                                                                 placeholder="Set station name" maxlength="255"
+                                                                 required="" id="id_station_name"></div>
+
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-primary select-script" type="button"
+                                        data-toggle="tooltip" data-placement="top" title="Select TestScrpit"><i
+                                        class="fas fa-share"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+
+                </tbody>
+            {% endfor %}
         </table>
 
-                <div class=text-center>
-            <button class="btn btn-outline-primary btn-lg" type="submit">Save Station</button>
+        <div class=text-center>
+            <button class="btn btn-outline-primary" type="submit"><i class="fas fa-save"></i> Save</button>
         </div>
+
+
     </form>
+
 
 {% endblock %}

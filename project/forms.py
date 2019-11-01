@@ -1,7 +1,7 @@
 from django import forms
 
 from project.models import *
-from common.limit import input_project_name
+from common.limit import input_project_name,input_part_station
 
 
 class CreateProjectForm(forms.Form):
@@ -27,8 +27,13 @@ class CreateProjectForm(forms.Form):
 
 
 
-class SetStationForm(forms.Form):
-    station_name = forms.CharField(max_length=255, required=True,
-                                   widget=forms.TextInput(attrs={'class': 'form-control'}),
-                                   error_messages={'required': 'Station Name is empyt!',
-                                                   "invalid": "Please insert valid Station Name"})
+    def clean_part_number(self):
+        part_number = self.cleaned_data['part_number']
+
+        r = input_part_station
+
+        if r.search(part_number) == None:
+            raise forms.ValidationError("Your PartNumber not match the PartNumber rules.")
+
+
+

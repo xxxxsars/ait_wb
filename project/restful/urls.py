@@ -11,4 +11,5 @@ router.register(r'delete', DeleteProjectView)
 urlpatterns = [
     url("", include(router.urls)),
     url("pn_delete/$", DeleteProjectPNView),
+    url("station_delete/$", DeleteProjectStationView),
 ]

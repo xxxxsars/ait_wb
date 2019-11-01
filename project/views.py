@@ -18,11 +18,11 @@ import json
 import shutil
 import re
 
-from common.limit import set_parameter_arg, set_parameter_other, task_id_reg
+from common.limit import set_parameter_arg, set_parameter_other, task_id_reg,input_part_station
 from common.common import handle_path
 from project.forms import *
 from project.models import *
-
+from project.restful.views import delete_file
 from test_script.list.views import no_attach_tasks
 
 
@@ -67,6 +67,12 @@ def create_project(request):
             project_name = request.POST['project_name']
             part_number = list(filter(None, request.POST.getlist("part_number")))
 
+            r = input_part_station
+            if len([e  for e in part_number if r.search(e)==None ]) >0:
+                errors = "Your PartNumber not match the PartNumber rules."
+                return render(request, "create.html", locals())
+
+
 
             # if not modify will be check the project had repeat on db
             if   "is_modify" not in  request.POST:
@@ -85,16 +91,19 @@ def create_project(request):
             else:
                 project_instance =Project.objects.get(project_name=project_name, owner_user=user_instance)
                 project_pns = [p.part_number  for p in Project_PN.objects.filter(project_name=project_instance)]
+
+                #add new part number
                 for post_pn in part_number:
                     if post_pn not in project_pns:
                         pn_instance = Project_PN.objects.create(part_number=post_pn, project_name=project_instance)
 
 
                 # if db part number not in post part_number
-                # ,it means part number may be modify ,it new will be added old will be removed.
+                # ,it means part number may be modify ,it new will be added ,the old will be removed.
                 for pn in project_pns:
                     if pn not in part_number:
                         Project_PN.objects.get(part_number=pn,project_name=project_instance).delete()
+                        delete_file(user_name,project_name,pn)
 
             susessful = "Create [ %s ] was successfully! "%project_name
             create_project_folder(user_name,project_name,part_number)
@@ -108,10 +117,6 @@ def create_project(request):
         c = CreateProjectForm()
 
     return render(request, "create.html", locals())
-
-
-
-
 
 
 
@@ -132,27 +137,47 @@ def set_station(request,project_name):
     if project_name not in project_list or not valid_user(username):
         return Http404
 
-    print(project_name)
-    # # check part number is valid
-    # user_instance = User.objects.get(username=username)
-    # project_instance = Project.objects.get(owner_user=user_instance,project_name=project_name)
-    # if not Project_PN.objects.filter(project_name=project_instance,part_number=part_number).exists():
-    #     return Http404
+    user_instance = User.objects.get(username=username)
+
+    project_instance = Project.objects.get(owner_user=user_instance, project_name=project_name)
+    pn_instances = Project_PN.objects.filter(project_name=project_instance)
 
     if request.POST:
-        print(request.POST)
-        s = SetStationForm(request.POST)
-        if s.is_valid():
-            datas = dict(request.POST)
-            stations = list(filter(None, request.POST.getlist("station_name")))
+        db_part_numbers = [p.part_number for p in pn_instances ]
+        r= input_part_station
+
+        datas = dict(request.POST)
+        datas["all_pn"] = db_part_numbers
+
+        # check all station name is matched our rules.
+        for pn in db_part_numbers:
+            pn_stations = list(filter(None, request.POST.getlist(pn)))
+            if len([e for e in pn_stations if r.search(e) == None]) > 0:
+                errors = "Your Station Name not match the Station Name rules."
+                return render(request, "set_station.html", locals())
 
 
-        else:
-            datas = dict(request.POST)
-            return render(request, "set_station.html", locals())
+        # if all station valid will do...
+        for pn_instance in pn_instances:
+            post_stations =  list(filter(None,request.POST.getlist(pn_instance.part_number)))
+            db_stations = [s.station_name for s in Project_Station.objects.filter(project_pn_id=pn_instance) ]
 
-    else:
-        s = SetStationForm()
+            # if post station name not in db will be created
+            for post_station in post_stations:
+                if post_station not in db_stations:
+                    Project_Station.objects.create(station_name=post_station,project_pn_id=pn_instance)
+
+            #if db station not in post station will be delete
+            for db_station in db_stations:
+                if db_station not in post_stations:
+                    Project_Station.objects.get(station_name=db_station, project_pn_id=pn_instance).delete()
+                    delete_file(username,project_name,pn_instance.part_number,db_station)
+
+
+            create_station_folder(username,project_name,pn_instance.part_number,post_stations)
+        susessful = "Save station name was successfully!"
+
+
     return render(request,"set_station.html",locals())
 
 
@@ -726,23 +751,31 @@ def save_project_files(token, username, project_name):
 def create_project_folder(username, project_name,part_numbers):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    if platform.system() == "Windows":
-        source_path = path + r'\download_folder\\'
-
-    else:
-        source_path = path + '/download_folder/'
-
-
-    root_path = os.path.join(os.path.join(source_path, username), project_name)
-
+    root_path = handle_path(path,"download_folder",username,project_name)
     if not os.path.exists(root_path):
         os.makedirs(root_path)
 
-
     for part_number in part_numbers:
-        part_numver_path = os.path.join(root_path,part_number)
-        if not os.path.exists(part_numver_path):
-            os.makedirs(part_numver_path)
+        part_number_path = os.path.join(root_path,part_number)
+        if not os.path.exists(part_number_path):
+            os.makedirs(part_number_path)
+
+
+def create_station_folder(username,project_name,part_number,stations):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    root_path = handle_path(path,"download_folder",username,project_name,part_number)
+    if not os.path.exists(root_path):
+        os.makedirs(root_path)
+
+    for station in stations:
+        station_path = os.path.join(root_path,station)
+        if not os.path.exists(station_path):
+            os.makedirs(station_path)
+
+
+
+
 
 def valid_user(username):
     if User.objects.filter(username=username).exists():

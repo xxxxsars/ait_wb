@@ -11,6 +11,7 @@ input_task_name = re.compile(r"[^\w|_|\s]+")
 input_argument = re.compile(r"[^\w|_]+")
 
 input_project_name = re.compile(r"^\w{7}$")
+input_part_station = re.compile(r"^\w+$")
 
 
 def valid_default_value(value):
@@ -108,7 +109,6 @@ def get_serial_number(task_id):
         serial = re.search(r'(\d{2})$', data["task_id"]).group(1)
         serials.append(int(serial))
 
-    print(serials)
 
     # get not increment the smallest serial number
     tmp = [i for i in range(100)]
