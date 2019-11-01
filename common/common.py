@@ -1,7 +1,8 @@
 import os
 import platform
 import re
-
+import shutil
+import hashlib
 
 def handle_path(root_path,*args):
     result_path = ""
@@ -20,4 +21,22 @@ def handle_path(root_path,*args):
     return result_path
 
 
+def md5(fname):
+    hash_md5 = hashlib.md5()
+    with open(fname, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
 
+
+
+
+
+if __name__ =="__main__":
+
+    source = "/Users/mac/Python/Python_Project/Python/FactoryWeb/upload_folder/000003/json.txt"
+
+    target = "/Users/mac/Python/Python_Project/Python/FactoryWeb/upload_folder/test/"
+
+
+    file_copy(source,target)

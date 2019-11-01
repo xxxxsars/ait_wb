@@ -3,23 +3,19 @@ from django.contrib.auth.decorators import login_required
 from django.http import StreamingHttpResponse, Http404
 from django.contrib.auth.models import User
 from django.core.exceptions import SuspiciousOperation
+from django.http import HttpResponse
 from django.forms.models import model_to_dict
 from django.http import JsonResponse
 from django.shortcuts import redirect
 
-import platform
-import os
 import random
 import string
 from datetime import datetime
 import zipfile
-import hashlib
 import json
-import shutil
-import re
 
-from common.limit import set_parameter_arg, set_parameter_other, task_id_reg,input_part_station
-from common.common import handle_path
+from common.limit import set_parameter_arg, set_parameter_other, task_id_reg,get_station_instacne
+from common.common import *
 from project.forms import *
 from project.models import *
 from project.restful.views import delete_file
@@ -52,7 +48,6 @@ def list_project(request):
         datas = Project.objects.filter(owner_user=user_instance)
 
     return render(request, "project_list.html", locals())
-
 
 @login_required(login_url="/user/login")
 def create_project(request):
@@ -118,12 +113,9 @@ def create_project(request):
 
     return render(request, "create.html", locals())
 
-
-
-
 @login_required(login_url='/usr/login')
 def set_station(request,project_name):
-
+    is_project = True
     username = request.user.username
     # check project is valid
     if not request.user.is_staff:
@@ -180,9 +172,118 @@ def set_station(request,project_name):
 
     return render(request,"set_station.html",locals())
 
+@login_required(login_url="/user/login/")
+def select_script(request, project_name,part_number,station_name):
+    is_project = True
+    datas = Upload_TestCase.objects.all()
+    no_att_tasks = no_attach_tasks()
 
+    # if project name not existed ,will show bad requests
+    if (Project.objects.filter(project_name=project_name).exists() == False):
+        raise SuspiciousOperation("Invalid request!")
 
+    if request.POST:
+        token = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(30))
 
+        # render the set_argument page ,it data get from list page
+        if "task_ids" in request.POST:
+            task_ids = (request.POST['task_ids']).split(",")
+            arg_dict = {}
+            task_dict = {}
+
+            if len(task_ids) != 0:
+                for task_id in task_ids:
+                    task_info = Upload_TestCase.objects.get(task_id=task_id)
+                    args = Arguments.objects.filter(task_id=task_info)
+                    arg_dict[task_id] = list(args.values())
+                    task_dict[task_id] = task_info.task_name
+
+                arg_json = json.dumps(arg_dict)
+                return render(request, "set_argument.html", locals())
+            else:
+                raise Http404
+
+        ## =====================start confirm page handle============================##
+
+        # handle the "confirm.htnl"  the  conflict file
+        if "conflicted" in request.POST:
+
+            # get task_ids and result_dict from not conflict page.
+            task_ids = str(request.POST["task_list"]).split(",")
+            result_dict = eval(request.POST['result_dict'])
+
+            confilct_files = str(request.POST["conflict_files"]).split(",")
+            render_di = eval(request.POST["ini_content"])
+
+            chose_map = {}
+            for cf in confilct_files:
+                if len(cf) > 0:
+                    chose_map[cf] = request.POST[cf]
+
+            return render(request, "confirm.html", locals())
+
+        # handle the set_argument submit action ,it will get all tab parameter
+        else:
+            task_ids = []
+            result_dict = {}
+
+            arg_reg = set_parameter_arg
+            other_reg = set_parameter_other
+
+            for k, v in dict(request.POST.lists()).items():
+                pd = []
+
+                if arg_reg.match(k):
+                    task_id = arg_reg.search(k).group(1)
+
+                    if task_id not in task_ids:
+                        task_ids.append(task_id)
+
+                    task_info = Upload_TestCase.objects.get(task_id=task_id)
+                    script_name = task_info.script_name
+                    task_name = task_info.task_name
+                    parmeter = arg_reg.search(k).group(2)
+                    argument = v[0]
+
+                    if task_id in result_dict:
+                        pd = result_dict[task_id]
+                        pd[parmeter] = argument
+                    else:
+                        result_dict[task_id] = {parmeter: argument,
+                                                "script_name": script_name, "task_name": task_name}
+
+            for task_id in task_ids:
+                append_dict = result_dict[task_id]
+                append_dict["timeout"] = request.POST["timeout_%s" % task_id]
+                append_dict["exitcode"] = request.POST["exitcode_%s" % task_id]
+                append_dict["retry"] = request.POST["retry_%s" % task_id]
+                append_dict["sleep"] = request.POST["sleep_%s" % task_id]
+                append_dict["criteria"] = request.POST["criteria_%s" % task_id]
+                append_dict["project_name"] = project_name
+                append_dict["part_number"] = part_number
+                append_dict["station_name"] = station_name
+
+            render_str = ""
+            render_di = {}
+
+            for task_id in task_ids:
+                render_di[task_id] = gen_ini_str(task_id, result_dict) + "\n"
+
+            # check conflict files
+            cf = conflict_files(result_dict)
+
+            if len(cf.keys()) != 0:
+                cf_tasks = get_conflict_tasks(cf)
+                disable_download = True
+                err_message = "You have some conflicting files.Please select the file to be compressed into TestCase zip. "
+
+                return render(request, "confirm.html", locals())
+
+            # if not conflict files will show  confirm page and the project can be downloaded.
+            return render(request, "confirm.html", locals())
+        ## =====================end confirm page handle============================##
+
+    return render(request, "script_list.html", locals())
 
 @login_required(login_url="/user/login")
 def modify_project(request, project_name):
@@ -306,125 +407,9 @@ def modify_project(request, project_name):
 
     return render(request, "set_argument.html", locals())
 
-
-@login_required(login_url="/user/login/")
-def select_script(request, project_name):
-    is_project = True
-    datas = Upload_TestCase.objects.all()
-    no_att_tasks = no_attach_tasks()
-
-    # if project name not existed ,will show bad requests
-    if (Project.objects.filter(project_name=project_name).exists() == False):
-        raise SuspiciousOperation("Invalid request!")
-
-    if request.POST:
-        token = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(30))
-
-        # render the set_argument page ,it data get from list page
-        if "task_ids" in request.POST:
-            task_ids = (request.POST['task_ids']).split(",")
-            arg_dict = {}
-            task_dict = {}
-
-            if len(task_ids) != 0:
-                for task_id in task_ids:
-                    task_info = Upload_TestCase.objects.get(task_id=task_id)
-                    args = Arguments.objects.filter(task_id=task_info)
-                    arg_dict[task_id] = list(args.values())
-                    task_dict[task_id] = task_info.task_name
-
-                arg_json = json.dumps(arg_dict)
-                return render(request, "set_argument.html", locals())
-            else:
-                raise Http404
-
-        ## =====================start confirm page handle============================##
-
-        # handle the "confirm.htnl"  the  conflict file
-        if "conflicted" in request.POST:
-
-            # get task_ids and result_dict from not conflict page.
-            task_ids = str(request.POST["task_list"]).split(",")
-            result_dict = eval(request.POST['result_dict'])
-
-            confilct_files = str(request.POST["conflict_files"]).split(",")
-            render_di = eval(request.POST["ini_content"])
-
-            chose_map = {}
-            for cf in confilct_files:
-                if len(cf) > 0:
-                    chose_map[cf] = request.POST[cf]
-
-            return render(request, "confirm.html", locals())
-
-        # handle the set_argument submit action ,it will get all tab parameter
-        else:
-            task_ids = []
-            result_dict = {}
-
-            arg_reg = set_parameter_arg
-            other_reg = set_parameter_other
-
-            for k, v in dict(request.POST.lists()).items():
-                pd = []
-
-                if arg_reg.match(k):
-                    task_id = arg_reg.search(k).group(1)
-
-                    if task_id not in task_ids:
-                        task_ids.append(task_id)
-
-                    task_info = Upload_TestCase.objects.get(task_id=task_id)
-                    script_name = task_info.script_name
-                    task_name = task_info.task_name
-                    parmeter = arg_reg.search(k).group(2)
-                    argument = v[0]
-
-                    if task_id in result_dict:
-                        pd = result_dict[task_id]
-                        pd[parmeter] = argument
-                    else:
-                        result_dict[task_id] = {parmeter: argument,
-                                                "script_name": script_name, "task_name": task_name}
-
-            for task_id in task_ids:
-                append_dict = result_dict[task_id]
-                append_dict["timeout"] = request.POST["timeout_%s" % task_id]
-                append_dict["exitcode"] = request.POST["exitcode_%s" % task_id]
-                append_dict["retry"] = request.POST["retry_%s" % task_id]
-                append_dict["sleep"] = request.POST["sleep_%s" % task_id]
-                append_dict["criteria"] = request.POST["criteria_%s" % task_id]
-                append_dict["project_name"] = project_name
-
-            render_str = ""
-            render_di = {}
-
-            for task_id in task_ids:
-                render_di[task_id] = gen_ini_str(task_id, result_dict) + "\n"
-
-            # check conflict files
-            cf = conflict_files(result_dict)
-
-            if len(cf.keys()) != 0:
-                cf_tasks = get_conflict_tasks(cf)
-                disable_download = True
-                err_message = "You have some conflicting files.Please select the file to be compressed into TestCase zip. "
-
-                return render(request, "confirm.html", locals())
-
-            # if not conflict files will show  confirm page and the project can be downloaded.
-            return render(request, "confirm.html", locals())
-        ## =====================end confirm page handle============================##
-
-    return render(request, "script_list.html", locals())
-
-
 def download(request, token):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    if platform.system() == "Windows":
-        file_path = path + r'\download_folder\\' + "%s.zip" % token
-    else:
-        file_path = path + '/download_folder/' + "%s.zip" % token
+    file_path = os.path.join(handle_path(path,"download_folder"),"%s.zip" % token)
 
     if request.POST:
         # if testScript not been resorted will only provide file download service
@@ -439,9 +424,16 @@ def download(request, token):
         else:
             post_args = eval(request.POST['result_dict'])
             username = request.user.username
+            project_name = ""
+            part_number = ""
+            station_name =""
+            for task_id, argumes in post_args.items():
+                project_name = argumes['project_name']
+                part_number = argumes['part_number']
+                station_name = argumes['station_name']
 
             # save ini
-            with open(os.path.join(os.path.join(path, "download_folder"), "%s.ini" % token), "w") as f:
+            with open(os.path.join(handle_path(path, "download_folder"),"%s.ini" % token), "w") as f:
                 f.write(request.POST["ini_content"])
 
             # compress all file to zip file
@@ -460,48 +452,17 @@ def download(request, token):
             response['Content-Disposition'] = 'attachment;filename="%s.zip"' % datetime.now().strftime(
                 '%Y-%m-%d_%H-%M-%S')
 
-            project_name = ""
-            for task_id, argumes in post_args.items():
-                project_name = argumes['project_name']
 
             # save all project parameter to database
             save_project_info(post_args)
 
             # save those file to owner user folder
-            save_project_files(token, username, project_name)
+            save_project_files(token, username, project_name,part_number,station_name)
 
             return response
 
     else:
         return Http404
-
-
-def save_project_info(datas):
-    for task_id, argumes in datas.items():
-        project_name = argumes['project_name']
-        project_instance = Project.objects.get(project_name=project_name)
-        task_instance = Upload_TestCase.objects.get(task_id=task_id)
-
-        p, created = Project_task.objects.get_or_create(project_name=project_instance,
-                                                        task_id=task_instance)
-        # whatever it created ,all need modify it value.
-        p.criteria = argumes['criteria']
-        p.exit_code = argumes["exitcode"]
-        p.retry_count = argumes["retry"]
-        p.sleep_time = argumes['sleep']
-        p.timeout = argumes['timeout']
-        p.save()
-
-        db_args = Arguments.objects.filter(task_id=task_id)
-        for arg in db_args:
-            a, created = Project_task_argument.objects.get_or_create(argument=arg.argument,
-                                                                     project_name=project_instance,
-                                                                     task_id=task_instance)
-
-            # whatever it created ,all need modify it value.
-            a.default_value = argumes[arg.argument]
-            a.save()
-
 
 def archive_folder(task_list, token):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -543,7 +504,6 @@ def archive_folder(task_list, token):
     os.remove(ini_path)
 
     zf.close()
-
 
 def conflict_archive_folder(task_list, token, chose_files):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -599,17 +559,6 @@ def conflict_archive_folder(task_list, token, chose_files):
     os.remove(ini_path)
     zf.close()
 
-
-def detail_error_message(conflict_dict):
-    task_list = list(conflict_dict.keys())
-
-    content = 'Your TestCase : [%s] conflicts with TestCase' % task_list[0]
-
-    for t in task_list[1:]:
-        content += ' [%s]' % t
-    return content
-
-
 def gen_ini_str(task_id, argumet_dict):
     di = argumet_dict[task_id]
 
@@ -629,7 +578,6 @@ def gen_ini_str(task_id, argumet_dict):
         script_path, arg_str, di["timeout"], di["exitcode"], di["retry"], di["sleep"], di["criteria"])
 
     return title + content
-
 
 def task_files(task_list):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -652,7 +600,6 @@ def task_files(task_list):
         task_files[task_id] = file_list
 
     return task_files
-
 
 def conflict_files(result_dict):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -690,15 +637,6 @@ def conflict_files(result_dict):
 
     return dedup_map
 
-
-def md5(fname):
-    hash_md5 = hashlib.md5()
-    with open(fname, "rb") as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            hash_md5.update(chunk)
-    return hash_md5.hexdigest()
-
-
 def get_conflict_tasks(conflict_dict):
     # get conflict file
     conflict_files = []
@@ -718,71 +656,6 @@ def get_conflict_tasks(conflict_dict):
                 tasks.append(k)
         conflict_task[cf] = tasks
     return conflict_task
-
-
-def save_project_files(token, username, project_name):
-    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-    if platform.system() == "Windows":
-        source_path = path + r'\download_folder\\'
-
-    else:
-        source_path = path + '/download_folder/'
-
-    source_zip = os.path.join(source_path, "%s.zip" % token)
-    dest_path = os.path.join(os.path.join(source_path, username), project_name)
-
-    if not os.path.exists(dest_path):
-        os.makedirs(dest_path)
-
-    else:
-        for root, dirs, files in os.walk(dest_path):
-            for f in files:
-                os.unlink(os.path.join(root, f))
-            for d in dirs:
-                shutil.rmtree(os.path.join(root, d))
-
-    with zipfile.ZipFile(source_zip, 'r') as zip_ref:
-        zip_ref.extractall(dest_path)
-
-
-
-
-def create_project_folder(username, project_name,part_numbers):
-    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-    root_path = handle_path(path,"download_folder",username,project_name)
-    if not os.path.exists(root_path):
-        os.makedirs(root_path)
-
-    for part_number in part_numbers:
-        part_number_path = os.path.join(root_path,part_number)
-        if not os.path.exists(part_number_path):
-            os.makedirs(part_number_path)
-
-
-def create_station_folder(username,project_name,part_number,stations):
-    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-    root_path = handle_path(path,"download_folder",username,project_name,part_number)
-    if not os.path.exists(root_path):
-        os.makedirs(root_path)
-
-    for station in stations:
-        station_path = os.path.join(root_path,station)
-        if not os.path.exists(station_path):
-            os.makedirs(station_path)
-
-
-
-
-
-def valid_user(username):
-    if User.objects.filter(username=username).exists():
-        return True
-    else:
-        return False
-
 
 def sorted_task_ids(project_name, user_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -806,3 +679,84 @@ def sorted_task_ids(project_name, user_name):
                 sorted_ids.append(matched.group(1))
 
     return sorted_ids
+
+def save_project_info(datas):
+    for task_id, argumes in datas.items():
+        project_name = argumes['project_name']
+        part_number = argumes["part_number"]
+        station_name = argumes["station_name"]
+
+        task_instance = Upload_TestCase.objects.get(task_id=task_id)
+        station_instance = get_station_instacne(project_name,part_number,station_name)
+        #
+        p, created = Project_task.objects.get_or_create(station_id=station_instance,
+                                                        task_id=task_instance)
+        # whatever it created ,all need modify it value.
+        p.criteria = argumes['criteria']
+        p.exit_code = argumes["exitcode"]
+        p.retry_count = argumes["retry"]
+        p.sleep_time = argumes['sleep']
+        p.timeout = argumes['timeout']
+        p.save()
+
+        db_args = Arguments.objects.filter(task_id=task_id)
+        for arg in db_args:
+            a, created = Project_task_argument.objects.get_or_create(argument=arg.argument,
+                                                                     station_id=station_instance,
+                                                                     task_id=task_instance)
+            # whatever it created ,all need modify it value.
+            a.default_value = argumes[arg.argument]
+            a.save()
+
+def save_project_files(token, username, project_name,part_number,station_name):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    source_path =handle_path(path,"download_folder")
+
+    source_zip = os.path.join(source_path, "%s.zip" % token)
+    dest_path = handle_path(source_path,username,project_name,part_number,station_name)
+
+    if not os.path.exists(dest_path):
+        os.makedirs(dest_path)
+
+    else:
+        for root, dirs, files in os.walk(dest_path):
+            for f in files:
+                os.unlink(os.path.join(root, f))
+            for d in dirs:
+                shutil.rmtree(os.path.join(root, d))
+
+    with zipfile.ZipFile(source_zip, 'r') as zip_ref:
+        zip_ref.extractall(dest_path)
+
+def create_project_folder(username, project_name,part_numbers):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    root_path = handle_path(path,"download_folder",username,project_name)
+    if not os.path.exists(root_path):
+        os.makedirs(root_path)
+
+    for part_number in part_numbers:
+        part_number_path = os.path.join(root_path,part_number)
+        if not os.path.exists(part_number_path):
+            os.makedirs(part_number_path)
+
+def create_station_folder(username,project_name,part_number,stations):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    root_path = handle_path(path,"download_folder",username,project_name,part_number)
+    if not os.path.exists(root_path):
+        os.makedirs(root_path)
+
+    for station in stations:
+        station_path = os.path.join(root_path,station)
+        if not os.path.exists(station_path):
+            os.makedirs(station_path)
+
+
+
+def valid_user(username):
+    if User.objects.filter(username=username).exists():
+        return True
+    else:
+        return False

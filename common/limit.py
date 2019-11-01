@@ -29,19 +29,13 @@ input_script_name = re.compile("^[\w|_]+\.\w+$")
 input_zip_file_name = re.compile(r"\.zip$")
 
 import os
-
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'FactoryWeb.settings')
 import django
 
 django.setup()
-# from django.core.exceptions import ObjectDoesNotExist
-# from django.db.models import Q
-from test_script.upload.models import *
 
-import platform, os, zipfile
-
-from test_script.upload.models import *
-
+import platform, os
+from project.models import *
 
 # old id must be full id ,the new_id only input 4 number
 def modify_task_id(old_id, new_id):
@@ -82,24 +76,6 @@ def modify_task_id(old_id, new_id):
         source_path = path + '/upload_folder/'
 
     os.rename(os.path.join(source_path, old_id), os.path.join(source_path, id))
-
-
-# must back your upload folder and database
-def modify_save_folder():
-    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-    if platform.system() == "Windows":
-        source_path = path + r'\upload_folder\\'
-
-
-    else:
-        source_path = path + '/upload_folder/'
-
-    for f in os.listdir(source_path):
-        task_id = Upload_TestCase.objects.get(task_name=f).task_id
-        os.rename(os.path.join(source_path, f), os.path.join(source_path, task_id))
-
-
 def get_serial_number(task_id):
     datas = Upload_TestCase.objects.filter(task_id__iregex=r"^%s\d{2}" % task_id).values()
     if len(datas) == 0:
@@ -130,5 +106,11 @@ def get_serial_number(task_id):
     serial = "%02d" % serial_number
 
     return serial
+
+def get_station_instacne(project,part_number,station):
+    project_instance = Project.objects.get(project_name=project)
+    pn_instance = Project_PN.objects.get(project_name=project_instance, part_number=part_number)
+    station_instance = Project_Station.objects.get(project_pn_id=pn_instance,station_name=station)
+    return station_instance
 
 
