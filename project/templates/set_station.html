@@ -51,6 +51,9 @@
 
 {% block js %}
     <script>
+
+        var project_name = '{{ project_name|escapejs }}';
+
         $(function () {
             $('[data-toggle="tooltip"]').tooltip()
         });
@@ -73,7 +76,7 @@
         }
 
         function table_clone(part_number) {
-            return '                <tr>\n' +
+            return '                <tr>' +
                 '                    <td colspan="3">\n' +
                 '                        <div class="input-group mb-3">\n' +
                 '                        <div style="margin-left: 10%"><input type="text" name="' + part_number + '"' +
@@ -91,9 +94,10 @@
 
         $(function () {
             $(document).on("click", ".select-script", function () {
-                var part_number = ($(this).closest("tbody").attr("class").split(" ")[0]);
+                var part_number = ($(this).closest("tbody").attr("class").split(" ")[2]);
+                var station_name =  ($(this).closest("div.input-group.mb-3").find('input').val());
+                location.href = '/project/select_script/'+ project_name+ '/' +  part_number + '/' +station_name;
 
-                console.log("in")
             });
 
         });
@@ -105,8 +109,6 @@
                 $(this).alert('close');
             });
 
-
-            var project_name = '{{ project_name|escapejs }}';
 
             //if had datas means posted ,even the result current ,will set the post value to all station input
             {% if datas %}
