@@ -55,7 +55,7 @@ def DeleteProjectPNView(request):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         pn_instance = Project_PN.objects.filter(project_name=project_name,part_number=part_number)
-        owner_user = Project.objects.filter(project_name=project_name).owner_user.username
+        owner_user = Project.objects.get(project_name=project_name).owner_user.username
         if pn_instance.exists() ==False:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 

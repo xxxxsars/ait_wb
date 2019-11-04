@@ -6,6 +6,11 @@
 
 
 
+    <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
+
+
+
+
 
     <link type="text/css" rel="stylesheet"
           href="{% static "bower_components/jquery-treegrid/css/jquery.treegrid.css" %}">
@@ -42,6 +47,11 @@
 
 
     <script>
+
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        });
+
         function getCookie(name) {
             var cookieValue = null;
             if (document.cookie && document.cookie != '') {
@@ -58,33 +68,21 @@
             return cookieValue;
         }
 
+
+        // project button action
         $(function () {
-            $('#project_table tbody .dt-edit').each(function () {
+            $('#project_table tbody .prj-delete').each(function () {
                 $(this).on('click', function (evt) {
                     $this = $(this);
-                    var editRow = $this.parents('tr');
-                    project_name = editRow.attr("id");
-                    console.log(project_name)
-                    location.href = "/project/modify/" + project_name;
-                });
-            });
-        });
-
-
-        $(function () {
-
-            $('#project_table tbody .dt-delete').each(function () {
-
-                $(this).on('click', function (evt) {
-                    $this = $(this);
-                    var dtRow = $this.parents('tr');
+                    var dtRow = $this.closest('tr');
 
                     if (confirm("Are you sure to delete this row?")) {
 
-                        projectName = dtRow.attr("id");
-                        console.log(projectName)
+                        projectName = dtRow.find("td.project_name").text();
+
 
                         var csrftoken = getCookie('csrftoken');
+
 
                         $.ajax({
                             url: "/project/delete/" + projectName, // the endpoint,commonly same url
@@ -94,7 +92,12 @@
                             },
 
                             success: function (json) {
-                                console.log(json); // another sanity check
+                                $("#project_table").find("tbody tr").each(function () {
+                                    tr_array = $(this).attr("class").split(" ");
+                                    if (jQuery.inArray(projectName, tr_array) !== -1) {
+                                        $(this).remove()
+                                    }
+                                });
 
                             },
 
@@ -105,7 +108,6 @@
                         });
 
 
-                        dtRow.remove()
                     }
                 });
 
@@ -113,14 +115,14 @@
             });
 
 
-            $('#task-table tbody .dt-edit').each(function () {
+            $('#project_table tbody .prj-edit').each(function () {
 
                 $(this).on('click', function (evt) {
-                    $this = $(this);
-                    var editRow = $this.parents('tr');
-                    taskID = editRow.attr("id");
 
-                    location.href = "/testCase/modify/" + taskID;
+                    var editRow = $(this).closest('tr');
+                    project_name = editRow.find("td.project_name").text();
+
+                    {#location.href = "/testCase/modify/" + taskID;#}
                 });
             });
 
@@ -128,10 +130,148 @@
         });
 
 
+        // part number button action
+        $(function () {
+            $('#project_table tbody .pn-delete').each(function () {
+                $(this).on('click', function (evt) {
+                    $this = $(this);
+                    var dtRow = $this.closest('tr');
+
+                    cls_array = (dtRow.attr("class").split(" "));
+
+                    project_name = cls_array[0];
+                    part_number = cls_array[1];
+                    {#console.log(project_name,part_number,cls_array)#}
+
+
+                    $.ajax({
+                        url: "/project/pn_delete/", // the endpoint,commonly same url
+                        type: 'POST',
+                        data: {
+                            csrfmiddlewaretoken: getCookie("csrftoken"),
+                            "project_name": project_name,
+                            "part_number": part_number,
+                        },
+
+                        success: function (json) {
+                            $("#project_table").find("tbody tr").each(function () {
+                                tr_array = $(this).attr("class").split(" ");
+                                if (jQuery.inArray(part_number, tr_array) !== -1 && jQuery.inArray(project_name, tr_array) !== -1) {
+                                    $(this).remove()
+                                }
+                            });
+
+
+                        },
+
+                        //處理失敗時會做的動作
+                        error: function (xhr, errmsg, err) {
+                            console.log("part number not in database"); // provide a bit more info about the error to the console
+                        }
+                    });
+
+
+                });
+
+
+            });
+
+
+            $('#project_table tbody .pn-edit').each(function () {
+
+                $(this).on('click', function (evt) {
+
+                    var editRow = $(this).closest('tr');
+                    cls_array = (editRow.attr("class").split(" "));
+
+                    project_name = cls_array[0];
+                    part_number = cls_array[1];
+
+                    console.log(project_name, part_number)
+
+
+                    {#location.href = "/testCase/modify/" + taskID;#}
+                });
+            });
+
+
+        });
+
+
+        // station  button action
+        $(function () {
+            $('#project_table tbody .st-delete').each(function () {
+                $(this).on('click', function (evt) {
+                    $this = $(this);
+                    var dtRow = $this.closest('tr');
+
+                    cls_array = (dtRow.attr("class").split(" "));
+
+                    project_name = cls_array[0];
+                    part_number = cls_array[1];
+                    station_name = cls_array[2];
+                    console.log(project_name, part_number, station_name)
+
+
+                    if (confirm("Are you sure to delete this row?")) {
+                        $.ajax({
+                            url: "/project/station_delete/", // the endpoint,commonly same url
+                            type: 'POST',
+                            data: {
+                                csrfmiddlewaretoken: getCookie("csrftoken"),
+                                "project_name": project_name,
+                                "part_number": part_number,
+                                "station_name": station_name
+                            },
+
+                            success: function (json) {
+
+                                $("#project_table").find("tbody tr").each(function () {
+                                    tr_array = $(this).attr("class").split(" ");
+                                    if (jQuery.inArray(part_number, tr_array) !== -1 && jQuery.inArray(project_name, tr_array) !== -1 && jQuery.inArray(station_name, tr_array) !== -1) {
+                                        $(this).remove()
+                                    }
+                                });
+
+
+                            },
+                            //處理失敗時會做的動作
+                            error: function (xhr, errmsg, err) {
+                                console.log("part number not in database"); // provide a bit more info about the error to the console
+                            }
+                        });
+                    }
+                });
+
+
+            });
+
+
+            $('#project_table tbody .st-edit').each(function () {
+
+                $(this).on('click', function (evt) {
+
+                    var editRow = $(this).closest('tr');
+                    cls_array = (editRow.attr("class").split(" "));
+
+                    project_name = cls_array[0];
+                    part_number = cls_array[1];
+                    station_name = cls_array[2];
+
+                    console.log(project_name, part_number, station_name)
+
+
+                    {#location.href = "/testCase/modify/" + taskID;#}
+                });
+            });
+
+
+        });
+
         $(document).ready(function () {
 
             $('.tree').treegrid({});
-            $('.tree').treegrid('collapseAll');
+            {#$('.tree').treegrid('collapseAll');#}
 
 
         });
@@ -153,14 +293,14 @@
             {% endif %}
             <th>Create Date</th>
             <th>Create Time</th>
-            <th style="text-align: center">Action</th>
+            <th style="text-align: right">Action</th>
         </tr>
         </thead>
 
         <tbody>
         {% for prj in project_structure %}
-            <tr class="treegrid-{{ prj|lookup:"project_id" }} expanded" id="{{ prj|lookup:'project_name' }}">
-                <td>{{ prj|lookup:"project_name" }}</td>
+            <tr class="{{ prj|lookup:"project_name" }} treegrid-{{ prj|lookup:"project_id" }} expanded">
+                <td class="project_name">{{ prj|lookup:"project_name" }}</td>
                 {% if request.user.is_staff %}
                     <td>{{ prj|lookup:"owner_user" }}</td>
                 {% endif %}
@@ -172,14 +312,18 @@
                     {{ prj|lookup:"date"|date:'h:i A' }}
                 </td>
                 <td>
-                    <div class="text-center">
+                    <div class="text-right">
                         <div class="btn-group">
                             <button type="button"
-                                    class="btn btn-outline-primary btn-xs  btn-md center-block dt-edit">
+                                    class="btn btn-outline-primary btn-xs  btn-md center-block prj-edit"
+                                    data-toggle="tooltip" data-placement="top"
+                                    title="Edit Project">
                                 <i class="fas fa-edit"></i>
                             </button>
                             <button type="button"
-                                    class=" btn btn-outline-danger btn-xs   btn-md center-block dt-delete"><i
+                                    class=" btn btn-outline-danger btn-xs   btn-md center-block prj-delete"
+                                    data-toggle="tooltip" data-placement="top"
+                                    title="Delete Project"><i
                                     class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -190,19 +334,23 @@
 
 
             {% for pn in prj|lookup:"pn_list" %}
-                <tr class="treegrid-{{ pn|lookup:"pn_id" }} treegrid-parent-{{ prj|lookup:"project_id" }}">
+                <tr class="{{ prj|lookup:"project_name" }} {{ pn|lookup:"part_number" }}  treegrid-{{ pn|lookup:"pn_id" }} treegrid-parent-{{ prj|lookup:"project_id" }}">
 
                     <td colspan="4">{{ pn|lookup:"part_number" }}</td>
                     <td>
 
-                        <div class="text-center">
+                        <div class="text-right">
                             <div class="btn-group">
                                 <button type="button"
-                                        class="btn btn-outline-primary btn-xs  btn-md center-block dt-edit">
+                                        class="btn btn-outline-primary btn-xs  btn-md center-block pn-edit"
+                                        data-toggle="tooltip" data-placement="top"
+                                        title="Edit Part Number">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <button type="button"
-                                        class=" btn btn-outline-danger btn-xs   btn-md center-block dt-delete"><i
+                                        class=" btn btn-outline-danger btn-xs   btn-md center-block pn-delete"
+                                        data-toggle="tooltip" data-placement="top"
+                                        title="Delete Part Number"><i
                                         class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -216,29 +364,41 @@
 
                 {% for st in pn|lookup:"st_list" %}
 
-                <tr class="treegrid-parent-{{pn|lookup:"pn_id"  }}">
-                    <td colspan="4">{{ st|lookup:"station_name" }}
+                    <tr class="{{ prj|lookup:"project_name" }} {{ pn|lookup:"part_number" }} {{ st|lookup:"station_name" }} treegrid-parent-{{ pn|lookup:"pn_id" }}">
+                        <td colspan="4">{{ st|lookup:"station_name" }}
 
-                    </td>
+                        </td>
 
-                    <td>
-                        <div class="text-center">
-                            <div class="btn-group">
-                                <button type="button"
-                                        class="btn btn-outline-primary btn-xs  btn-md center-block dt-edit">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button type="button"
-                                        class=" btn btn-outline-danger btn-xs   btn-md center-block dt-delete"><i
-                                        class="fas fa-trash"></i>
-                                </button>
+                        <td>
+                            <div class="text-right">
+                                <div class="btn-group">
+                                    <button type="button"
+                                            class=" btn btn-outline-success btn-xs   btn-md center-block st-download "
+                                            data-toggle="tooltip" data-placement="top"
+                                            title="Download TestScript"><i
+                                            class="fas fa-trash"></i>
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-outline-primary btn-xs  btn-md center-block st-edit"
+                                            data-toggle="tooltip" data-placement="top"
+                                            title="Edit Station">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button"
+                                            class=" btn btn-outline-danger btn-xs   btn-md center-block st-delete "
+                                            data-toggle="tooltip" data-placement="top"
+                                            title="Delete Station"><i
+                                            class="fas fa-trash"></i>
+                                    </button>
+
+
+                                </div>
+
                             </div>
 
-                        </div>
+                        </td>
 
-                    </td>
-
-                </tr>
+                    </tr>
 
                 {% endfor %}
 

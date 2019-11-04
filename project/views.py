@@ -58,7 +58,7 @@ def list_project(request):
         if pn_object.exists():
             for pn_id,pn in enumerate (pn_object):
                 pn_dict = model_to_dict(pn)
-                pn_dict["pn_id"] = "pn_%d_pj_%d"%(pn_id,prj_id)
+                pn_dict["pn_id"] = "prj_%d_pn_%d"%(prj_id ,pn_id,)
                 pn_list.append(pn_dict)
                 st_list = []
 
