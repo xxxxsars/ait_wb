@@ -1,28 +1,22 @@
 {% extends "base.html" %}
 {% load staticfiles %}
-
+{% load filter %}
 
 {% block head %}
-    <link type="text/css" rel="stylesheet"
-          href="{% static "bower_components/datatables.net-dt/css/jquery.dataTables.min.css" %}">
 
-    <link type="text/css" rel="stylesheet"
-          href="{% static "bower_components/bootstrap-select/dist/css/bootstrap-select.min.css" %}">
 
-    <script src={% static "bower_components/datatables.net/js/jquery.dataTables.min.js" %}></script>
 
 
     <link type="text/css" rel="stylesheet"
-          href="{% static "bower_components/datatables.net-dt/css/select.dataTables.min.css" %}">
-    <link type="text/css" rel="stylesheet"
-          href="{% static "bower_components/datatables.net-dt/css/query.dataTables.min.css" %}">
+          href="{% static "bower_components/jquery-treegrid/css/jquery.treegrid.css" %}">
 
 
-    <script src={% static "bower_components/datatables.net/js/dataTables.select.min.js" %}></script>
 
-    <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
 
-    <script src="{% static "bower_components/bootstrap-select/dist/js/bootstrap-select.min.js" %}"></script>
+    <script src="{% static "bower_components/jquery-treegrid/js/jquery.treegrid.js" %}"></script>
+
+
+
 {% endblock %}
 
 
@@ -88,7 +82,6 @@
                     if (confirm("Are you sure to delete this row?")) {
 
                         projectName = dtRow.attr("id");
-
                         console.log(projectName)
 
                         var csrftoken = getCookie('csrftoken');
@@ -112,8 +105,7 @@
                         });
 
 
-                        var table = $('#project_table').DataTable();
-                        table.row(dtRow).remove().draw(false);
+                        dtRow.remove()
                     }
                 });
 
@@ -137,44 +129,9 @@
 
 
         $(document).ready(function () {
-            var t = $('#project_table').DataTable({
-                "dom": '<"top"i>rt<"bottom"flp><"clear">',
-                "autoWidth": true,
-                "scrollX": true,
 
-                {% if datas.count <= 10 %}
-                    "bPaginate": false,
-                {% endif %}
-                columnDefs: [
-                    {
-                        "searchable": false,
-                        "orderable": false,
-                        "targets": 0,
-                        "width": "1%",
-                    },
-
-                    {% if request.user.is_staff %}
-                        {
-                            "targets": 5,
-                            "width": "10%",
-                        },
-                    {% else %}
-
-                        {
-                            "targets": 4,
-                            "width": "10%",
-                        }
-
-                    {% endif %}],
-                "order": [[1, 'asc']]
-            });
-
-
-            t.on('order.dt search.dt', function () {
-                t.column(0, {search: 'applied', order: 'applied'}).nodes().each(function (cell, i) {
-                    cell.innerHTML = i + 1;
-                });
-            }).draw();
+            $('.tree').treegrid({});
+            $('.tree').treegrid('collapseAll');
 
 
         });
@@ -183,56 +140,113 @@
 {% block body %}
     <p style="text-align: center;font-weight:600;font-size: 26px;">[ {{ username |title }} ] Project</p>
     <br>
-    <table id="project_table" class="hover" style="width:100%">
+
+
+
+
+    <table class="tree table  table-hover" id="project_table">
         <thead>
         <tr>
-            <th></th>
-            <th>Project Name</th>
+            <th width="20%">Project Structure</th>
             {% if request.user.is_staff %}
                 <th>Onwer User</th>
             {% endif %}
             <th>Create Date</th>
             <th>Create Time</th>
-            <th>Action</th>
+            <th style="text-align: center">Action</th>
         </tr>
         </thead>
 
         <tbody>
-        {% for data in datas %}
-            <tr id="{{ data.project_name }}">
-                <td style="text-align: center"></td>
-                <td>{{ data.project_name }}</td>
+        {% for prj in project_structure %}
+            <tr class="treegrid-{{ prj|lookup:"project_id" }} expanded" id="{{ prj|lookup:'project_name' }}">
+                <td>{{ prj|lookup:"project_name" }}</td>
                 {% if request.user.is_staff %}
-                    <td>{{ data.owner_user }}</td>
+                    <td>{{ prj|lookup:"owner_user" }}</td>
                 {% endif %}
                 <td>
-                    {{ data.time|date:'Y-m-d' }}
+                    {{ prj|lookup:"date"|date:'Y-m-d' }}
                 </td>
 
                 <td>
-                    {{ data.time|date:'h:i A' }}
+                    {{ prj|lookup:"date"|date:'h:i A' }}
                 </td>
                 <td>
-                    <div class="btn-group">
-                        <button type="button"
-                                class="btn btn-outline-primary btn-xs  btn-md center-block dt-edit">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button type="button"
-                                class=" btn btn-outline-danger btn-xs   btn-md center-block dt-delete"><i
-                                class="fas fa-trash"></i>
-                        </button>
+                    <div class="text-center">
+                        <div class="btn-group">
+                            <button type="button"
+                                    class="btn btn-outline-primary btn-xs  btn-md center-block dt-edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button"
+                                    class=" btn btn-outline-danger btn-xs   btn-md center-block dt-delete"><i
+                                    class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
-                </td>
 
+                </td>
             </tr>
 
+
+            {% for pn in prj|lookup:"pn_list" %}
+                <tr class="treegrid-{{ pn|lookup:"pn_id" }} treegrid-parent-{{ prj|lookup:"project_id" }}">
+
+                    <td colspan="4">{{ pn|lookup:"part_number" }}</td>
+                    <td>
+
+                        <div class="text-center">
+                            <div class="btn-group">
+                                <button type="button"
+                                        class="btn btn-outline-primary btn-xs  btn-md center-block dt-edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button"
+                                        class=" btn btn-outline-danger btn-xs   btn-md center-block dt-delete"><i
+                                        class="fas fa-trash"></i>
+                                </button>
+                            </div>
+
+                        </div>
+
+                    </td>
+                </tr>
+
+
+
+                {% for st in pn|lookup:"st_list" %}
+
+                <tr class="treegrid-parent-{{pn|lookup:"pn_id"  }}">
+                    <td colspan="4">{{ st|lookup:"station_name" }}
+
+                    </td>
+
+                    <td>
+                        <div class="text-center">
+                            <div class="btn-group">
+                                <button type="button"
+                                        class="btn btn-outline-primary btn-xs  btn-md center-block dt-edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button"
+                                        class=" btn btn-outline-danger btn-xs   btn-md center-block dt-delete"><i
+                                        class="fas fa-trash"></i>
+                                </button>
+                            </div>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+
+            {% endfor %}
+
         {% endfor %}
-
-
         </tbody>
-
-
     </table>
 
 

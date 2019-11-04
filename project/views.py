@@ -28,17 +28,17 @@ def list_project(request):
     username = request.user.username
 
     # clean not selected task project
-    for p in Project.objects.all():
-
-        pn_instance = Project_PN.objects.filter(project_name_id=p)
-
-        if len(pn_instance) ==0:
-            p.delete()
-
-
-        # if len(Project_task.objects.filter(project_name=p)) == 0:
-        #     p.delete()
-
+    # for p in Project.objects.all():
+    #
+    #     pn_instance = Project_PN.objects.filter(project_name_id=p)
+    #
+    #     if len(pn_instance) ==0:
+    #         p.delete()
+    #
+    #
+    #     # if len(Project_task.objects.filter(project_name=p)) == 0:
+    #     #     p.delete()
+    #
     if request.user.is_staff:
         datas = Project.objects.all()
 
@@ -46,6 +46,32 @@ def list_project(request):
     else:
         user_instance = User.objects.get(username=username)
         datas = Project.objects.filter(owner_user=user_instance)
+
+
+    project_structure = []
+    for prj_id,p in  enumerate (datas):
+        project_name = p.project_name
+        project_dict = {"project_id":'prj_%d'%prj_id,"project_name":p.project_name,"owner_user":p.owner_user.username,"date":p.time}
+        pn_list = []
+
+        pn_object = Project_PN.objects.filter(project_name=project_name)
+        if pn_object.exists():
+            for pn_id,pn in enumerate (pn_object):
+                pn_dict = model_to_dict(pn)
+                pn_dict["pn_id"] = "pn_%d_pj_%d"%(pn_id,prj_id)
+                pn_list.append(pn_dict)
+                st_list = []
+
+                st_object = Project_Station.objects.filter(project_pn_id=pn)
+                if st_object.exists():
+                    for st_id,st in enumerate(st_object):
+                        st_dict = model_to_dict(st)
+                        st_list.append(st_dict)
+
+                pn_dict["st_list"] = st_list
+
+        project_dict["pn_list"] = pn_list
+        project_structure.append(project_dict)
 
     return render(request, "project_list.html", locals())
 
