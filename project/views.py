@@ -13,8 +13,9 @@ import string
 from datetime import datetime
 import zipfile
 import json
+import collections
 
-from common.limit import set_parameter_arg, set_parameter_other, task_id_reg,get_station_instacne
+from common.limit import set_parameter_arg, set_parameter_other, task_id_reg
 from common.common import *
 from project.forms import *
 from project.models import *
@@ -47,24 +48,24 @@ def list_project(request):
         user_instance = User.objects.get(username=username)
         datas = Project.objects.filter(owner_user=user_instance)
 
-
     project_structure = []
-    for prj_id,p in  enumerate (datas):
+    for prj_id, p in enumerate(datas):
         project_name = p.project_name
-        project_dict = {"project_id":'prj_%d'%prj_id,"project_name":p.project_name,"owner_user":p.owner_user.username,"date":p.time}
+        project_dict = {"project_id": 'prj_%d' % prj_id, "project_name": p.project_name,
+                        "owner_user": p.owner_user.username, "date": p.time}
         pn_list = []
 
         pn_object = Project_PN.objects.filter(project_name=project_name)
         if pn_object.exists():
-            for pn_id,pn in enumerate (pn_object):
+            for pn_id, pn in enumerate(pn_object):
                 pn_dict = model_to_dict(pn)
-                pn_dict["pn_id"] = "prj_%d_pn_%d"%(prj_id ,pn_id,)
+                pn_dict["pn_id"] = "prj_%d_pn_%d" % (prj_id, pn_id,)
                 pn_list.append(pn_dict)
                 st_list = []
 
                 st_object = Project_Station.objects.filter(project_pn_id=pn)
                 if st_object.exists():
-                    for st_id,st in enumerate(st_object):
+                    for st_id, st in enumerate(st_object):
                         st_dict = model_to_dict(st)
                         st_list.append(st_dict)
 
@@ -74,6 +75,71 @@ def list_project(request):
         project_structure.append(project_dict)
 
     return render(request, "project_list.html", locals())
+
+
+@login_required(login_url="/user/login")
+def modify_project(request, project_name,message=None):
+    is_project = True
+    c = CreateProjectForm()
+    user_name = request.user.username
+    pn_list = Project_PN.objects.filter(project_name=project_name)
+
+
+    # handle the redirct by modify project name
+    if message !=None and request.method=="GET":
+        susessful = message
+
+    if request.POST:
+        save_post = True
+        print(dict(request.POST))
+        # project_create
+        c = CreateProjectForm(request.POST)
+
+        user_name = request.user.username
+        if c.is_valid() and valid_user(user_name):
+            datas = dict(request.POST)
+
+            post_project_name = request.POST['project_name']
+            post_part_numbers = list(filter(None, request.POST.getlist("part_number")))
+
+            # check post data is valid
+            if len([item for item ,count in  dict(collections.Counter(post_part_numbers)).items() if count >1]) >0:
+                errors = "Your PartNumber had some has some repetition."
+                return render(request, "project_modify.html", locals())
+
+
+            r = input_part_station
+            if len([e for e in post_part_numbers if r.search(e) == None]) > 0:
+                errors = "Your PartNumber not match the PartNumber rules."
+                return render(request, "project_modify.html", locals())
+
+
+            # if project_name had been modify will redirect to the new page
+            if post_project_name !=project_name:
+                if Project.objects.filter(project_name=post_project_name).count():
+                    errors = "Your Project Name cannot be repeated.Please modify your project name."
+                    return render(request, "create.html", locals())
+
+                user_instance = User.objects.get(username=user_name)
+                modify_project_name(project_name,post_project_name)
+
+                # no matter project modify should handle PartNumber
+                modify_part_number(post_project_name, post_part_numbers)
+                message = "Modify Project successfully!"
+                save_post = False
+                return redirect("/project/modify_project/%s/%s"%(post_project_name,message))
+            # no matter project modify should handle PartNumber
+            modify_part_number(post_project_name, post_part_numbers)
+            susessful = "Modify Project successfully!"
+            save_post = False
+            return render(request, "project_modify.html", locals())
+        else:
+            datas = dict(request.POST)
+            return render(request, "project_modify.html", locals())
+
+
+    return render(request, "project_modify.html", locals())
+
 
 @login_required(login_url="/user/login")
 def create_project(request):
@@ -89,17 +155,15 @@ def create_project(request):
             part_number = list(filter(None, request.POST.getlist("part_number")))
 
             r = input_part_station
-            if len([e  for e in part_number if r.search(e)==None ]) >0:
+            if len([e for e in part_number if r.search(e) == None]) > 0:
                 errors = "Your PartNumber not match the PartNumber rules."
                 return render(request, "create.html", locals())
 
-
-
             # if not modify will be check the project had repeat on db
-            if   "is_modify" not in  request.POST:
+            if "is_modify" not in request.POST:
                 if Project.objects.filter(project_name=project_name).count():
                     errors = "Your Project Name cannot be repeated.Please modify your project name."
-                    return  render(request, "create.html", locals())
+                    return render(request, "create.html", locals())
 
             user_instance = User.objects.get(username=user_name)
 
@@ -110,24 +174,23 @@ def create_project(request):
                     pn_instance = Project_PN.objects.create(part_number=pn, project_name=project_instance)
 
             else:
-                project_instance =Project.objects.get(project_name=project_name, owner_user=user_instance)
-                project_pns = [p.part_number  for p in Project_PN.objects.filter(project_name=project_instance)]
+                project_instance = Project.objects.get(project_name=project_name, owner_user=user_instance)
+                project_pns = [p.part_number for p in Project_PN.objects.filter(project_name=project_instance)]
 
-                #add new part number
+                # add new part number
                 for post_pn in part_number:
                     if post_pn not in project_pns:
                         pn_instance = Project_PN.objects.create(part_number=post_pn, project_name=project_instance)
-
 
                 # if db part number not in post part_number
                 # ,it means part number may be modify ,it new will be added ,the old will be removed.
                 for pn in project_pns:
                     if pn not in part_number:
-                        Project_PN.objects.get(part_number=pn,project_name=project_instance).delete()
-                        delete_file(user_name,project_name,pn)
+                        Project_PN.objects.get(part_number=pn, project_name=project_instance).delete()
+                        delete_file(user_name, project_name, pn)
 
-            susessful = "Create [ %s ] was successfully! "%project_name
-            create_project_folder(user_name,project_name,part_number)
+            susessful = "Create [ %s ] was successfully! " % project_name
+            create_project_folder(user_name, project_name, part_number)
             return render(request, "create.html", locals())
 
         else:
@@ -139,8 +202,9 @@ def create_project(request):
 
     return render(request, "create.html", locals())
 
+
 @login_required(login_url='/usr/login')
-def set_station(request,project_name):
+def set_station(request, project_name):
     is_project = True
     username = request.user.username
     # check project is valid
@@ -161,8 +225,8 @@ def set_station(request,project_name):
     pn_instances = Project_PN.objects.filter(project_name=project_instance)
 
     if request.POST:
-        db_part_numbers = [p.part_number for p in pn_instances ]
-        r= input_part_station
+        db_part_numbers = [p.part_number for p in pn_instances]
+        r = input_part_station
 
         datas = dict(request.POST)
         datas["all_pn"] = db_part_numbers
@@ -174,32 +238,30 @@ def set_station(request,project_name):
                 errors = "Your Station Name not match the Station Name rules."
                 return render(request, "set_station.html", locals())
 
-
         # if all station valid will do...
         for pn_instance in pn_instances:
-            post_stations =  list(filter(None,request.POST.getlist(pn_instance.part_number)))
-            db_stations = [s.station_name for s in Project_Station.objects.filter(project_pn_id=pn_instance) ]
+            post_stations = list(filter(None, request.POST.getlist(pn_instance.part_number)))
+            db_stations = [s.station_name for s in Project_Station.objects.filter(project_pn_id=pn_instance)]
 
             # if post station name not in db will be created
             for post_station in post_stations:
                 if post_station not in db_stations:
-                    Project_Station.objects.create(station_name=post_station,project_pn_id=pn_instance)
+                    Project_Station.objects.create(station_name=post_station, project_pn_id=pn_instance)
 
-            #if db station not in post station will be delete
+            # if db station not in post station will be delete
             for db_station in db_stations:
                 if db_station not in post_stations:
                     Project_Station.objects.get(station_name=db_station, project_pn_id=pn_instance).delete()
-                    delete_file(username,project_name,pn_instance.part_number,db_station)
+                    delete_file(username, project_name, pn_instance.part_number, db_station)
 
-
-            create_station_folder(username,project_name,pn_instance.part_number,post_stations)
+            create_station_folder(username, project_name, pn_instance.part_number, post_stations)
         susessful = "Save station name was successfully!"
 
+    return render(request, "set_station.html", locals())
 
-    return render(request,"set_station.html",locals())
 
 @login_required(login_url="/user/login/")
-def select_script(request, project_name,part_number,station_name):
+def select_script(request, project_name, part_number, station_name):
     is_project = True
     datas = Upload_TestCase.objects.all()
     no_att_tasks = no_attach_tasks()
@@ -311,6 +373,8 @@ def select_script(request, project_name,part_number,station_name):
 
     return render(request, "script_list.html", locals())
 
+
+'''
 @login_required(login_url="/user/login")
 def modify_project(request, project_name):
     is_project = True
@@ -432,10 +496,12 @@ def modify_project(request, project_name):
         arg_json = json.dumps(arg_dict)
 
     return render(request, "set_argument.html", locals())
+'''
+
 
 def download(request, token):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    file_path = os.path.join(handle_path(path,"download_folder"),"%s.zip" % token)
+    file_path = os.path.join(handle_path(path, "download_folder"), "%s.zip" % token)
 
     if request.POST:
         # if testScript not been resorted will only provide file download service
@@ -452,14 +518,14 @@ def download(request, token):
             username = request.user.username
             project_name = ""
             part_number = ""
-            station_name =""
+            station_name = ""
             for task_id, argumes in post_args.items():
                 project_name = argumes['project_name']
                 part_number = argumes['part_number']
                 station_name = argumes['station_name']
 
             # save ini
-            with open(os.path.join(handle_path(path, "download_folder"),"%s.ini" % token), "w") as f:
+            with open(os.path.join(handle_path(path, "download_folder"), "%s.ini" % token), "w") as f:
                 f.write(request.POST["ini_content"])
 
             # compress all file to zip file
@@ -478,24 +544,23 @@ def download(request, token):
             response['Content-Disposition'] = 'attachment;filename="%s.zip"' % datetime.now().strftime(
                 '%Y-%m-%d_%H-%M-%S')
 
-
             # save all project parameter to database
             save_project_info(post_args)
 
             # save those file to owner user folder
-            save_project_files(token, username, project_name,part_number,station_name)
+            save_project_files(token, username, project_name, part_number, station_name)
 
             return response
 
     else:
         return Http404
 
+
 def archive_folder(task_list, token):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    config_path = handle_path(path,"ait_config")
-    dest_path = handle_path(path,"download_folder")
-    script_path ="TestScriptRes"
-
+    config_path = handle_path(path, "ait_config")
+    dest_path = handle_path(path, "download_folder")
+    script_path = "TestScriptRes"
 
     ini_path = os.path.join(dest_path, "%s.ini" % token)
 
@@ -505,13 +570,13 @@ def archive_folder(task_list, token):
 
     compressed_file = []
     for task_id in task_list:
-        file_path = handle_path(path,"upload_folder",task_id)
+        file_path = handle_path(path, "upload_folder", task_id)
 
         # add source pyfile
         attach_path = handle_path(file_path, "attachment")
         for root, folders, files in os.walk(file_path):
             for sfile in files:
-                #ignore attachment path
+                # ignore attachment path
                 if root != attach_path:
                     if sfile not in compressed_file:
                         aFile = os.path.join(root, sfile)
@@ -531,13 +596,14 @@ def archive_folder(task_list, token):
 
     zf.close()
 
+
 def conflict_archive_folder(task_list, token, chose_files):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     config_path = handle_path(path, "ait_config")
     dest_path = handle_path(path, "download_folder")
     script_path = "TestScriptRes"
-    file_path =handle_path(path,"upload_folder")
+    file_path = handle_path(path, "upload_folder")
 
     ini_path = os.path.join(dest_path, "%s.ini" % token)
 
@@ -553,7 +619,6 @@ def conflict_archive_folder(task_list, token, chose_files):
     for task_id in task_list:
         source_file_path = handle_path(file_path, task_id)
         attach_path = handle_path(source_file_path, "attachment")
-
 
         # add source pyfile
         for root, folders, files in os.walk(source_file_path):
@@ -585,6 +650,7 @@ def conflict_archive_folder(task_list, token, chose_files):
     os.remove(ini_path)
     zf.close()
 
+
 def gen_ini_str(task_id, argumet_dict):
     di = argumet_dict[task_id]
 
@@ -604,6 +670,7 @@ def gen_ini_str(task_id, argumet_dict):
         script_path, arg_str, di["timeout"], di["exitcode"], di["retry"], di["sleep"], di["criteria"])
 
     return title + content
+
 
 def task_files(task_list):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -626,6 +693,7 @@ def task_files(task_list):
         task_files[task_id] = file_list
 
     return task_files
+
 
 def conflict_files(result_dict):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -663,6 +731,7 @@ def conflict_files(result_dict):
 
     return dedup_map
 
+
 def get_conflict_tasks(conflict_dict):
     # get conflict file
     conflict_files = []
@@ -682,6 +751,7 @@ def get_conflict_tasks(conflict_dict):
                 tasks.append(k)
         conflict_task[cf] = tasks
     return conflict_task
+
 
 def sorted_task_ids(project_name, user_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -706,6 +776,7 @@ def sorted_task_ids(project_name, user_name):
 
     return sorted_ids
 
+
 def save_project_info(datas):
     for task_id, argumes in datas.items():
         project_name = argumes['project_name']
@@ -713,7 +784,7 @@ def save_project_info(datas):
         station_name = argumes["station_name"]
 
         task_instance = Upload_TestCase.objects.get(task_id=task_id)
-        station_instance = get_station_instacne(project_name,part_number,station_name)
+        station_instance = get_station_instacne(project_name, part_number, station_name)
         #
         p, created = Project_task.objects.get_or_create(station_id=station_instance,
                                                         task_id=task_instance)
@@ -734,13 +805,14 @@ def save_project_info(datas):
             a.default_value = argumes[arg.argument]
             a.save()
 
-def save_project_files(token, username, project_name,part_number,station_name):
+
+def save_project_files(token, username, project_name, part_number, station_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    source_path =handle_path(path,"download_folder")
+    source_path = handle_path(path, "download_folder")
 
     source_zip = os.path.join(source_path, "%s.zip" % token)
-    dest_path = handle_path(source_path,username,project_name,part_number,station_name)
+    dest_path = handle_path(source_path, username, project_name, part_number, station_name)
 
     if not os.path.exists(dest_path):
         os.makedirs(dest_path)
@@ -755,30 +827,31 @@ def save_project_files(token, username, project_name,part_number,station_name):
     with zipfile.ZipFile(source_zip, 'r') as zip_ref:
         zip_ref.extractall(dest_path)
 
-def create_project_folder(username, project_name,part_numbers):
+
+def create_project_folder(username, project_name, part_numbers):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    root_path = handle_path(path,"download_folder",username,project_name)
+    root_path = handle_path(path, "download_folder", username, project_name)
     if not os.path.exists(root_path):
         os.makedirs(root_path)
 
     for part_number in part_numbers:
-        part_number_path = os.path.join(root_path,part_number)
+        part_number_path = os.path.join(root_path, part_number)
         if not os.path.exists(part_number_path):
             os.makedirs(part_number_path)
 
-def create_station_folder(username,project_name,part_number,stations):
+
+def create_station_folder(username, project_name, part_number, stations):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    root_path = handle_path(path,"download_folder",username,project_name,part_number)
+    root_path = handle_path(path, "download_folder", username, project_name, part_number)
     if not os.path.exists(root_path):
         os.makedirs(root_path)
 
     for station in stations:
-        station_path = os.path.join(root_path,station)
+        station_path = os.path.join(root_path, station)
         if not os.path.exists(station_path):
             os.makedirs(station_path)
-
 
 
 def valid_user(username):

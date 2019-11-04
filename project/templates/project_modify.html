@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load filter %}
+
+{% block js %}
+    <script>
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function table_clone() {
+            return '<tr>' +
+                '<td class="pn_input"><input type="text" name="part_number" class="form-control" maxlength="255" required="" id="id_part_number"></td>' +
+                '</tr>';
+        }
+
+        $(document).ready(function () {
+
+            //auto close alert  after 4 seconds.
+            $(".alert").delay(4000).slideUp(200, function () {
+                $(this).alert('close');
+            });
+
+
+            var rowCount = 0;
+
+
+            //set the post value to form
+            {% if datas and save_post %}
+                var saved_pn = {{ datas|lookup:"part_number" |safe}}
+
+                    rowCount = saved_pn.length;
+
+
+                //first input was django default create
+                if (rowCount > 1) {
+
+                    for (i = 1; i <= rowCount; i++) {
+                        $("#part-number-table tbody").append(table_clone());
+                    }
+
+
+                    $("#part-number-table tbody tr").each(function () {
+
+                        $(this).find("input[name='part_number']").val(saved_pn[($(this).index())])
+
+                    })
+
+                };
+
+                $('input[name="project_name"]').val({{ datas|lookup:"project_name"|safe}});
+
+
+
+            {% else %}
+                rowCount = $("#part-number-table tbody tr").length;
+
+            {% endif %}
+
+
+
+
+
+
+
+            $("#add_pratnumber").click(function () {
+                var clone_html = table_clone();
+                $("#part-number-table tbody").append(clone_html);
+                rowCount += 1;
+            });
+
+            $("#remove_pratnumber").click(function () {
+                if (rowCount > 1) {
+                    var remove_tr = $("#part-number-table tbody tr").last();
+                    var part_number = remove_tr.find("input[name='part_number']").val();
+                    if (part_number != "") {
+                        if (confirm("Are you sure to delete this row?")) {
+
+                            var project_name = $('input[name="project_name"]').val();
+                            var csrftoken = getCookie('csrftoken');
+
+                            $.ajax({
+                                url: "/project/pn_delete/", // the endpoint,commonly same url
+                                type: 'POST',
+                                data: {
+                                    csrfmiddlewaretoken: csrftoken,
+                                    "project_name": project_name,
+                                    "part_number": part_number,
+                                },
+
+                                success: function (json) {
+                                    remove_tr.remove();
+
+                                },
+
+                                //處理失敗時會做的動作
+                                error: function (xhr, errmsg, err) {
+                                    console.log("part number not in database"); // provide a bit more info about the error to the console
+                                }
+                            });
+
+
+                        }
+                    } else {
+                        remove_tr.remove();
+                    }
+
+
+                    rowCount -= 1;
+
+                }
+            });
+
+
+        });
+
+
+    </script>
+
+{% endblock %}
+
+
+{% block css %}
+    <style>
+        h3 {
+            text-align: center;
+        }
+
+    </style>
+{% endblock %}
+
+
+
+{% block body %}
+    <h3>Modify Project</h3>
+    <br>
+    {% if c.errors %}
+
+        {% for field in c %}
+            {% for error in field.errors %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>{{ error|escape }}</strong>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    {% endif %}
+
+
+    {% if errors %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>{{ errors }}</strong>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    {% endif %}
+
+
+    {% if susessful %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>{{ susessful }}</strong>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+    {% endif %}
+
+    <form id="create_project" enctype="multipart/form-data" method="post" action="">{% csrf_token %}
+
+
+        <div class="form-group row">
+
+            <label class="col-sm-3 col-form-label" for="test_case_name">Project Name</label>
+
+            <div class="col-sm-9">
+                <input type="text" name="project_name" class="form-control" maxlength="255" required=""
+                       id="id_project_name"    {% if datas  is None  or save_post|trans_not %}
+                       value="{{ project_name }}"{% endif %}>
+            </div>
+        </div>
+
+
+        <div class="text-right">
+
+            <button class="btn btn btn-outline-success" type="button" id="add_pratnumber">
+                Add
+            </button>
+
+            <button class="btn btn btn-outline-danger" type="button" id="remove_pratnumber">
+                Delete
+            </button>
+
+
+        </div>
+
+        <table class="table table-bordered" id="part-number-table">
+            <thead>
+            <tr>
+                <th scope="col">Part Number</th>
+
+            </tr>
+            </thead>
+            <tbody>
+
+             {% if datas and save_post %}
+
+             {% else %}
+                {% for pn in pn_list %}
+                    <tr>
+                        <td class="pn_input">
+                            {% if pn.part_number == "DEFAULT" %}
+                                <input type="text" name="part_number" class="form-control" maxlength="255" required=""
+                                       id="id_part_number" readonly="readonly" value="{{ pn.part_number }}">
+
+                            {% else %}
+                                <input type="text" name="part_number" class="form-control" maxlength="255" required=""
+                                       id="id_part_number" value="{{ pn.part_number }}">
+
+
+
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+
+        <div class=text-center>
+            <button class="btn btn-outline-primary" type="submit">Save</button>
+        </div>
+
+    </form>
+
+
+{% endblock %}

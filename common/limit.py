@@ -108,10 +108,4 @@ def get_serial_number(task_id):
     return serial
 
 
-def get_station_instacne(project, part_number, station):
-    project_instance = Project.objects.get(project_name=project)
-    pn_instance = Project_PN.objects.get(project_name=project_instance, part_number=part_number)
-    station_instance = Project_Station.objects.get(project_pn_id=pn_instance, station_name=station)
-    return station_instance
-
 
