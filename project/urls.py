@@ -18,5 +18,8 @@ urlpatterns = [
 
 
     url("^set_station/(?P<project_name>\w{7})/$",set_station),
+    url("^modify_station/(?P<project_name>\w{7})/(?P<part_number>\w+)/$",modify_station),
+
+
     url("^select_script/(?P<project_name>\w{7})/(?P<part_number>\w+)/(?P<station_name>\w+)/$", select_script, ),
 ]

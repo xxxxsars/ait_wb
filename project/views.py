@@ -27,22 +27,8 @@ from test_script.list.views import no_attach_tasks
 def list_project(request):
     is_project = True
     username = request.user.username
-
-    # clean not selected task project
-    # for p in Project.objects.all():
-    #
-    #     pn_instance = Project_PN.objects.filter(project_name_id=p)
-    #
-    #     if len(pn_instance) ==0:
-    #         p.delete()
-    #
-    #
-    #     # if len(Project_task.objects.filter(project_name=p)) == 0:
-    #     #     p.delete()
-    #
     if request.user.is_staff:
         datas = Project.objects.all()
-
 
     else:
         user_instance = User.objects.get(username=username)
@@ -75,77 +61,6 @@ def list_project(request):
         project_structure.append(project_dict)
 
     return render(request, "project_list.html", locals())
-
-
-@login_required(login_url="/user/login")
-def modify_project(request, project_name,message=None):
-    is_project = True
-    c = CreateProjectForm()
-
-    # if project_name not existed ,wiil return 404
-    if Project.objects.filter(project_name=project_name).exists() ==False:
-        return  Http404
-
-
-    user_name = request.user.username
-    pn_list = Project_PN.objects.filter(project_name=project_name)
-
-
-    # handle the redirct by modify project name
-    if message !=None and request.method=="GET":
-        susessful = message
-
-    if request.POST:
-        save_post = True
-        print(dict(request.POST))
-        # project_create
-        c = CreateProjectForm(request.POST)
-
-        user_name = request.user.username
-        if c.is_valid() and valid_user(user_name):
-            datas = dict(request.POST)
-
-            post_project_name = request.POST['project_name']
-            post_part_numbers = list(filter(None, request.POST.getlist("part_number")))
-
-            # check post data is valid
-            if len([item for item ,count in  dict(collections.Counter(post_part_numbers)).items() if count >1]) >0:
-                errors = "Your PartNumber had some has some repetition."
-                return render(request, "project_modify.html", locals())
-
-
-            r = input_part_station
-            if len([e for e in post_part_numbers if r.search(e) == None]) > 0:
-                errors = "Your PartNumber not match the PartNumber rules."
-                return render(request, "project_modify.html", locals())
-
-
-            # if project_name had been modify will redirect to the new page
-            if post_project_name !=project_name:
-                if Project.objects.filter(project_name=post_project_name).count():
-                    errors = "Your Project Name cannot be repeated.Please modify your project name."
-                    return render(request, "create.html", locals())
-
-                user_instance = User.objects.get(username=user_name)
-                modify_project_name(project_name,post_project_name)
-
-                # no matter project modify should handle PartNumber
-                modify_part_number(post_project_name, post_part_numbers)
-                message = "Modify Project successfully!"
-                save_post = False
-                return redirect("/project/modify_project/%s/%s"%(post_project_name,message))
-            # no matter project modify should handle PartNumber
-            modify_part_number(post_project_name, post_part_numbers)
-            susessful = "Modify Project successfully!"
-            save_post = False
-            return render(request, "project_modify.html", locals())
-        else:
-            datas = dict(request.POST)
-            return render(request, "project_modify.html", locals())
-
-
-    return render(request, "project_modify.html", locals())
-
 
 @login_required(login_url="/user/login")
 def create_project(request):
@@ -207,6 +122,115 @@ def create_project(request):
         c = CreateProjectForm()
 
     return render(request, "create.html", locals())
+
+
+@login_required(login_url="/user/login")
+def modify_project(request, project_name,message=None):
+    is_project = True
+    c = CreateProjectForm()
+
+    # if project_name not existed ,wiil return 404
+    if Project.objects.filter(project_name=project_name).exists() ==False:
+        return  Http404
+
+
+    user_name = request.user.username
+    pn_list = Project_PN.objects.filter(project_name=project_name)
+
+
+    # handle the redirct by modify project name
+    if message !=None and request.method=="GET":
+        susessful = message
+
+    if request.POST:
+        save_post = True
+        # project_create
+        c = CreateProjectForm(request.POST)
+
+        user_name = request.user.username
+        if c.is_valid() and valid_user(user_name):
+            datas = dict(request.POST)
+
+            post_project_name = request.POST['project_name']
+            post_part_numbers = list(filter(None, request.POST.getlist("part_number")))
+
+            # check post data is valid
+            if len([item for item ,count in  dict(collections.Counter(post_part_numbers)).items() if count >1]) >0:
+                errors = "Your PartNumber had some has some repetition."
+                return render(request, "project_modify.html", locals())
+
+
+            r = input_part_station
+            if len([e for e in post_part_numbers if r.search(e) == None]) > 0:
+                errors = "Your PartNumber not match the PartNumber rules."
+                return render(request, "project_modify.html", locals())
+
+
+            # if project_name had been modify will redirect to the new page
+            if post_project_name !=project_name:
+                if Project.objects.filter(project_name=post_project_name).count():
+                    errors = "Your Project Name cannot be repeated.Please modify your project name."
+                    return render(request, "create.html", locals())
+
+                user_instance = User.objects.get(username=user_name)
+                modify_project_name(project_name,post_project_name)
+
+                # no matter project modify should handle PartNumber
+                modify_part_number(post_project_name, post_part_numbers)
+                message = "Modify Project successfully!"
+                save_post = False
+                return redirect("/project/modify_project/%s/%s"%(post_project_name,message))
+            # no matter project modify should handle PartNumber
+            modify_part_number(post_project_name, post_part_numbers)
+            susessful = "Modify Project successfully!"
+            save_post = False
+            return render(request, "project_modify.html", locals())
+        else:
+            datas = dict(request.POST)
+            return render(request, "project_modify.html", locals())
+
+
+    return render(request, "project_modify.html", locals())
+
+@login_required(login_url='/usr/login')
+def modify_station(request, project_name,part_number):
+    is_project = True
+    username = request.user.username
+    # check project is valid
+    if not request.user.is_staff:
+        project_list = [prj[0] for prj in
+                        Project.objects.filter(owner_user=User.objects.get(username=username)).values_list(
+                            "project_name")]
+    else:
+        project_list = [prj[0] for prj in Project.objects.all().values_list("project_name")]
+
+    part_number_list = [ pn.part_number for pn in Project_PN.objects.filter(project_name=project_name)]
+
+    if project_name not in project_list or part_number not in part_number_list  or not valid_user(username) :
+        return Http404
+
+    user_instance = User.objects.get(username=username)
+
+    project_instance = Project.objects.get(owner_user=user_instance, project_name=project_name)
+    pn_instance = Project_PN.objects.get(project_name=project_instance,part_number=part_number)
+    st_list = Project_Station.objects.filter(project_pn_id=pn_instance)
+
+    if request.POST:
+
+        datas = dict(request.POST)
+        post_stations = list(filter(None, request.POST.getlist(part_number)))
+
+        r = input_part_station
+        if len([e for e in post_stations if r.search(e) == None]) > 0:
+            errors = "Your Station Name not match the Station Name rules."
+            return render(request, "station_modify.html", locals())
+
+        modify_station_name(project_name, part_number,post_stations)
+        susessful = "Modify Station Name successfully!"
+
+
+    return render(request, "station_modify.html", locals())
+
 
 
 @login_required(login_url='/usr/login')

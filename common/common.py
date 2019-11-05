@@ -42,6 +42,29 @@ def get_station_instacne(project, part_number, station):
     return station_instance
 
 
+
+def modify_station_name(project_name,part_number,post_st_list):
+    project_instance = Project.objects.get(project_name=project_name)
+    user_name = project_instance.owner_user.username
+    pn_instance = Project_PN.objects.get(project_name=project_instance,part_number=part_number)
+    stations = [ s.station_name  for s in Project_Station.objects.filter(project_pn_id=pn_instance)]
+
+    if len(post_st_list) >= len(stations):
+        for i,st in enumerate(stations):
+            # if not match ,it was be modified
+            if st !=post_st_list[i]:
+                st_instance = Project_Station.objects.get(project_pn_id=pn_instance,station_name=st)
+                st_instance.station_name = post_st_list[i]
+                st_instance.save()
+
+                modify_st_folder(user_name,project_name,part_number,st,post_st_list[i])
+
+        for post_st in post_st_list[len(stations):]:
+            Project_Station.objects.create(project_pn_id=pn_instance, station_name=post_st)
+            create_st_folder(user_name,project_name,part_number,post_st)
+    else:
+        raise ValueError("Your station name had error.")
+
 def modify_part_number(project_name,post_pn_list):
     project_instance = Project.objects.get(project_name=project_name)
     user_name = project_instance.owner_user.username
@@ -57,59 +80,12 @@ def modify_part_number(project_name,post_pn_list):
                     pn_instance.save()
                     modify_pn_folder(user_name,project_name,pn,post_pn_list[i])
          # if not in db will create new one
-
         for post_pn in post_pn_list[len(project_pns):]:
             Project_PN.objects.create(project_name=project_instance,part_number=post_pn)
             create_pn_folder(user_name,project_name,post_pn)
 
     else:
         raise ValueError("Your part number had error.")
-
-    # # if db part number not in post part_number
-    # # ,it means part number may be modify ,it new will be added ,the old will be removed.
-    # for pn in project_pns:
-    #     if pn not in post_pn_list:
-    #         Project_PN.objects.get(part_number=pn, project_name=project_instance).delete()
-    #         # delete_file(user_name, project_name, pn,"create")
-
-
-
-
-
-
-def modify_pn_folder(username, project_name, old_name,new_name):
-    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-    root_path = handle_path(path, "download_folder", username, project_name)
-
-    if not os.path.exists(root_path):
-        os.makedirs(root_path)
-
-    old_path = os.path.join(root_path,old_name)
-    new_path = os.path.join(root_path,new_name)
-
-    if os.path.exists(new_path):
-        os.remove(new_path)
-
-    if not os.path.exists(old_path):
-        raise  AttributeError("rename paht %s not existed."%old_path)
-    os.rename(old_path,new_path)
-
-
-
-def create_pn_folder(username, project_name, part_number):
-    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-    root_path = handle_path(path, "download_folder", username, project_name)
-
-
-    if not os.path.exists(root_path):
-        os.makedirs(root_path)
-
-    part_number_path = os.path.join(root_path, part_number)
-    if not os.path.exists(part_number_path):
-        os.makedirs(part_number_path)
-
 
 
 
@@ -151,6 +127,70 @@ def modify_project_folder(username,new_name,old_name):
 
 
 
+def modify_st_folder(username, project_name, part_number,old_name,new_name):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    root_path = handle_path(path, "download_folder", username, project_name,part_number)
+
+    if not os.path.exists(root_path):
+        os.makedirs(root_path)
+
+    old_path = os.path.join(root_path,old_name)
+    new_path = os.path.join(root_path,new_name)
+
+    if os.path.exists(new_path):
+        os.remove(new_path)
+
+    if not os.path.exists(old_path):
+        raise  AttributeError("rename paht %s not existed."%old_path)
+    os.rename(old_path,new_path)
+
+def create_st_folder(username, project_name, part_number,station_name):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    root_path = handle_path(path, "download_folder", username, project_name,part_number)
+
+
+    if not os.path.exists(root_path):
+        os.makedirs(root_path)
+
+    part_number_path = os.path.join(root_path, station_name)
+    if not os.path.exists(part_number_path):
+        os.makedirs(part_number_path)
+
+
+
+def modify_pn_folder(username, project_name, old_name,new_name):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    root_path = handle_path(path, "download_folder", username, project_name)
+
+    if not os.path.exists(root_path):
+        os.makedirs(root_path)
+
+    old_path = os.path.join(root_path,old_name)
+    new_path = os.path.join(root_path,new_name)
+
+    if os.path.exists(new_path):
+        os.remove(new_path)
+
+    if not os.path.exists(old_path):
+        raise  AttributeError("rename paht %s not existed."%old_path)
+    os.rename(old_path,new_path)
+
+
+def create_pn_folder(username, project_name, part_number):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    root_path = handle_path(path, "download_folder", username, project_name)
+
+
+    if not os.path.exists(root_path):
+        os.makedirs(root_path)
+
+    part_number_path = os.path.join(root_path, part_number)
+    if not os.path.exists(part_number_path):
+        os.makedirs(part_number_path)
 if __name__ =="__main__":
     modify_pn_folder("ddd","1231231","DEFAULT","dddddd")
 
