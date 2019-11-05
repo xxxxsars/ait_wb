@@ -26,6 +26,43 @@
                 '</tr>';
         }
 
+
+        $(function () {
+            $(document).on("click", ".specific-pn-remove", function () {
+
+                var remove_tr = $(this).closest('tr');
+                remove_tr.remove();
+                var part_number = remove_tr.find("input[name='part_number']").val();
+                var project_name = $('input[name="project_name"]').val();
+
+
+                if (confirm("Are you sure to delete this row?")) {
+                    $.ajax({
+                        url: "/project/pn_delete/", // the endpoint,commonly same url
+                        type: 'POST',
+                        data: {
+                            csrfmiddlewaretoken: getCookie("csrftoken"),
+                            "project_name": project_name,
+                            "part_number": part_number,
+                        },
+
+                        success: function (json) {
+                            remove_tr.remove()
+
+                        },
+
+                        //處理失敗時會做的動作
+                        error: function (xhr, errmsg, err) {
+                            console.log("part number not in database");
+                            remove_tr.remove()// provide a bit more info about the error to the console
+                        }
+                    });
+                }
+
+            });
+
+        });
+
         $(document).ready(function () {
 
             //auto close alert  after 4 seconds.
@@ -107,7 +144,8 @@
 
                                 //處理失敗時會做的動作
                                 error: function (xhr, errmsg, err) {
-                                    console.log("part number not in database"); // provide a bit more info about the error to the console
+                                    console.log("part number not in database");
+                                    remove_tr.remove();// provide a bit more info about the error to the console
                                 }
                             });
 
@@ -218,9 +256,9 @@
             </thead>
             <tbody>
 
-             {% if datas and save_post %}
+            {% if datas and save_post %}
 
-             {% else %}
+            {% else %}
                 {% for pn in pn_list %}
                     <tr>
                         <td class="pn_input">
@@ -229,21 +267,29 @@
                                        id="id_part_number" readonly="readonly" value="{{ pn.part_number }}">
 
                             {% else %}
-                                <input type="text" name="part_number" class="form-control" maxlength="255" required=""
-                                       id="id_part_number" value="{{ pn.part_number }}">
 
+                                <div class="input-group ">
+                                    <input type="text" name="part_number" class="form-control" maxlength="255"
+                                           required=""
+                                           id="id_part_number" value="{{ pn.part_number }}">
 
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-danger specific-pn-remove" type="button"><i
+                                                class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
 
+                                </div>
                             {% endif %}
                         </td>
                     </tr>
                 {% endfor %}
-                {% endif %}
+            {% endif %}
             </tbody>
         </table>
 
         <div class=text-center>
-            <button class="btn btn-outline-primary" type="submit">Save</button>
+            <button class="btn btn-outline-primary" type="submit"><i class="fas fa-save"></i> Save</button>
         </div>
 
     </form>
