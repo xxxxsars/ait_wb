@@ -517,7 +517,7 @@ def modify_script(request, project_name, part_number, station_name):
             return render(request, "confirm.html", locals())
 
 
-    return render(request, "argument_modify.html", locals())
+    return render(request, "argument_set.html", locals())
 
 
 
