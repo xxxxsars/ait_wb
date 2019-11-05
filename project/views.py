@@ -81,6 +81,12 @@ def list_project(request):
 def modify_project(request, project_name,message=None):
     is_project = True
     c = CreateProjectForm()
+
+    # if project_name not existed ,wiil return 404
+    if Project.objects.filter(project_name=project_name).exists() ==False:
+        return  Http404
+
+
     user_name = request.user.username
     pn_list = Project_PN.objects.filter(project_name=project_name)
 

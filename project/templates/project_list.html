@@ -122,7 +122,7 @@
                     var editRow = $(this).closest('tr');
                     project_name = editRow.find("td.project_name").text();
 
-                    {#location.href = "/testCase/modify/" + taskID;#}
+                    location.href = "/project/modify_project/" + project_name
                 });
             });
 
@@ -143,33 +143,40 @@
                     part_number = cls_array[1];
                     {#console.log(project_name,part_number,cls_array)#}
 
+                    if (confirm("Are you sure to delete this row?")) {
+                        if (part_number == "DEFAULT") {
 
-                    $.ajax({
-                        url: "/project/pn_delete/", // the endpoint,commonly same url
-                        type: 'POST',
-                        data: {
-                            csrfmiddlewaretoken: getCookie("csrftoken"),
-                            "project_name": project_name,
-                            "part_number": part_number,
-                        },
+                            alert("'DEFAULT' can't be deleted!")
 
-                        success: function (json) {
-                            $("#project_table").find("tbody tr").each(function () {
-                                tr_array = $(this).attr("class").split(" ");
-                                if (jQuery.inArray(part_number, tr_array) !== -1 && jQuery.inArray(project_name, tr_array) !== -1) {
-                                    $(this).remove()
+                        } else {
+                            $.ajax({
+                                url: "/project/pn_delete/", // the endpoint,commonly same url
+                                type: 'POST',
+                                data: {
+                                    csrfmiddlewaretoken: getCookie("csrftoken"),
+                                    "project_name": project_name,
+                                    "part_number": part_number,
+                                },
+
+                                success: function (json) {
+                                    $("#project_table").find("tbody tr").each(function () {
+                                        tr_array = $(this).attr("class").split(" ");
+                                        if (jQuery.inArray(part_number, tr_array) !== -1 && jQuery.inArray(project_name, tr_array) !== -1) {
+                                            $(this).remove()
+                                        }
+                                    });
+
+
+                                },
+
+                                //處理失敗時會做的動作
+                                error: function (xhr, errmsg, err) {
+                                    console.log("part number not in database"); // provide a bit more info about the error to the console
                                 }
                             });
-
-
-                        },
-
-                        //處理失敗時會做的動作
-                        error: function (xhr, errmsg, err) {
-                            console.log("part number not in database"); // provide a bit more info about the error to the console
                         }
-                    });
 
+                    }
 
                 });
 
