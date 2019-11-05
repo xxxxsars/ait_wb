@@ -22,7 +22,19 @@
 
         function table_clone() {
             return '<tr>' +
-                '<td class="pn_input"><input type="text" name="part_number" class="form-control" maxlength="255" required="" id="id_part_number"></td>' +
+                '<td class="pn_input">\n' +
+                '                                <div class="input-group ">\n' +
+                '                                    <input type="text" name="part_number" class="form-control" maxlength="255"\n' +
+                '                                           required=""\n' +
+                '                                           id="id_part_number">\n' +
+                '\n' +
+                '                                    <div class="input-group-append">\n' +
+                '                                        <button class="btn btn-outline-danger specific-pn-remove" type="button"><i\n' +
+                '                                                class="fas fa-trash"></i>\n' +
+                '                                        </button>\n' +
+                '                                    </div>\n' +
+                '\n' +
+                '                                </div></td>' +
                 '</tr>';
         }
 
@@ -35,29 +47,41 @@
                 var part_number = remove_tr.find("input[name='part_number']").val();
                 var project_name = $('input[name="project_name"]').val();
 
+                if (part_number != "") {
+                    if (confirm("Are you sure to delete this row?")) {
 
-                if (confirm("Are you sure to delete this row?")) {
-                    $.ajax({
-                        url: "/project/pn_delete/", // the endpoint,commonly same url
-                        type: 'POST',
-                        data: {
-                            csrfmiddlewaretoken: getCookie("csrftoken"),
-                            "project_name": project_name,
-                            "part_number": part_number,
-                        },
+                        if (part_number == "DEFAULT") {
+                            alert("'DEFAULT' can't be deleted!")
+                        } else {
 
-                        success: function (json) {
-                            remove_tr.remove()
+                            $.ajax({
+                                url: "/project/pn_delete/", // the endpoint,commonly same url
+                                type: 'POST',
+                                data: {
+                                    csrfmiddlewaretoken: getCookie("csrftoken"),
+                                    "project_name": project_name,
+                                    "part_number": part_number,
+                                },
 
-                        },
+                                success: function (json) {
+                                    remove_tr.remove()
 
-                        //處理失敗時會做的動作
-                        error: function (xhr, errmsg, err) {
-                            console.log("part number not in database");
-                            remove_tr.remove()// provide a bit more info about the error to the console
+                                },
+
+                                //處理失敗時會做的動作
+                                error: function (xhr, errmsg, err) {
+                                    console.log("part number not in database");
+                                    remove_tr.remove()// provide a bit more info about the error to the console
+                                }
+                            });
                         }
-                    });
+
+
+                    }
+                }else{
+                    remove_tr.remove();
                 }
+
 
             });
 
@@ -71,20 +95,20 @@
             });
 
 
-            var rowCount = 0;
+
 
 
             //set the post value to form
             {% if datas and save_post %}
                 var saved_pn = {{ datas|lookup:"part_number" |safe}}
 
-                    rowCount = saved_pn.length;
+                    post_count = saved_pn.length;
 
 
                 //first input was django default create
-                if (rowCount > 1) {
+                if (post_count > 1) {
 
-                    for (i = 1; i <= rowCount; i++) {
+                    for (i = 1; i <= count; i++) {
                         $("#part-number-table tbody").append(table_clone());
                     }
 
@@ -99,13 +123,7 @@
 
                 $('input[name="project_name"]').val({{ datas|lookup:"project_name"|safe}});
 
-
-
-            {% else %}
-                rowCount = $("#part-number-table tbody tr").length;
-
             {% endif %}
-
 
 
 
@@ -115,10 +133,11 @@
             $("#add_pratnumber").click(function () {
                 var clone_html = table_clone();
                 $("#part-number-table tbody").append(clone_html);
-                rowCount += 1;
+
             });
 
             $("#remove_pratnumber").click(function () {
+                rowCount = $("#part-number-table tbody tr").length;
                 if (rowCount > 1) {
                     var remove_tr = $("#part-number-table tbody tr").last();
                     var part_number = remove_tr.find("input[name='part_number']").val();
@@ -128,36 +147,36 @@
                             var project_name = $('input[name="project_name"]').val();
                             var csrftoken = getCookie('csrftoken');
 
-                            $.ajax({
-                                url: "/project/pn_delete/", // the endpoint,commonly same url
-                                type: 'POST',
-                                data: {
-                                    csrfmiddlewaretoken: csrftoken,
-                                    "project_name": project_name,
-                                    "part_number": part_number,
-                                },
 
-                                success: function (json) {
-                                    remove_tr.remove();
+                            if (part_number == "DEFAULT") {
+                                alert("'DEFAULT' can't be deleted!")
+                            } else {
+                                $.ajax({
+                                    url: "/project/pn_delete/", // the endpoint,commonly same url
+                                    type: 'POST',
+                                    data: {
+                                        csrfmiddlewaretoken: csrftoken,
+                                        "project_name": project_name,
+                                        "part_number": part_number,
+                                    },
 
-                                },
+                                    success: function (json) {
+                                        remove_tr.remove();
 
-                                //處理失敗時會做的動作
-                                error: function (xhr, errmsg, err) {
-                                    console.log("part number not in database");
-                                    remove_tr.remove();// provide a bit more info about the error to the console
-                                }
-                            });
+                                    },
 
+                                    //處理失敗時會做的動作
+                                    error: function (xhr, errmsg, err) {
+                                        console.log("part number not in database");
+                                        remove_tr.remove();// provide a bit more info about the error to the console
+                                    }
+                                });
+                            }
 
                         }
                     } else {
                         remove_tr.remove();
                     }
-
-
-                    rowCount -= 1;
-
                 }
             });
 

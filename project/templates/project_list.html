@@ -255,15 +255,11 @@
 
                     var editRow = $(this).closest('tr');
                     cls_array = (editRow.attr("class").split(" "));
-
                     project_name = cls_array[0];
                     part_number = cls_array[1];
                     station_name = cls_array[2];
+                    location.href = "/project/modify_script/" + project_name +"/"+part_number+"/"+station_name;
 
-                    console.log(project_name, part_number, station_name)
-
-
-                    {#location.href = "/testCase/modify/" + taskID;#}
                 });
             });
 

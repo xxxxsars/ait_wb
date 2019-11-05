@@ -78,13 +78,13 @@ def create_project(request):
             r = input_part_station
             if len([e for e in part_number if r.search(e) == None]) > 0:
                 errors = "Your PartNumber not match the PartNumber rules."
-                return render(request, "create.html", locals())
+                return render(request, "project_create.html", locals())
 
             # if not modify will be check the project had repeat on db
             if "is_modify" not in request.POST:
                 if Project.objects.filter(project_name=project_name).count():
                     errors = "Your Project Name cannot be repeated.Please modify your project name."
-                    return render(request, "create.html", locals())
+                    return render(request, "project_create.html", locals())
 
             user_instance = User.objects.get(username=user_name)
 
@@ -112,17 +112,16 @@ def create_project(request):
 
             susessful = "Create [ %s ] was successfully! " % project_name
             create_project_folder(user_name, project_name, part_number)
-            return render(request, "create.html", locals())
+            return render(request, "project_create.html", locals())
 
         else:
             datas = dict(request.POST)
-            return render(request, "create.html", locals())
+            return render(request, "project_create.html", locals())
     else:
 
         c = CreateProjectForm()
 
-    return render(request, "create.html", locals())
-
+    return render(request, "project_create.html", locals())
 
 @login_required(login_url="/user/login")
 def modify_project(request, project_name,message=None):
@@ -170,7 +169,7 @@ def modify_project(request, project_name,message=None):
             if post_project_name !=project_name:
                 if Project.objects.filter(project_name=post_project_name).count():
                     errors = "Your Project Name cannot be repeated.Please modify your project name."
-                    return render(request, "create.html", locals())
+                    return render(request, "project_create.html", locals())
 
                 user_instance = User.objects.get(username=user_name)
                 modify_project_name(project_name,post_project_name)
@@ -191,6 +190,62 @@ def modify_project(request, project_name,message=None):
 
 
     return render(request, "project_modify.html", locals())
+
+@login_required(login_url='/usr/login')
+def set_station(request, project_name):
+    is_project = True
+    username = request.user.username
+    # check project is valid
+    if not request.user.is_staff:
+        project_list = [prj[0] for prj in
+                        Project.objects.filter(owner_user=User.objects.get(username=username)).values_list(
+                            "project_name")]
+
+    else:
+        project_list = [prj[0] for prj in Project.objects.all().values_list("project_name")]
+
+    if project_name not in project_list or not valid_user(username):
+        return Http404
+
+    user_instance = User.objects.get(username=username)
+
+    project_instance = Project.objects.get(owner_user=user_instance, project_name=project_name)
+    pn_instances = Project_PN.objects.filter(project_name=project_instance)
+
+    if request.POST:
+        db_part_numbers = [p.part_number for p in pn_instances]
+        r = input_part_station
+
+        datas = dict(request.POST)
+        datas["all_pn"] = db_part_numbers
+
+        # check all station name is matched our rules.
+        for pn in db_part_numbers:
+            pn_stations = list(filter(None, request.POST.getlist(pn)))
+            if len([e for e in pn_stations if r.search(e) == None]) > 0:
+                errors = "Your Station Name not match the Station Name rules."
+                return render(request, "station_set.html", locals())
+
+        # if all station valid will do...
+        for pn_instance in pn_instances:
+            post_stations = list(filter(None, request.POST.getlist(pn_instance.part_number)))
+            db_stations = [s.station_name for s in Project_Station.objects.filter(project_pn_id=pn_instance)]
+
+            # if post station name not in db will be created
+            for post_station in post_stations:
+                if post_station not in db_stations:
+                    Project_Station.objects.create(station_name=post_station, project_pn_id=pn_instance)
+
+            # if db station not in post station will be delete
+            for db_station in db_stations:
+                if db_station not in post_stations:
+                    Project_Station.objects.get(station_name=db_station, project_pn_id=pn_instance).delete()
+                    delete_file(username, project_name, pn_instance.part_number, db_station)
+
+            create_station_folder(username, project_name, pn_instance.part_number, post_stations)
+        susessful = "Save station name was successfully!"
+
+    return render(request, "station_set.html", locals())
 
 @login_required(login_url='/usr/login')
 def modify_station(request, project_name,part_number):
@@ -236,65 +291,6 @@ def modify_station(request, project_name,part_number):
 
     return render(request, "station_modify.html", locals())
 
-
-
-@login_required(login_url='/usr/login')
-def set_station(request, project_name):
-    is_project = True
-    username = request.user.username
-    # check project is valid
-    if not request.user.is_staff:
-        project_list = [prj[0] for prj in
-                        Project.objects.filter(owner_user=User.objects.get(username=username)).values_list(
-                            "project_name")]
-
-    else:
-        project_list = [prj[0] for prj in Project.objects.all().values_list("project_name")]
-
-    if project_name not in project_list or not valid_user(username):
-        return Http404
-
-    user_instance = User.objects.get(username=username)
-
-    project_instance = Project.objects.get(owner_user=user_instance, project_name=project_name)
-    pn_instances = Project_PN.objects.filter(project_name=project_instance)
-
-    if request.POST:
-        db_part_numbers = [p.part_number for p in pn_instances]
-        r = input_part_station
-
-        datas = dict(request.POST)
-        datas["all_pn"] = db_part_numbers
-
-        # check all station name is matched our rules.
-        for pn in db_part_numbers:
-            pn_stations = list(filter(None, request.POST.getlist(pn)))
-            if len([e for e in pn_stations if r.search(e) == None]) > 0:
-                errors = "Your Station Name not match the Station Name rules."
-                return render(request, "set_station.html", locals())
-
-        # if all station valid will do...
-        for pn_instance in pn_instances:
-            post_stations = list(filter(None, request.POST.getlist(pn_instance.part_number)))
-            db_stations = [s.station_name for s in Project_Station.objects.filter(project_pn_id=pn_instance)]
-
-            # if post station name not in db will be created
-            for post_station in post_stations:
-                if post_station not in db_stations:
-                    Project_Station.objects.create(station_name=post_station, project_pn_id=pn_instance)
-
-            # if db station not in post station will be delete
-            for db_station in db_stations:
-                if db_station not in post_stations:
-                    Project_Station.objects.get(station_name=db_station, project_pn_id=pn_instance).delete()
-                    delete_file(username, project_name, pn_instance.part_number, db_station)
-
-            create_station_folder(username, project_name, pn_instance.part_number, post_stations)
-        susessful = "Save station name was successfully!"
-
-    return render(request, "set_station.html", locals())
-
-
 @login_required(login_url="/user/login/")
 def select_script(request, project_name, part_number, station_name):
     is_project = True
@@ -322,7 +318,7 @@ def select_script(request, project_name, part_number, station_name):
                     task_dict[task_id] = task_info.task_name
 
                 arg_json = json.dumps(arg_dict)
-                return render(request, "set_argument.html", locals())
+                return render(request, "argument_set.html", locals())
             else:
                 raise Http404
 
@@ -409,25 +405,35 @@ def select_script(request, project_name, part_number, station_name):
     return render(request, "script_list.html", locals())
 
 
-'''
-@login_required(login_url="/user/login")
-def modify_project(request, project_name):
+@login_required(login_url="/user/login/")
+def modify_script(request, project_name, part_number, station_name):
     is_project = True
     is_modify = True
 
-    username = request.user.username
+    if request.method == "GET":
+        part_number_instance = Project_PN.objects.get(project_name=project_name, part_number=part_number)
+        station_instance = Project_Station.objects.get(station_name=station_name,project_pn_id=part_number_instance)
+        task_ids = [prj.task_id.task_id for prj in Project_task.objects.filter(station_id=station_instance)]
+        arg_dict = {}
+        task_dict = {}
 
-    # check project is valid
-    if not request.user.is_staff:
-        project_list = [prj[0] for prj in
-                        Project.objects.filter(owner_user=User.objects.get(username=username)).values_list(
-                            "project_name")]
-    else:
-        project_list = [prj[0] for prj in Project.objects.all().values_list("project_name")]
-    if project_name not in project_list:
-        return Http404
+        for task_id in task_ids:
+            task_instance = Upload_TestCase.objects.get(task_id=task_id)
+            project_instance = Project.objects.get(project_name=project_name)
+            args = Project_task_argument.objects.filter(station_id=station_instance,task_id=task_instance)
 
-    if request.method == "POST":
+
+            arg_dict[task_id] = list(args.values())
+
+            tmp_dict = {"task_name": task_instance.task_name}
+            tmp_dict["task_args"] = model_to_dict(Project_task.objects.filter(station_id=station_instance).get(
+                task_id=task_instance))
+
+            task_dict[task_id] = tmp_dict
+        arg_json = json.dumps(arg_dict)
+
+
+    elif request.method=="POST":
         token = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(30))
 
         # handle the "confirm.htnl"  the  conflict file
@@ -485,15 +491,17 @@ def modify_project(request, project_name):
                 append_dict["sleep"] = request.POST["sleep_%s" % task_id]
                 append_dict["criteria"] = request.POST["criteria_%s" % task_id]
                 append_dict["project_name"] = project_name
+                append_dict["part_number"] = part_number
+                append_dict["station_name"] = station_name
+
 
             render_str = ""
             render_di = {}
 
             project_owner_user = Project.objects.get(project_name=project_name).owner_user.username
-            sotred_ids = sorted_task_ids(project_name, project_owner_user)
+            sotred_ids = sorted_task_ids(project_owner_user,project_name,part_number,station_name)
 
             for task_id in sotred_ids:
-
                 render_di[task_id] = gen_ini_str(task_id, result_dict) + "\n"
 
             # check conflict files
@@ -506,32 +514,12 @@ def modify_project(request, project_name):
 
                 return render(request, "confirm.html", locals())
 
-
             return render(request, "confirm.html", locals())
 
 
-    elif request.method == "GET":
-        task_ids = [prj.task_id.task_id for prj in Project_task.objects.filter(project_name=project_name)]
-        arg_dict = {}
-        task_dict = {}
+    return render(request, "argument_modify.html", locals())
 
-        for task_id in task_ids:
-            task_instance = Upload_TestCase.objects.get(task_id=task_id)
-            project_instance = Project.objects.get(project_name=project_name)
-            args = Project_task_argument.objects.filter(project_name=project_instance).filter(task_id=task_instance)
 
-            arg_dict[task_id] = list(args.values())
-
-            tmp_dict = {"task_name": task_instance.task_name}
-            tmp_dict["task_args"] = model_to_dict(Project_task.objects.filter(project_name=project_instance).get(
-                task_id=task_instance))
-
-            task_dict[task_id] = tmp_dict
-
-        arg_json = json.dumps(arg_dict)
-
-    return render(request, "set_argument.html", locals())
-'''
 
 
 def download(request, token):
@@ -788,17 +776,14 @@ def get_conflict_tasks(conflict_dict):
     return conflict_task
 
 
-def sorted_task_ids(project_name, user_name):
+def sorted_task_ids(user_name,project_name,part_number,station_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    # path =os.path.dirname(os.path.abspath(__file__))
-    if platform.system() == "Windows":
-        root_path = path + r'\download_folder\\' + user_name
 
 
-    else:
-        root_path = path + '/download_folder/' + user_name
 
-    ini_path = os.path.join(os.path.join(root_path, project_name), "testScript.ini")
+    root_path = handle_path(path,"download_folder",user_name,project_name,part_number,station_name)
+
+    ini_path = os.path.join(root_path, "testScript.ini")
 
     sorted_ids = []
 
