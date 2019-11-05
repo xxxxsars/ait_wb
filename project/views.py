@@ -220,6 +220,11 @@ def modify_station(request, project_name,part_number):
         datas = dict(request.POST)
         post_stations = list(filter(None, request.POST.getlist(part_number)))
 
+        # check post data is valid
+        if len([item for item, count in dict(collections.Counter(post_stations)).items() if count > 1]) > 0:
+            errors = "Your Station had some has some repetition."
+            return render(request, "station_modify.html", locals())
+
         r = input_part_station
         if len([e for e in post_stations if r.search(e) == None]) > 0:
             errors = "Your Station Name not match the Station Name rules."

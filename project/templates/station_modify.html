@@ -131,11 +131,10 @@
 
             //if had datas means posted ,even the result current ,will set the post value to all station input
             {% if datas %}
-                {% for st in datas|lookup:part_number %}
                     var row = {{ datas|lookup:part_number|safe}}
                     var rowCount = row.length;
                     if (rowCount > 1) {
-                        for (i = 2; i <= rowCount; i++) {
+                        for (i = 1; i <= rowCount; i++) {
                             $("#part-table tbody.{{ part_number }}").append(table_clone())
                         }
                     }
@@ -150,8 +149,6 @@
 
                     });
 
-
-                {% endfor %}
 
             {% endif %}
 
