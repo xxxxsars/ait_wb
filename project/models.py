@@ -42,15 +42,18 @@ class Project_task(models.Model):
 
     class Meta:
         db_table = "project_task"
-        unique_together = (('task_id', 'station_id'),)
+        # unique_together = (('task_id', 'station_id'),)   #remove this line
+
+
 
 
 class Project_task_argument(models.Model):
-    argument = models.CharField(max_length=255)
     default_value = models.CharField(max_length=255, default="null")
+    argument = models.ForeignKey(Arguments, on_delete=models.CASCADE)
     station_id = models.ForeignKey(Project_Station, on_delete=models.CASCADE)
     task_id = models.ForeignKey(Upload_TestCase, on_delete=models.CASCADE)
+    project_task_id = models.ForeignKey(Project_task, on_delete=models.CASCADE)
 
     class Meta:
         db_table = "project_task_arguments"
-        unique_together = (('task_id', 'station_id', 'argument'),)
+        unique_together = (('project_task_id', 'argument',),)

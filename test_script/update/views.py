@@ -12,6 +12,7 @@ from test_script.update.forms import *
 from test_script.upload.forms import *
 from common.limit import input_argument, valid_default_value
 from common.common import handle_path
+from project.models import *
 
 
 @login_required(login_url="/user/login/")
@@ -45,7 +46,7 @@ def modify_index(request, task_id):
                     return render(request, "script_modify.html", locals())
 
             if 'attachment' in request.FILES:
-               handle_update_attachment(request.FILES['attachment'],id)
+                handle_update_attachment(request.FILES['attachment'], id)
 
             # handle post task information
             up = Upload_TestCase.objects.get(task_id=task_id)
@@ -92,7 +93,6 @@ def modify_index(request, task_id):
 
             # check if the parameter is a duplicate
             db_args = [i["argument"] for i in arg_infos.values("argument")]
-            new_args = []
 
             if "argument" and "description" and "default_value" in request.POST:
                 descripts = request.POST.getlist("description")
@@ -117,14 +117,18 @@ def modify_index(request, task_id):
                     if argument in db_args:
                         error_message = "Your parameters only allow unique values."
                         return render(request, "script_modify.html", locals())
-                    new_args.append(
-                        Arguments(argument=argument, description=description, default_value=value, task_id=up))
+
+                    a = Arguments.objects.create(argument=argument, description=description, default_value=value,
+                                                 task_id=up)
+                    # if had new arg the project argument must be update
+                    for prj_task in Project_task.objects.filter(task_id=up):
+                        if not Project_task_argument.objects.filter(project_task_id=prj_task, argument=a).exists():
+                            Project_task_argument.objects.create(default_value=a.default_value, argument=a, task_id=up,
+                                                                 station_id=prj_task.station_id,
+                                                                 project_task_id=prj_task)
 
             # arguments create finish will save the change
             up.save()
-
-            for n_arg in new_args:
-                n_arg.save()
 
             susessful = "Update Test Case ID: [ %s ] was successfully!" % task_id
             # update update value
@@ -138,26 +142,21 @@ def modify_index(request, task_id):
     return render(request, "script_modify.html", locals())
 
 
-
-def handle_update_attachment(f,task_id):
+def handle_update_attachment(f, task_id):
     path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    save_path = handle_path(path,"upload_folder",task_id,"attachment")
-
+    save_path = handle_path(path, "upload_folder", task_id, "attachment")
 
     try:
         shutil.rmtree(save_path)
     except Exception:
         pass
 
-
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-
-    with open(os.path.join(save_path,f.name), 'wb+') as destination:
+    with open(os.path.join(save_path, f.name), 'wb+') as destination:
         for chunk in f.chunks():
             destination.write(chunk)
-
 
 
 # handle_update_file will remove all unzip folder
@@ -166,8 +165,8 @@ def handle_update_file(f, task_id):
         raise Exception("Upload file is no valid zip file.")
 
     path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    source_zip = os.path.join(handle_path(path,"upload_folder"),f.name)
-    unzip_path = os.path.join(handle_path(path,"upload_folder"),task_id)
+    source_zip = os.path.join(handle_path(path, "upload_folder"), f.name)
+    unzip_path = os.path.join(handle_path(path, "upload_folder"), task_id)
 
     with open(source_zip, 'wb+') as destination:
         for chunk in f.chunks():
@@ -187,14 +186,12 @@ def handle_update_file(f, task_id):
 
     # remove old script file
     for file in os.listdir(unzip_path):
-        if file !="attachment":
-            file_path = os.path.join(unzip_path,file)
+        if file != "attachment":
+            file_path = os.path.join(unzip_path, file)
             if os.path.isfile(file_path):
                 os.remove(file_path)
             else:
                 shutil.rmtree(file_path)
-
-
 
     with zipfile.ZipFile(source_zip, 'r') as zip_ref:
         zip_ref.extractall(unzip_path)

@@ -109,17 +109,34 @@
 
 
         $(document).ready(function () {
+
+            //if click "next" will submit all argument to confirm.html
             $("#allsubmit").click(function () {
 
                 task_ids = {{ task_ids|safe }}
 
+                    $.each(task_ids, function (i, v) {
+                        $("#arg_append").append(format(v))
+                    });
+                $("#other_form").submit();
+
+            });
+
+
+            $("#add_task").click(function () {
+                console.log("in")
+                task_ids = {{ task_ids|safe }}
 
                     $.each(task_ids, function (i, v) {
                         $("#arg_append").append(format(v))
                     });
 
-                $("#other_form").submit();
 
+                $("#arg_append").append('<input type="text" name="add_task"  type="hidden" value="'+ task_ids+'">');
+                 {#$("#arg_append").append('<input type="text" name="task_ids"  type="hidden" value="{}" >');#}
+
+
+                $("#other_form").submit();
             });
 
 
@@ -139,7 +156,6 @@
 
             // Add event listener for opening and closing details
             $('#task_table tbody').on('click', 'td.details-control', function () {
-
 
                 var tr = $(this).closest('tr');
                 var row = table.row(tr);
@@ -173,7 +189,8 @@
 
 {% block body %}
     <div class="text-right" style="padding-bottom: 30px">
-
+        <button id="add_task" type="submit" class="btn btn-outline-success">Add <i class="fas fa-plus"></i>
+        </button>
 
         <button id="allsubmit" type="submit" class="btn btn-outline-primary">Next <i
                 class="fas fa-forward"></i>
@@ -241,7 +258,7 @@
                     <tr>
                         <td class="details-control"></td>
                         <td class="task_id">{{ id }}</td>
-                        <td>{{ name }}</td>
+                        <td><input type="text" name="task_name_{{ id }}" class="form-control" value="{{ name }}"></td>
                         <td><input type="text" name="timeout_{{ id }}" class="form-control" data-toggle="tooltip"
                                    data-placement="left"
                                    title="Test case timeout value" value="30"></td>
