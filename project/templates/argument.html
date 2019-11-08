@@ -63,11 +63,25 @@
 
 {% block js %}
     <script>
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
 
-        {#var arg_json = JSON.parse("{{ arg_json|escapejs }}");#}
         var task_infos = {{ prj_task_li|safe }};
 
-        /* Formatting function for row details - modify as you need */
+        // Formatting function for row details - modify as you need
         function format(index, task_id) {
 
             var tr_content = "";
@@ -103,6 +117,50 @@
             return '<table id="' + task_id + '"  cellpadding="5" cellspacing="0" border="0" style="margin-left:50px;">' + tr_content + '</table>'
 
         }
+
+
+        $(function () {
+            $('#task_table tbody .task-delete').each(function () {
+                $(this).on('click', function (evt) {
+                    $this = $(this);
+                    var dtRow = $this.closest('tr');
+
+                    var info = dtRow.find('td.task_id');
+
+                    var project_task_id = info.attr("project_task_id");
+
+
+                    if (confirm("Are you sure to delete this row?")) {
+                        $.ajax({
+                            url: "/project/task_delete/" + project_task_id, // the endpoint,commonly same url
+                            type: 'DELETE',
+                            data: {
+                                csrfmiddlewaretoken: getCookie('csrftoken')
+                    ,
+                    },
+
+                        success: function (json) {
+                            dtRow.remove()
+
+                        }
+                    ,
+
+
+                        error: function (xhr, errmsg, err) {
+                            console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                            dtRow.remove()
+                        }
+                    })
+                        ;
+
+                    }
+
+                });
+
+
+            });
+
+        });
 
 
         /* dynamic change input default value*/
@@ -262,6 +320,7 @@
                 <th>Retry Count</th>
                 <th>Sleep Time</th>
                 <th>Criteria</th>
+                <th style="text-align: center">Action</th>
 
             </tr>
             </thead>
@@ -320,6 +379,16 @@
                                value="{{ project_di| lookup:"criteria" }}">
                     </td>
 
+                    <td>
+                        <div class="text-center">
+                            <button type="button"
+                                    class=" btn btn-outline-danger btn-xs   btn-md center-block task-delete"><i
+                                    class="fas fa-trash"></i>
+                            </button>
+
+                        </div>
+
+                    </td>
 
                 </tr>
             {% endfor %}

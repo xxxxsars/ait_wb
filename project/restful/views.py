@@ -68,6 +68,33 @@ def DeleteProjectPNView(request):
 
 
 
+
+class DeleteProjectTaskView(viewsets.ModelViewSet):
+    queryset = Project_task.objects.all()
+    serializer_class = ProjectTaskSerializer
+    authentication_classes = [BasicAuthentication,]
+    http_method_names = ['delete']
+
+    # permission_classes = (IsAdminUser,)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # todo used instance to get project name,partnumber ,station name
+
+        # project_name = instance.project_name
+        owner_user = instance.station_id.project_pn_id.project_name.owner_user
+        project_name = instance.station_id.project_pn_id.project_name_id
+        part_number = instance.station_id.project_pn_id.part_number
+        station_name = instance.station_id.station_name
+
+
+        project_task_id = instance.id
+        # delete_file(owner_user, project_name)
+        print(owner_user,project_name,part_number,station_name,project_task_id)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 class DeleteProjectView(viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer

@@ -6,7 +6,7 @@ from rest_framework.routers import DefaultRouter
 #
 router = DefaultRouter()
 router.register(r'delete', DeleteProjectView)
-
+router.register(r'task_delete', DeleteProjectTaskView)
 
 urlpatterns = [
     url("", include(router.urls)),

@@ -9,7 +9,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 
 
-class ProjectPNSerializer(serializers.ModelSerializer):
+class ProjectTaskSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Project_PN
+        model = Project_task
         fields = "__all__"
