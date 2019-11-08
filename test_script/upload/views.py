@@ -7,7 +7,7 @@ import os, re
 import zipfile
 import platform
 
-from common.common import handle_path
+from common.handler import handle_path
 
 # Create your views here.
 

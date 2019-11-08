@@ -34,6 +34,7 @@ class Project_Station(models.Model):
 class Project_task(models.Model):
     station_id = models.ForeignKey(Project_Station, on_delete=models.CASCADE)
     task_id = models.ForeignKey(Upload_TestCase, on_delete=models.CASCADE)
+    task_name = models.CharField(max_length=255)
     timeout = models.IntegerField(default=30)
     exit_code = models.CharField(max_length=20, default="exitCode")
     retry_count = models.IntegerField(default=3)

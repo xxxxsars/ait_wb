@@ -6,7 +6,7 @@ from test_script.upload.models import *
 import json
 import os
 
-from common.common import handle_path
+from common.handler import handle_path
 
 @login_required(login_url="/user/login/")
 def list_task(request):

@@ -10,7 +10,7 @@ from project.models import *
 
 import os, platform, shutil
 
-from common.common import handle_path
+from common.handler import handle_path
 
 # # Create your views here.
 

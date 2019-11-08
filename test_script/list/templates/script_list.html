@@ -188,7 +188,7 @@
 
 
         $(document).ready(function () {
-                $("#pass_value").hide();
+
 
 
                 //global array ,it save selected task id
@@ -202,7 +202,25 @@
                         e.preventDefault();
                         return false;
                     }
-                    $("#pass_value").val(rows_selected);
+
+                    //handle the project add new task action
+                    {#                    {% if is_project and selected_task %}#}
+                    {#                        var selected_tasks = {{ selected_task|safe }};#}
+                    {##}
+                    {#                        $.each(selected_tasks, function (index,id) {#}
+                    {#                        rows_selected.push(id);#}
+                    {#                        });#}
+                    {#                        #}
+                    {#                    {% endif %}#}
+
+
+                    {% if is_modify %}
+                        $(this).append('<input name="add_task_ids"  type="hidden" value=' + rows_selected + '>');
+
+                    {% else %}
+                        $(this).append('<input name="task_ids"  type="hidden" value=' + rows_selected + '>');
+
+                    {% endif %}
                     {#e.preventDefault();#}
 
                 });
@@ -579,7 +597,7 @@
             </tbody>
 
         </table>
-        <input name="task_ids" id="pass_value">
+
     </form>
 
 

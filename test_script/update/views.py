@@ -11,7 +11,7 @@ import collections
 from test_script.update.forms import *
 from test_script.upload.forms import *
 from common.limit import input_argument, valid_default_value
-from common.common import handle_path
+from common.handler import handle_path
 from project.models import *
 
 

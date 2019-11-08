@@ -34,7 +34,10 @@
         $(function () {
             <!--pass value to download needs-->
             $("#export_form").on("submit", function (e) {
-                var task_list = {{ task_ids | safe }};
+                var task_list = {{ not_dedup_task_ids|safe }};
+                var path = {{ testScript_path |safe }};
+
+
                 var ini_content = "";
                 $("#sort-task li p").each(function () {
                     lines = ($(this).html().split('<br>'));
@@ -43,29 +46,27 @@
                     }
                 });
 
-                var result_dict = JSON.stringify({{ result_dict|safe }});
-
-                <!--remove old input colume-->
+                //if not remove the old input the post will post the list
                 $("#task_list").remove();
                 $("#ini_content").remove();
+                $("#path").remove();
                 $("#chose_files").remove();
-                $("#result_dict").remove();
 
                 $(this).append('<input  id="task_list" type="hidden" name="task_list"/>');
                 $("#task_list").val(task_list);
 
-
                 $(this).append('<input  id="ini_content" type="hidden" name="ini_content"/>');
                 $("#ini_content").val(ini_content);
 
+                $(this).append('<input  id="path" type="hidden" name="path"  />');
+                $("#path").val(path);
+
+                //if had choose_map means the conflict file had been choose ,so need to post to download let download page choose the specific file.
                 {% if chose_map %}
                     var chose_files = JSON.stringify({{ chose_map |safe }});
                     $(this).append('<input  id="chose_files" type="hidden" name="chose_files" />');
                     $("#chose_files").val(chose_files);
                 {% endif %}
-
-                $(this).append('<input  id="result_dict" type="hidden" name="result_dict" />');
-                $("#result_dict").val(result_dict);
 
             });
         });
@@ -91,30 +92,33 @@
             });
 
 
-            <!--pass value to chose needs-->
+            <!--pass value from choose page to download page needs-->
             $("#chose_form").one("submit", function (e) {
-                var task_list = {{ task_ids | safe }};
-                var ini_content = '{{ render_di |escapejs }}';
-                var result_dict = JSON.stringify({{ result_dict|safe }});
+
+                // get value from normal confirm page ,it need on conflict page.
+                var not_dedup_task_ids = {{ not_dedup_task_ids|safe }};
+                var path = {{ testScript_path |safe }};
+                var ini_content_map = JSON.stringify({{ ini_content_map|safe }});
 
 
                 var conflict_files = {{ cf_tasks.keys|get_list|safe  }};
 
-                $(this).append('<input  id="task_list" type="hidden" name="task_list"/>');
-                $("#task_list").val(task_list);
 
-                $(this).append('<input  id="ini_content" type="hidden" name="ini_content"/>');
-                $("#ini_content").val(ini_content);
+                $(this).append('<input  id="ini_content_map" type="hidden" name="ini_content_map"/>');
+                $("#ini_content_map").val(ini_content_map);
 
 
-                $(this).append('<input  id="conflicted" type="hidden" name="conflicted" />');
+                $(this).append('<input  id="not_dedup_task_ids" type="hidden" name="not_dedup_task_ids"/>');
+                $("#not_dedup_task_ids").val(not_dedup_task_ids);
+
+                $(this).append('<input  id="path" type="hidden" name="path"  />');
+                $("#path").val(path);
 
                 $(this).append('<input  id="conflict_files" type="hidden" name="conflict_files"/>');
-                $("#conflict_files").val(conflict_files)
+                $("#conflict_files").val(conflict_files);
 
-
-                $(this).append('<input  id="result_dict" type="hidden" name="result_dict" />');
-                $("#result_dict").val(result_dict);
+                //nofity the confirm page had conflicted
+                $(this).append('<input  id="conflicted" type="hidden" name="conflicted" />');
 
 
             });
@@ -201,7 +205,7 @@
 
         <ul id="sort-task">
 
-            {% for task,content in render_di.items %}
+            {% for task,content in ini_content_map.items %}
                 <li class="task" id="{{ task }}"><code class="javascript"
                                                        style="color:#333333;">{{ content |linebreaks }}</code></li>
             {% endfor %}

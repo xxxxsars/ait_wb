@@ -15,7 +15,7 @@ import zipfile, os, shutil, platform
 from test_script.update.forms import *
 from test_script.restful.serializer import *
 
-from common.common import handle_path
+from common.handler import handle_path
 
 
 @api_view(["POST"])

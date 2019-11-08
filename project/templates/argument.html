@@ -64,29 +64,44 @@
 {% block js %}
     <script>
 
-        var arg_json = JSON.parse("{{ arg_json|escapejs }}");
+        {#var arg_json = JSON.parse("{{ arg_json|escapejs }}");#}
+        var task_infos = {{ prj_task_li|safe }};
 
         /* Formatting function for row details - modify as you need */
-        function format(task_id) {
-            var task_info = arg_json[task_id];
+        function format(index, task_id) {
+
             var tr_content = "";
-            for (var i  in task_info) {
-                argment = task_info[i]['argument'];
-                default_value = task_info[i]['default_value'];
-                description = task_info[i]['description'];
+
+            $.each(task_infos, function (task_index, info) {
+
+                if (task_index == index) {
+                    id = info.id;
+                    $.each(info["args"], function (arg_index, arg_info) {
+
+                        argument = arg_info.argument;
+                        default_value = arg_info.default_value;
+                        description = arg_info.description;
 
 
-                add =
-                    '<tr>' +
-                    '<td>' + task_info[i]['argument'] + '</td>' +
-                    '<td>' +
-                    '<input  data-toggle="tooltip" data-placement="left"' +
-                    'title=\'' + description + '\'type="text" name="arg_' + task_id + '_' + argment + '" class="arguments form-control" value=\'' + default_value + '\'>' +
-                    '</td>' +
-                    '</tr>';
-                tr_content += add
-            }
+                        add =
+                            '<tr>' +
+                            '<td>' + argument + '</td>' +
+                            '<td task_index=" ' + task_index + '"' + 'arg_index="' + arg_index + '">' +
+                            '<input  data-toggle="tooltip" data-placement="left"' +
+                            'title=\'' + description + '\'type="text" name="arg_' + argument + '_' + task_id + '_' + id + '" class="arguments form-control" value=\'' + default_value + '\'>' +
+                            '</td>' +
+                            '</tr>';
+                        tr_content += add
+
+                    });
+
+
+                }
+
+            });
+
             return '<table id="' + task_id + '"  cellpadding="5" cellspacing="0" border="0" style="margin-left:50px;">' + tr_content + '</table>'
+
         }
 
 
@@ -97,43 +112,75 @@
 
             changed_value = ($(this).val());
 
-            var task_info = arg_json[task_id];
+            task_index = $(this).closest("td").attr("task_index");
+            arg_index = $(this).closest("td").attr("arg_index");
 
-            for (var i  in task_info) {
 
-                if (task_info[i]['argument'] == argument) {
-                    task_info[i]['default_value'] = changed_value
+            $.each(task_infos, function (ti, info) {
+
+                if (ti == task_index) {
+
+                    $.each(info["args"], function (ai, arg_info) {
+                        if (ai == arg_index) {
+                            arg_info.default_value = changed_value
+                        }
+
+                    });
                 }
-            }
+            });
+
         });
 
 
         $(document).ready(function () {
 
             //if click "next" will submit all argument to confirm.html
-            $("#allsubmit").click(function () {
+            $("#allsubmit").click(function (e) {
 
-                task_ids = {{ task_ids|safe }}
+                task_ids = [];
+                $(".task_id").each(function () {
+                    task_ids.push($(this).text())
+                });
 
-                    $.each(task_ids, function (i, v) {
-                        $("#arg_append").append(format(v))
-                    });
+                $.each(task_ids, function (i, v) {
+                    $("#arg_append").append(format(i, v))
+                });
+                //it will return the "task_id_project_task_id" example 0000001_1
+                all_sorted_tasks_id = []
+                $('#task_table tbody tr td').each(function () {
+                    if ($(this).hasClass("task_id")) {
+                        task_id = $(this).text();
+
+                        project_task_id = $(this).attr("project_task_id");
+
+
+                        all_sorted_tasks_id.push(task_id + "_" + project_task_id)
+                    }
+                });
+
+                $("#arg_append").append('<input type="text" name="all_task"  type="hidden" value="' + all_sorted_tasks_id + '">');
+
                 $("#other_form").submit();
 
             });
 
 
-            $("#add_task").click(function () {
-                console.log("in")
-                task_ids = {{ task_ids|safe }}
+            $("#add_task").click(function (e) {
+                e.preventDefault();
 
-                    $.each(task_ids, function (i, v) {
-                        $("#arg_append").append(format(v))
-                    });
+                task_ids = [];
+
+                $(".task_id").each(function () {
+                    task_ids.push($(this).text())
+                });
 
 
-                $("#arg_append").append('<input type="text" name="add_task"  type="hidden" value="'+ task_ids+'">');
-                 {#$("#arg_append").append('<input type="text" name="task_ids"  type="hidden" value="{}" >');#}
+                $.each(task_ids, function (i, v) {
+                    $("#arg_append").append(format(i, v))
+                });
+
+
+                $("#arg_append").append('<input type="text" name="add_task"  type="hidden" value="' + task_ids + '">');
 
 
                 $("#other_form").submit();
@@ -156,7 +203,7 @@
 
             // Add event listener for opening and closing details
             $('#task_table tbody').on('click', 'td.details-control', function () {
-
+                console.log("in")
                 var tr = $(this).closest('tr');
                 var row = table.row(tr);
 
@@ -167,20 +214,25 @@
                 }
                 else {
 
-                    var task_id;
+                    var task_id, index;
                     $(this).parents('tr').find("td").each(function () {
                         if ($(this).hasClass("task_id")) {
                             task_id = $(this).text();
+
+                            count = $(this).attr("id");
+
+                            index = count - 1
                         }
                     });
 
 
                     // Open this row
-                    row.child(format(task_id)).show();
+                    row.child(format(index, task_id)).show();
                     tr.addClass('shown');
                 }
             });
-        });
+        })
+        ;
     </script>
 {% endblock %}
 
@@ -215,80 +267,62 @@
             </thead>
             <tbody>
 
-            {% if is_modify %}
 
-                {% for id,project_arg in task_dict.items %}
-                    <tr>
-                        <td class="details-control"></td>
-                        <td class="task_id">{{ id }}</td>
-                        <td>{{ project_arg| lookup:"task_name" }}</td>
-                        <td><input type="text" name="timeout_{{ id }}" class="form-control" data-toggle="tooltip"
-                                   data-placement="left"
-                                   title="Test case timeout value"
-                                   value="{{ project_arg| lookup:"task_args"|lookup:"timeout" }}"></td>
-                        <td><input type="text" name="exitcode_{{ id }}" class="form-control" data-toggle="tooltip"
-                                   data-placement="left"
-                                   title=" Pass condition 'exitCode to be define for exit(0) and exit(1)'"
-                                   value="{{ project_arg| lookup:"task_args"|lookup:"exit_code" }}">
-                        </td>
-                        <td>
-                            <input type="text" name="retry_{{ id }}" class="form-control" data-toggle="tooltip"
-                                   data-placement="left"
-                                   title="Retry count"
-                                   value="{{ project_arg| lookup:"task_args"|lookup:"retry_count" }}">
-                        </td>
-                        <td>
-                            <input type="text" name="sleep_{{ id }}" class="form-control" data-toggle="tooltip"
-                                   data-placement="left"
-                                   title="Sleep time" value="{{ project_arg| lookup:"task_args"|lookup:"sleep_time" }}">
-                        </td>
-                        <td>
-                            <input type="text" name="criteria_{{ id }}" class="form-control" data-toggle="tooltip"
-                                   data-placement="left"
-                                   title="Set test case criteria"
-                                   value="{{ project_arg| lookup:"task_args"|lookup:"criteria" }}">
-                        </td>
-
-
-                    </tr>
-                {% endfor %}
-            {% else %}
-
-                {% for id,name in task_dict.items %}
-                    <tr>
-                        <td class="details-control"></td>
-                        <td class="task_id">{{ id }}</td>
-                        <td><input type="text" name="task_name_{{ id }}" class="form-control" value="{{ name }}"></td>
-                        <td><input type="text" name="timeout_{{ id }}" class="form-control" data-toggle="tooltip"
-                                   data-placement="left"
-                                   title="Test case timeout value" value="30"></td>
-                        <td><input type="text" name="exitcode_{{ id }}" class="form-control" data-toggle="tooltip"
-                                   data-placement="left"
-                                   title=" Pass condition 'exitCode to be define for exit(0) and exit(1)'"
-                                   value="exitCode">
-                        </td>
-                        <td>
-                            <input type="text" name="retry_{{ id }}" class="form-control" data-toggle="tooltip"
-                                   data-placement="left"
-                                   title="Retry count" value="3">
-                        </td>
-                        <td>
-                            <input type="text" name="sleep_{{ id }}" class="form-control" data-toggle="tooltip"
-                                   data-placement="left"
-                                   title="Sleep time" value="0">
-                        </td>
-                        <td>
-                            <input type="text" name="criteria_{{ id }}" class="form-control" data-toggle="tooltip"
-                                   data-placement="left"
-                                   title="Set test case criteria" value="success">
-                        </td>
+            {% for project_di in prj_task_li %}
+                <tr>
+                    <td class="details-control"></td>
+                    <td class="task_id" id="{{ forloop.counter }}"
+                        project_task_id="{{ project_di|lookup:"id" }}">{{ project_di|lookup:"task_id" }}</td>
+                    <td><input type="text"
+                               name="task_name_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
+                               class="form-control"
+                               value="{{ project_di| lookup:"task_name" }}"></td>
+                    <td><input type="text"
+                               name="timeout_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
+                               class="form-control"
+                               data-toggle="tooltip"
+                               data-placement="left"
+                               title="Test case timeout value"
+                               value="{{ project_di| lookup:"timeout" }}"></td>
+                    <td><input type="text"
+                               name="exitcode_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
+                               class="form-control"
+                               data-toggle="tooltip"
+                               data-placement="left"
+                               title=" Pass condition 'exitCode to be define for exit(0) and exit(1)'"
+                               value="{{ project_di| lookup:"exit_code" }}">
+                    </td>
+                    <td>
+                        <input type="text"
+                               name="retry_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
+                               class="form-control"
+                               data-toggle="tooltip"
+                               data-placement="left"
+                               title="Retry count"
+                               value="{{ project_di| lookup:"retry_count" }}">
+                    </td>
+                    <td>
+                        <input type="text"
+                               name="sleep_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
+                               class="form-control"
+                               data-toggle="tooltip"
+                               data-placement="left"
+                               title="Sleep time"
+                               value="{{ project_di| lookup:"sleep_time" }}">
+                    </td>
+                    <td>
+                        <input type="text"
+                               name="criteria_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
+                               class="form-control"
+                               data-toggle="tooltip"
+                               data-placement="left"
+                               title="Set test case criteria"
+                               value="{{ project_di| lookup:"criteria" }}">
+                    </td>
 
 
-                    </tr>
-
-                {% endfor %}
-
-            {% endif %}
+                </tr>
+            {% endfor %}
 
 
             </tbody>
