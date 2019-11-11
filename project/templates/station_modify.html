@@ -133,7 +133,7 @@
             {% if datas %}
                     var row = {{ datas|lookup:part_number|safe}}
                     var rowCount = row.length;
-                    if (rowCount > 1) {
+                    if (rowCount >= 1) {
                         for (i = 1; i <= rowCount; i++) {
                             $("#part-table tbody.{{ part_number }}").append(table_clone())
                         }
