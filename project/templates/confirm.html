@@ -31,48 +31,14 @@
         });
 
 
-        $(function () {
-            <!--pass value to download needs-->
-            $("#export_form").on("submit", function (e) {
-                var task_list = {{ not_dedup_task_ids|safe }};
-                var path = {{ testScript_path |safe }};
-
-
-                var ini_content = "";
-                $("#sort-task li p").each(function () {
-                    lines = ($(this).html().split('<br>'));
-                    for (var i = 0; i < lines.length; ++i) {
-                        ini_content += lines[i] + "\n"
-                    }
-                });
-
-                //if not remove the old input the post will post the list
-                $("#task_list").remove();
-                $("#ini_content").remove();
-                $("#path").remove();
-                $("#chose_files").remove();
-
-                $(this).append('<input  id="task_list" type="hidden" name="task_list"/>');
-                $("#task_list").val(task_list);
-
-                $(this).append('<input  id="ini_content" type="hidden" name="ini_content"/>');
-                $("#ini_content").val(ini_content);
-
-                $(this).append('<input  id="path" type="hidden" name="path"  />');
-                $("#path").val(path);
-
-                //if had choose_map means the conflict file had been choose ,so need to post to download let download page choose the specific file.
-                {% if chose_map %}
-                    var chose_files = JSON.stringify({{ chose_map |safe }});
-                    $(this).append('<input  id="chose_files" type="hidden" name="chose_files" />');
-                    $("#chose_files").val(chose_files);
-                {% endif %}
-
-            });
-        });
-
-
         $(document).ready(function () {
+
+
+            //compare the render order ,if not compare on db will hide download button.
+            db_sorted_list = {{ testScript_order_list |safe }};
+
+
+            $("#btn-save").hide();
 
             //if on modify page ,it item had been move will create new testScript.ini
             $('#sort-task').sortable({
@@ -83,12 +49,93 @@
                     var start_pos = ui.item.data('start_pos');
                     if (start_pos != ui.item.index()) {
                         // the item got moved
-                        $("#item_moved").val("True")
+                        $("#item_moved").val("True");
+
+                        project_sroted_list = [];
+
+                        $("ul#sort-task").find("li.ui-sortable-handle").each(function () {
+                            project_sroted_list.push($(this).attr("id"))
+
+                        });
+
+                        var not_compare_count = 0;
+                        $.each(project_sroted_list, function (i, value) {
+                            if (value != db_sorted_list[i]) {
+                                not_compare_count += 1;
+                            }
+                        });
+
+
+                        if (not_compare_count > 0) {
+                            console.log(not_compare_count, project_sroted_list, db_sorted_list)
+                            $("#btn-download").hide();
+                            $('#btn-save').show()
+
+
+                        } else {
+                            $("#btn-download").show();
+                            $('#btn-save').hide()
+                        }
+
+
                     } else {
                         // the item was returned to the same position
                         $("#item_moved").val("False")
                     }
                 },
+            });
+
+
+
+
+            $("#btn-download").click(function () {
+                //remove save_ini tag ,it will not save file only download
+                $("#save_ini").remove();
+                $('#export_form').attr('action', '{% url "export_task" token %}').submit();
+            });
+
+
+            $("#btn-save").click(function (e) {
+                e.preventDefault()
+                var task_list = {{ not_dedup_task_ids|safe }};
+                var path = {{ testScript_path |safe }};
+                var ini_content = "";
+                $("#sort-task li p").each(function () {
+                    lines = ($(this).html().split('<br>'));
+                    for (var i = 0; i < lines.length; ++i) {
+                        ini_content += lines[i] + "\n"
+                    }
+                });
+
+                //if not remove the old input the post will post the list
+                $("#task_list").remove();
+                $("#path").remove();
+                $("#ini_content").remove();
+
+                $("#save_ini").remove();
+                $("#chose_files").remove();
+
+
+                $(this).append('<input  id="task_list" type="hidden" name="task_list"/>');
+                $("#task_list").val(task_list);
+
+                $(this).append('<input  id="path" type="hidden" name="path"  />');
+                $("#path").val(path);
+
+                $(this).append('<input  id="ini_content" type="hidden" name="ini_content"/>');
+                $("#ini_content").val(ini_content);
+
+                //if had choose_map means the conflict file had been choose ,so need to post to download let download page choose the specific file.
+                {% if chose_map %}
+                    var chose_files = JSON.stringify({{ chose_map |safe }});
+                    $(this).append('<input  id="chose_files" type="hidden" name="chose_files" />');
+                    $("#chose_files").val(chose_files);
+                {% endif %}
+
+                $("#export_form").append('<input id="save_ini"  type="hidden" name="save_ini"/>');
+
+            //TODO used restful to save data
+                 $('#export_form').attr('action', '{% url "save_ini" token %}').submit();
             });
 
 
@@ -99,10 +146,14 @@
                 var not_dedup_task_ids = {{ not_dedup_task_ids|safe }};
                 var path = {{ testScript_path |safe }};
                 var ini_content_map = JSON.stringify({{ ini_content_map|safe }});
+                var testScript_order_list ={{ testScript_order_list |safe }};
 
 
                 var conflict_files = {{ cf_tasks.keys|get_list|safe  }};
 
+
+                $(this).append('<input  id="testScript_order_list" type="hidden" name="testScript_order_list"/>');
+                $("#testScript_order_list").val(testScript_order_list);
 
                 $(this).append('<input  id="ini_content_map" type="hidden" name="ini_content_map"/>');
                 $("#ini_content_map").val(ini_content_map);
@@ -154,9 +205,7 @@
             <h4 class="alert-heading">You got an error!</h4>
             <hr>
             <p>{{ err_message }}</p>
-
         </div>
-
         <form id="chose_form" role="form" method="POST">{% csrf_token %}
             <table class="table " id="task-table">
                 <tbody>
@@ -194,7 +243,9 @@
 
         </form>
 
-
+        <button id="confirm" type="submit" class="btn btn-primary btn-lg btn-block" form="chose_form"><i
+                class="fas fa-check"></i> Confirm
+        </button>
 
     {% endif %}
 
@@ -202,31 +253,28 @@
 
 
     {% if err_message is None %}
-
         <ul id="sort-task">
+            {% for order_id in testScript_order_list %}
 
-            {% for task,content in ini_content_map.items %}
-                <li class="task" id="{{ task }}"><code class="javascript"
-                                                       style="color:#333333;">{{ content |linebreaks }}</code></li>
+                <li class="task" id="{{ order_id }}"><code class="javascript"
+                                                           style="color:#333333;">{{ ini_content_map|lookup:order_id |linebreaks }}</code>
+                </li>
             {% endfor %}
         </ul>
+        <form id="export_form"
+              method="post">{% csrf_token %}
 
-    {% endif %}
+            <button id="btn-download" type="submit" class="btn btn-success btn-lg btn-block"><i
+                    class="fas fa-download"></i>
+                Download
+            </button>
 
-    {% if disable_download %}
-        <button id="confirm" type="submit" class="btn btn-primary btn-lg btn-block" form="chose_form"><i
-                class="fas fa-check"></i> Confirm
-        </button>
-    {% else %}
-        {#        <a href="{% url "export_task" %}" id="save" class="btn btn-primary btn-lg btn-block" role="button"><i class="fas fa-download"></i>Download</a>#}
-
-        <form id="export_form" action="{% url "export_task" token %}" method="post">{% csrf_token %}
-            <button id="save" type="submit" class="btn btn-success btn-lg btn-block"><i class="fas fa-download"></i>
-                Download & Save TestScript.ini
+            <button id="btn-save" type="button" class="btn btn-primary btn-lg btn-block"><i
+                    class="fas fa-save"></i>
+                Save TescCript.ini
             </button>
 
 
-            <input id="item_moved" type="hidden" name="item_moved"/>
         </form>
     {% endif %}
 

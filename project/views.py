@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from django.forms.models import model_to_dict
 from django.http import JsonResponse
 from django.shortcuts import redirect
+from django.http import HttpResponse
 
 import random
 import string
@@ -61,6 +62,7 @@ def list_project(request):
         project_structure.append(project_dict)
 
     return render(request, "project_list.html", locals())
+
 
 @login_required(login_url="/user/login")
 def create_project(request):
@@ -122,6 +124,7 @@ def create_project(request):
         c = CreateProjectForm()
 
     return render(request, "project_create.html", locals())
+
 
 @login_required(login_url="/user/login")
 def modify_project(request, project_name, message=None):
@@ -186,6 +189,7 @@ def modify_project(request, project_name, message=None):
 
     return render(request, "project_modify.html", locals())
 
+
 @login_required(login_url='/usr/login')
 def set_station(request, project_name):
     is_project = True
@@ -242,6 +246,7 @@ def set_station(request, project_name):
 
     return render(request, "station_set.html", locals())
 
+
 @login_required(login_url='/usr/login')
 def modify_station(request, project_name, part_number):
     is_project = True
@@ -285,10 +290,12 @@ def modify_station(request, project_name, part_number):
 
     return render(request, "station_modify.html", locals())
 
+
 @login_required(login_url="/user/login/")
 def select_script(request, project_name, part_number, station_name):
     is_project = True
 
+    username = request.user.username
     testScript_path = [project_name, part_number, station_name]
     station_instance = get_station_instacne(project_name, part_number, station_name)
 
@@ -308,6 +315,7 @@ def select_script(request, project_name, part_number, station_name):
 
             save_add_tasks(task_ids, station_instance)
             prj_task_li = get_station_tasks(project_name, part_number, station_name)
+
             return render(request, "argument.html", locals())
 
         # handle appende new task
@@ -316,6 +324,7 @@ def select_script(request, project_name, part_number, station_name):
             # if will save project_task and project_task_argument ,the data get from default value
             save_add_tasks(add_task_ids, station_instance)
             prj_task_li = get_station_tasks(project_name, part_number, station_name)
+
             return render(request, "argument.html", locals())
 
         # handle the select new task action
@@ -323,12 +332,12 @@ def select_script(request, project_name, part_number, station_name):
             datas = Upload_TestCase.objects.all()
             posted_ids = (request.POST["add_task"]).split(",")
             save_modify_tasks(request.POST, station_instance, posted_ids)
+
             no_att_tasks = no_attach_tasks()
             return render(request, "script_list.html", locals())
 
         # handle the "confirm.htnl"  the  conflict file
         if "conflicted" in request.POST:
-
             # if will pass value to download page
             # the download need task_id to compress the upload task folder file
             not_dedup_task_ids = str(request.POST["not_dedup_task_ids"]).split(",")
@@ -336,18 +345,22 @@ def select_script(request, project_name, part_number, station_name):
             # download need ini_content_map
             ini_content_map = eval(request.POST["ini_content_map"])
 
-            # if entry  confirm conflicted file page will save data
-            save_modify_tasks(request.POST,station_instance, not_dedup_task_ids)
-
             # get confilict_files to tranfer the choose_map for download page
             confilct_files = str(request.POST["conflict_files"]).split(",")
+            testScript_order_list = str(request.POST["testScript_order_list"]).split(",")
+
+            # the testScript ini will be save and used the db order save it.
+            save_ini_contents(ini_content_map, testScript_order_list, token)
+
             chose_map = {}
             for cf in confilct_files:
                 if len(cf) > 0:
                     chose_map[cf] = request.POST[cf]
 
-            print(chose_map)
+            save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids, chose_map,
+                            True)
 
+            # if render the dowload confirm page need "not_dedup_task_ids"  "ini_content_map" "confilct_files" "testScript_order_list"
             return render(request, "confirm.html", locals())
 
 
@@ -360,30 +373,39 @@ def select_script(request, project_name, part_number, station_name):
             not_dedup_task_ids = list(
                 set([re.search(r"(\w+)_\d+", prj_id).group(1) for prj_id in (post_data["all_task"][0]).split(",")]))
 
-            ini_content_map = dict(enumerate(gen_ini_contents(project_infos)))
+            # if on "confirm page" will save testScript ordering and return order list
+            testScript_order_list = save_testScript_order(project_name, part_number, station_name, project_infos)
 
+            ini_content_map = gen_ini_contents(project_infos)
 
             # if  will save and change to confirm page (not matter file confilicted )
-            save_modify_tasks(request.POST,station_instance, not_dedup_task_ids)
+            save_modify_tasks(request.POST, station_instance, not_dedup_task_ids)
 
             # check conflict files
             cf = conflict_files(not_dedup_task_ids)
             if len(cf.keys()) != 0:
                 cf_tasks = get_conflict_tasks(cf)
-                disable_download = True
                 err_message = "You have some conflicting files.Please select the file to be compressed into TestCase zip. "
                 return render(request, "confirm.html", locals())
+            # if not conflicted will save ,it had conflicted will save on conflicted page
+            else:
+                # the testScript ini will be save and used the db order save it.
+                save_ini_contents(ini_content_map, testScript_order_list, token)
+                save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids, None,
+                                False)
 
             return render(request, "confirm.html", locals())
 
     return render(request, "script_list.html", locals())
+
 
 @login_required(login_url="/user/login/")
 def modify_script(request, project_name, part_number, station_name):
     is_project = True
     is_modify = True
 
-    testScript_path  = [project_name,part_number,station_name]
+    username = request.user.username
+    testScript_path = [project_name, part_number, station_name]
     station_instance = get_station_instacne(project_name, part_number, station_name)
     projetc_task_instances = Project_task.objects.filter(station_id=station_instance)
 
@@ -408,7 +430,7 @@ def modify_script(request, project_name, part_number, station_name):
         if "add_task" in request.POST:
             datas = Upload_TestCase.objects.all()
             posted_ids = (request.POST["add_task"]).split(",")
-            save_modify_tasks(request.POST, station_instance,posted_ids)
+            save_modify_tasks(request.POST, station_instance, posted_ids)
             no_att_tasks = no_attach_tasks()
             return render(request, "script_list.html", locals())
 
@@ -423,14 +445,19 @@ def modify_script(request, project_name, part_number, station_name):
 
             # get confilict_files to tranfer the choose_map for download page
             confilct_files = str(request.POST["conflict_files"]).split(",")
+            testScript_order_list = str(request.POST["testScript_order_list"]).split(",")
+
             chose_map = {}
             for cf in confilct_files:
                 if len(cf) > 0:
                     chose_map[cf] = request.POST[cf]
+
+            # the testScript ini will be save and used the db order save it.
+            save_ini_contents(ini_content_map, testScript_order_list, token)
+            save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids, chose_map,
+                            True)
+
             return render(request, "confirm.html", locals())
-
-
-
 
         else:
             post_data = dict(request.POST.lists())
@@ -439,72 +466,87 @@ def modify_script(request, project_name, part_number, station_name):
             not_dedup_task_ids = list(
                 set([re.search(r"(\w+)_\d+", prj_id).group(1) for prj_id in (post_data["all_task"][0]).split(",")]))
 
-            ini_content_map = dict(enumerate(gen_ini_contents(project_infos)))
-
-
+            ini_content_map = gen_ini_contents(project_infos)
 
             # if  will save and change to confirm page (not matter file confilicted )
-            save_modify_tasks(request.POST,station_instance, not_dedup_task_ids)
+            save_modify_tasks(request.POST, station_instance, not_dedup_task_ids)
 
+            # if on "confirm page" will save testScript ordering and return order list
+            testScript_order_list = save_testScript_order(project_name, part_number, station_name, project_infos)
+
+            # the testScript ini will be save and used the db order save it.
 
             # check conflict files
             cf = conflict_files(not_dedup_task_ids)
             if len(cf.keys()) != 0:
                 cf_tasks = get_conflict_tasks(cf)
-                disable_download = True
-                err_message = "You have some conflicting files.Please select the file to be compressed into TestCase zip. "
+                err_message = "You have some conflicting files.Please select the file to be compressed into TestCase zip."
                 return render(request, "confirm.html", locals())
-
+            # if not conflicted will save ,it had conflicted will save on conflicted page
+            else:
+                save_ini_contents(ini_content_map, testScript_order_list, token)
+                save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids, None,
+                                False)
 
             return render(request, "confirm.html", locals())
 
     return render(request, "argument.html", locals())
 
-def download(request, token):
+
+def save_task_files(token, username, project_name, part_number, station_name, task_list, chose_map, is_conflicted):
+    if is_conflicted:
+
+        conflict_archive_folder(task_list, token, chose_map)
+    else:
+        archive_folder(task_list, token)
+    save_project_files(token, username, project_name, part_number, station_name)
+
+
+
+def save_ini(request,token):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    file_path = os.path.join(handle_path(path, "download_folder"), "%s.zip" % token)
-
     if request.POST:
+        print(request.POST)
         # if testScript not been resorted will only provide file download service
-        if request.POST['item_moved'] == "False":
-            file = open(file_path, 'rb')
-            response = StreamingHttpResponse(file)
-            response['Content-Type'] = 'application/octet-stream'
-            response['Content-Disposition'] = 'attachment;filename="%s.zip"' % datetime.now().strftime(
-                '%Y-%m-%d_%H-%M-%S')
-            return response
+        if 'save_ini' in request.POST:
 
-        else:
-            # save ini
+            # todo save new order to project_order table
+            # save new testScript.ini
             with open(os.path.join(handle_path(path, "download_folder"), "%s.ini" % token), "w") as f:
                 f.write(request.POST["ini_content"])
-
-            # compress all file to zip file
-            task_list = str(request.POST["task_list"]).split(",")
-
-
-            if "chose_files" in request.POST:
-                chose_map = eval(request.POST["chose_files"])
-                conflict_archive_folder(task_list, token, chose_map)
-            else:
-                archive_folder(task_list, token)
-
-            # provide the download link service
-            file = open(file_path, 'rb')
-            response = StreamingHttpResponse(file)
-            response['Content-Type'] = 'application/octet-stream'
-            response['Content-Disposition'] = 'attachment;filename="%s.zip"' % datetime.now().strftime(
-                '%Y-%m-%d_%H-%M-%S')
-
 
             # # save those file to owner user folder
             username = request.user.username
             path = str(request.POST["path"]).split(",")
-            save_project_files(token, username, path[0], path[1], path[2])
-            return response
+            project_name = path[0]
+            part_number = path[1]
+            station_name = path[2]
+            task_list = str(request.POST["task_list"]).split(",")
 
-    else:
-        return Http404
+            if "chose_files" in request.POST:
+                chose_map = eval(request.POST["chose_files"])
+                save_task_files(token, username, project_name, part_number, station_name, task_list, chose_map,
+                                True)
+            else:
+                save_task_files(token, username, project_name, part_number, station_name, task_list, None,
+                                False)
+        return HttpResponse(status=200)
+
+
+def download(request, token):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    file_path = os.path.join(handle_path(path, "download_folder"), "%s.zip" % token)
+
+    # provide the download link service
+    file = open(file_path, 'rb')
+    response = StreamingHttpResponse(file)
+    response['Content-Type'] = 'application/octet-stream'
+    response['Content-Disposition'] = 'attachment;filename="%s.zip"' % datetime.now().strftime(
+        '%Y-%m-%d_%H-%M-%S')
+
+
+    return response
+
 
 def archive_folder(task_list, token):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -545,6 +587,7 @@ def archive_folder(task_list, token):
     os.remove(ini_path)
 
     zf.close()
+
 
 def conflict_archive_folder(task_list, token, chose_files):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -599,6 +642,7 @@ def conflict_archive_folder(task_list, token, chose_files):
     os.remove(ini_path)
     zf.close()
 
+
 def task_files(task_list):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -617,6 +661,7 @@ def task_files(task_list):
         task_files[task_id] = file_list
 
     return task_files
+
 
 def conflict_files(task_list):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -649,6 +694,7 @@ def conflict_files(task_list):
 
     return dedup_map
 
+
 def get_conflict_tasks(conflict_dict):
     # get conflict file
     conflict_files = []
@@ -669,15 +715,18 @@ def get_conflict_tasks(conflict_dict):
         conflict_task[cf] = tasks
     return conflict_task
 
+
 def get_station_instacne(project, part_number, station):
     project_instance = Project.objects.get(project_name=project)
     pn_instance = Project_PN.objects.get(project_name=project_instance, part_number=part_number)
     station_instance = Project_Station.objects.get(project_pn_id=pn_instance, station_name=station)
     return station_instance
 
+
 def get_script_name(task_id):
     task_instance = Upload_TestCase.objects.get(task_id=task_id)
     return task_instance.script_name
+
 
 def get_project_infos(post):
     project_task_ids = (post["all_task"][0]).split(",")
@@ -705,6 +754,7 @@ def get_project_infos(post):
 
         project_infos.append(tmp_prj_info)
     return project_infos
+
 
 def get_station_tasks(project_name, part_number, station_name):
     part_number_instance = Project_PN.objects.get(project_name=project_name, part_number=part_number)
@@ -741,18 +791,33 @@ def get_station_tasks(project_name, part_number, station_name):
 
     return sorted_prj_task_li
 
-def gen_ini_contents(project_infos):
-    ini_list = []
 
-    for prj_info in  (project_infos):
+def gen_ini_contents(project_infos):
+    ini_map = {}
+    for prj_info in (project_infos):
+        project_task_id = prj_info["project_task_id"]
         title = "[0_AUTO_%s_%s]\n" % (prj_info["task_id"], prj_info["task_name"])
         script_path = r'cmd=TestScriptRes\\%s' % prj_info["script_name"]
         arg_str = " ".join([arg for arg in prj_info["args"]])
 
         content = "%s%s;%s;%s;%s;%s\ncriteria=%s" % (
-            script_path, arg_str, prj_info["timeout"], prj_info["exitcode"], prj_info["retry"], prj_info["sleep"], prj_info["criteria"])
-        ini_list.append(title + content)
-    return  ini_list
+            script_path, arg_str, prj_info["timeout"], prj_info["exitcode"], prj_info["retry"], prj_info["sleep"],
+            prj_info["criteria"])
+        ini_map[project_task_id] = title + content
+    return ini_map
+
+
+# save int will be save before the download page ,it use token to the file name
+def save_ini_contents(ini_map, ini_order_list, token):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    ini_content = ""
+
+    for id in ini_order_list:
+        ini_content += ini_map[id] + "\n"
+    # save ini
+    with open(os.path.join(handle_path(path, "download_folder"), "%s.ini" % token), "w") as f:
+        f.write(ini_content)
+
 
 def save_add_tasks(add_task_ids, station_instance):
     for task_id in add_task_ids:
@@ -767,7 +832,8 @@ def save_add_tasks(add_task_ids, station_instance):
                                                  station_id_id=station_instance.id, task_id=task_instance,
                                                  project_task_id=prj_task_instance)
 
-def save_modify_tasks(post, station_instance,posted_ids):
+
+def save_modify_tasks(post, station_instance, posted_ids):
     projetc_task_instances = Project_task.objects.filter(station_id=station_instance)
 
     task_ids = []
@@ -785,8 +851,9 @@ def save_modify_tasks(post, station_instance,posted_ids):
             prj_task.save()
             for arg in Project_task_argument.objects.filter(project_task_id=prj_task):
                 argument_name = arg.argument.argument
-                arg.default_value = post["arg_%s_%s_%s" % (argument_name,id, arg.project_task_id.id)]
+                arg.default_value = post["arg_%s_%s_%s" % (argument_name, id, arg.project_task_id.id)]
                 arg.save()
+
 
 def save_project_files(token, username, project_name, part_number, station_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -808,6 +875,47 @@ def save_project_files(token, username, project_name, part_number, station_name)
 
     with zipfile.ZipFile(source_zip, 'r') as zip_ref:
         zip_ref.extractall(dest_path)
+
+
+def save_testScript_order(project_name, part_number, station_name, project_infos):
+    project_instance = Project.objects.get(project_name=project_name)
+    part_number_instance = Project_PN.objects.get(project_name=project_name, part_number=part_number)
+    station_instance = Project_Station.objects.get(station_name=station_name, project_pn_id=part_number_instance)
+
+    order = [info["project_task_id"] for info in project_infos]
+
+    order_instance = Project_TestScript_order.objects.filter(project_name=project_instance,
+                                                             part_number=part_number_instance)
+
+    # handle the "modify" task order
+    if order_instance.exists():
+        if len(order_instance) > 1:
+            raise ValueError("Your testScript oder was repeated")
+        else:
+            db_order = (order_instance[0].script_oder).split(' ')
+            # means the task had been add
+            for id in order:
+                if id not in db_order:
+                    db_order.append(id)
+            # means the task had been remove
+            for id in db_order:
+                if id not in order:
+                    db_order.remove(id)
+
+            order_content = " ".join(db_order)
+            order_instance[0].script_oder = order_content
+            order_instance[0].save()
+
+            return db_order
+
+    #  handle "create" task order
+    else:
+        order_content = " ".join(order)
+        Project_TestScript_order.objects.update_or_create(script_oder=order_content, project_name=project_instance,
+                                                          part_number=part_number_instance,
+                                                          station_name=station_instance)
+    return order
+
 
 def modify_station_name(project_name, part_number, post_st_list):
     project_instance = Project.objects.get(project_name=project_name)
@@ -831,6 +939,7 @@ def modify_station_name(project_name, part_number, post_st_list):
     else:
         raise ValueError("Your station name had error.")
 
+
 def modify_part_number(project_name, post_pn_list):
     project_instance = Project.objects.get(project_name=project_name)
     user_name = project_instance.owner_user.username
@@ -853,6 +962,7 @@ def modify_part_number(project_name, post_pn_list):
     else:
         raise ValueError("Your part number had error.")
 
+
 def modify_project_name(old_name, new_name):
     project_instance = Project.objects.get(project_name=old_name)
     pn_instances = Project_PN.objects.filter(project_name=project_instance)
@@ -869,6 +979,7 @@ def modify_project_name(old_name, new_name):
     Project.objects.get(project_name=old_name).delete()
 
     modify_project_folder(user_name, new_name, old_name)
+
 
 # todo fix sorted_task_id
 def sorted_task_ids(user_name, project_name, part_number, station_name):
@@ -889,6 +1000,7 @@ def sorted_task_ids(user_name, project_name, part_number, station_name):
 
     return sorted_ids
 
+
 def sorted_arg_value(task_id, value_map):
     task_instance = Upload_TestCase.objects.get(task_id=task_id)
     db_args = [a.argument for a in Arguments.objects.filter(task_id=task_instance)]
@@ -897,6 +1009,7 @@ def sorted_arg_value(task_id, value_map):
         sort_values.append(value_map[arg])
 
     return sort_values
+
 
 def valid_user(username):
     if User.objects.filter(username=username).exists():

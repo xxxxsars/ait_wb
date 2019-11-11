@@ -7,7 +7,7 @@ urlpatterns = [
 
     url("^download/(?P<token>\w{30})/$", download, name="export_task"),
 
-
+    url("^save_ini/(?P<token>\w{30})/$", save_ini,name="save_ini"),
 
 
 

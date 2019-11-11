@@ -47,7 +47,6 @@ class Project_task(models.Model):
 
 
 
-
 class Project_task_argument(models.Model):
     default_value = models.CharField(max_length=255, default="null")
     argument = models.ForeignKey(Arguments, on_delete=models.CASCADE)
@@ -58,3 +57,16 @@ class Project_task_argument(models.Model):
     class Meta:
         db_table = "project_task_arguments"
         unique_together = (('project_task_id', 'argument',),)
+
+
+class Project_TestScript_order(models.Model):
+    station_name = models.ForeignKey(Project_Station, on_delete=models.CASCADE)
+    part_number = models.ForeignKey(Project_PN, on_delete=models.CASCADE)
+    project_name = models.ForeignKey(Project, on_delete=models.CASCADE)
+
+    script_oder = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = "project_script_order"
+
+        unique_together = (('project_name', 'part_number'),)
