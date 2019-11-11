@@ -83,7 +83,7 @@ def GetScriptSorted(request):
 
 
         script_oder = Project_TestScript_order.objects.get(project_name_id=project_name,part_number=pn_instance,station_name=station_instance).script_oder
-        print(script_oder)
+
 
         data = {"script_oder": script_oder.split(" ")}
         return JsonResponse(data)

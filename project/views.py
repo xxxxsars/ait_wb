@@ -437,8 +437,6 @@ def modify_script(request, project_name, part_number, station_name):
 
         # handle the "confirm.htnl"  the  conflict file
         if "conflicted" in request.POST:
-
-            print(request.POST)
             # if will pass value to download page
             # the download need task_id to compress the upload task folder file
             not_dedup_task_ids = str(request.POST["not_dedup_task_ids"]).split(",")
@@ -456,7 +454,6 @@ def modify_script(request, project_name, part_number, station_name):
                     chose_map[cf] = request.POST[cf]
 
             # the testScript ini will be save and used the db order save it.
-            print(testScript_order_list)
             save_ini_contents(ini_content_map, testScript_order_list, token)
             save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids, chose_map,
                             True)
@@ -479,7 +476,6 @@ def modify_script(request, project_name, part_number, station_name):
             sorted_list =  [info["project_task_id"] for info in project_infos]
             testScript_order_list = save_testScript_order(project_name, part_number, station_name, sorted_list,False)
 
-            print("create order",testScript_order_list)
 
             # the testScript ini will be save and used the db order save it.
 
@@ -513,11 +509,10 @@ def save_task_files(token, username, project_name, part_number, station_name, ta
 def save_ini(request,token):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if request.POST:
-        print(request.POST)
         # if testScript not been resorted will only provide file download service
         if 'save_ini' in request.POST:
 
-            # todo save new order to project_order table
+
             # save new testScript.ini
             with open(os.path.join(handle_path(path, "download_folder"), "%s.ini" % token), "w") as f:
                 f.write(request.POST["ini_content"])
