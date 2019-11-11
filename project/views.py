@@ -374,7 +374,8 @@ def select_script(request, project_name, part_number, station_name):
                 set([re.search(r"(\w+)_\d+", prj_id).group(1) for prj_id in (post_data["all_task"][0]).split(",")]))
 
             # if on "confirm page" will save testScript ordering and return order list
-            testScript_order_list = save_testScript_order(project_name, part_number, station_name, project_infos)
+            sorted_list = [info["project_task_id"] for info in project_infos]
+            testScript_order_list = save_testScript_order(project_name, part_number, station_name, sorted_list,False)
 
             ini_content_map = gen_ini_contents(project_infos)
 
@@ -436,6 +437,8 @@ def modify_script(request, project_name, part_number, station_name):
 
         # handle the "confirm.htnl"  the  conflict file
         if "conflicted" in request.POST:
+
+            print(request.POST)
             # if will pass value to download page
             # the download need task_id to compress the upload task folder file
             not_dedup_task_ids = str(request.POST["not_dedup_task_ids"]).split(",")
@@ -453,6 +456,7 @@ def modify_script(request, project_name, part_number, station_name):
                     chose_map[cf] = request.POST[cf]
 
             # the testScript ini will be save and used the db order save it.
+            print(testScript_order_list)
             save_ini_contents(ini_content_map, testScript_order_list, token)
             save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids, chose_map,
                             True)
@@ -472,7 +476,10 @@ def modify_script(request, project_name, part_number, station_name):
             save_modify_tasks(request.POST, station_instance, not_dedup_task_ids)
 
             # if on "confirm page" will save testScript ordering and return order list
-            testScript_order_list = save_testScript_order(project_name, part_number, station_name, project_infos)
+            sorted_list =  [info["project_task_id"] for info in project_infos]
+            testScript_order_list = save_testScript_order(project_name, part_number, station_name, sorted_list,False)
+
+            print("create order",testScript_order_list)
 
             # the testScript ini will be save and used the db order save it.
 
@@ -517,12 +524,14 @@ def save_ini(request,token):
 
             # # save those file to owner user folder
             username = request.user.username
-            path = str(request.POST["path"]).split(",")
+            path =request.POST.getlist("path[]")
             project_name = path[0]
             part_number = path[1]
             station_name = path[2]
-            task_list = str(request.POST["task_list"]).split(",")
+            task_list = request.POST.getlist("task_list[]")
 
+
+            # save new ini and create new zip file for download used.
             if "chose_files" in request.POST:
                 chose_map = eval(request.POST["chose_files"])
                 save_task_files(token, username, project_name, part_number, station_name, task_list, chose_map,
@@ -530,6 +539,11 @@ def save_ini(request,token):
             else:
                 save_task_files(token, username, project_name, part_number, station_name, task_list, None,
                                 False)
+
+            # save the new order to db
+            sorted_list = request.POST.getlist("sroted_list[]")
+            save_testScript_order(project_name, part_number, station_name, sorted_list,True)
+
         return HttpResponse(status=200)
 
 
@@ -877,44 +891,54 @@ def save_project_files(token, username, project_name, part_number, station_name)
         zip_ref.extractall(dest_path)
 
 
-def save_testScript_order(project_name, part_number, station_name, project_infos):
+def save_testScript_order(project_name, part_number, station_name, sorted_list,force_change_sortted):
     project_instance = Project.objects.get(project_name=project_name)
     part_number_instance = Project_PN.objects.get(project_name=project_name, part_number=part_number)
     station_instance = Project_Station.objects.get(station_name=station_name, project_pn_id=part_number_instance)
 
-    order = [info["project_task_id"] for info in project_infos]
 
     order_instance = Project_TestScript_order.objects.filter(project_name=project_instance,
-                                                             part_number=part_number_instance)
+                                                             part_number=part_number_instance,station_name=station_instance)
 
     # handle the "modify" task order
     if order_instance.exists():
         if len(order_instance) > 1:
             raise ValueError("Your testScript oder was repeated")
         else:
-            db_order = (order_instance[0].script_oder).split(' ')
-            # means the task had been add
-            for id in order:
-                if id not in db_order:
-                    db_order.append(id)
-            # means the task had been remove
-            for id in db_order:
-                if id not in order:
-                    db_order.remove(id)
+            if force_change_sortted:
 
-            order_content = " ".join(db_order)
-            order_instance[0].script_oder = order_content
-            order_instance[0].save()
+                order_content = " ".join(sorted_list)
+                order_instance[0].script_oder = order_content
+                order_instance[0].save()
+                return sorted_list
 
-            return db_order
+            else:
+                # that will not change the original db order
+                db_order = (order_instance[0].script_oder).split(' ')
+                # means the task had been add
+                for id in sorted_list:
+                    if id not in db_order:
+                        db_order.append(id)
+                # means the task had been remove
+                for id in db_order:
+                    if id not in sorted_list:
+                        db_order.remove(id)
+
+
+
+                order_content = " ".join(db_order)
+                order_instance[0].script_oder = order_content
+                order_instance[0].save()
+
+                return db_order
 
     #  handle "create" task order
     else:
-        order_content = " ".join(order)
+        order_content = " ".join(sorted_list)
         Project_TestScript_order.objects.update_or_create(script_oder=order_content, project_name=project_instance,
                                                           part_number=part_number_instance,
                                                           station_name=station_instance)
-    return order
+    return sorted_list
 
 
 def modify_station_name(project_name, part_number, post_st_list):

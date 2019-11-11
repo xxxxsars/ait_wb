@@ -69,4 +69,4 @@ class Project_TestScript_order(models.Model):
     class Meta:
         db_table = "project_script_order"
 
-        unique_together = (('project_name', 'part_number'),)
+        unique_together = (('project_name', 'part_number',"station_name"),)

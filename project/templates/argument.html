@@ -158,30 +158,28 @@
                         delete_task_info(project_task_id);
 
 
+                        $.ajax({
+                            url: "/project/task_delete/" + project_task_id, // the endpoint,commonly same url
+                            type: 'DELETE',
+                            data: {
+                                csrfmiddlewaretoken: getCookie('csrftoken')
+                                ,
+                            },
+
+                            success: function (json) {
+                                dtRow.remove();
 
 
-                                    $.ajax({
-                                        url: "/project/task_delete/" + project_task_id, // the endpoint,commonly same url
-                                        type: 'DELETE',
-                                        data: {
-                                            csrfmiddlewaretoken: getCookie('csrftoken')
-                                            ,
-                                        },
-
-                                        success: function (json) {
-                                            dtRow.remove();
+                            }
+                            ,
 
 
-                                        }
-                                        ,
+                            error: function (xhr, errmsg, err) {
 
-
-                                        error: function (xhr, errmsg, err) {
-
-                                            console.log("Delete failde."); // provide a bit more info about the error to the console
-                                            dtRow.remove()
-                                        }
-                                    });
+                                console.log("Delete failde."); // provide a bit more info about the error to the console
+                                dtRow.remove()
+                            }
+                        });
 
                     }
 

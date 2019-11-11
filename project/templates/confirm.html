@@ -31,14 +31,30 @@
         });
 
 
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+
         $(document).ready(function () {
 
 
             //compare the render order ,if not compare on db will hide download button.
-            db_sorted_list = {{ testScript_order_list |safe }};
+            {#//todo restful get order list form database#}
+            {#db_sorted_list = {{ testScript_order_list |safe }};#}
 
-
-            $("#btn-save").hide();
 
             //if on modify page ,it item had been move will create new testScript.ini
             $('#sort-task').sortable({
@@ -51,31 +67,63 @@
                         // the item got moved
                         $("#item_moved").val("True");
 
-                        project_sroted_list = [];
+                        var path = {{ testScript_path |safe }};
+                        var project_name = path[0];
+                        var part_number = path[1];
+                        var station_name = path[2];
 
-                        $("ul#sort-task").find("li.ui-sortable-handle").each(function () {
-                            project_sroted_list.push($(this).attr("id"))
+                        var db_sorted_list;
+                        $.ajax({
+                            url: '/project/get_stored/', // the endpoint,commonly same url
+                            type: 'POST',
+                            data: {
+                                "csrfmiddlewaretoken": getCookie('csrftoken'),
+                                "project_name": project_name,
+                                "part_number": part_number,
+                                "station_name": station_name
+                            },
 
-                        });
+                            success: function (json) {
+                                //if successful will show the download button.
+                                db_sorted_list = json.script_oder;
 
-                        var not_compare_count = 0;
-                        $.each(project_sroted_list, function (i, value) {
-                            if (value != db_sorted_list[i]) {
-                                not_compare_count += 1;
+                                var project_sroted_list = [];
+
+
+                                $("ul#sort-task").find("li.ui-sortable-handle").each(function () {
+                                    project_sroted_list.push($(this).attr("id"))
+                                });
+
+
+                                console.log(db_sorted_list, project_sroted_list)
+
+
+                                var not_compare_count = 0;
+                                $.each(project_sroted_list, function (i, value) {
+                                    if (value != db_sorted_list[i]) {
+                                        not_compare_count += 1;
+                                    }
+                                });
+
+
+                                if (not_compare_count > 0) {
+                                    console.log(not_compare_count, project_sroted_list, db_sorted_list);
+                                    $("#btn-download").hide();
+                                    $('#btn-save').show()
+
+
+                                } else {
+                                    $("#btn-download").show();
+                                    $('#btn-save').hide()
+                                }
+
+                            },
+
+
+                            error: function (xhr, errmsg, err) {
+                                alert("get script sorted was failed.");
                             }
                         });
-
-
-                        if (not_compare_count > 0) {
-                            console.log(not_compare_count, project_sroted_list, db_sorted_list)
-                            $("#btn-download").hide();
-                            $('#btn-save').show()
-
-
-                        } else {
-                            $("#btn-download").show();
-                            $('#btn-save').hide()
-                        }
 
 
                     } else {
@@ -86,8 +134,6 @@
             });
 
 
-
-
             $("#btn-download").click(function () {
                 //remove save_ini tag ,it will not save file only download
                 $("#save_ini").remove();
@@ -95,8 +141,11 @@
             });
 
 
+            //default is hiding when the task order had been move will show the button.
+            $("#btn-save").hide();
+
             $("#btn-save").click(function (e) {
-                e.preventDefault()
+                e.preventDefault();
                 var task_list = {{ not_dedup_task_ids|safe }};
                 var path = {{ testScript_path |safe }};
                 var ini_content = "";
@@ -107,37 +156,41 @@
                     }
                 });
 
-                //if not remove the old input the post will post the list
-                $("#task_list").remove();
-                $("#path").remove();
-                $("#ini_content").remove();
 
-                $("#save_ini").remove();
-                $("#chose_files").remove();
+                var sroted_list = [];
+
+                $("ul#sort-task").find("li.ui-sortable-handle").each(function () {
+                    sroted_list.push($(this).attr("id"))
+
+                });
+
+                //save the new script sorted to database
+                $.ajax({
+                    url: '{% url "save_ini" token %}', // the endpoint,commonly same url
+                    type: 'POST',
+                    data: {
+                        "csrfmiddlewaretoken": getCookie('csrftoken'),
+                        "task_list": task_list,
+                        "path": path,
+                        "save_ini": "",
+                        "ini_content": ini_content,
+                        'sroted_list': sroted_list
+                    },
+
+                    success: function (json) {
+                        //if successful will show the download button.
+                        $("#btn-download").show();
+                        $('#btn-save').hide()
+                    },
 
 
-                $(this).append('<input  id="task_list" type="hidden" name="task_list"/>');
-                $("#task_list").val(task_list);
+                    error: function (xhr, errmsg, err) {
+                        console.log("failed.");
 
-                $(this).append('<input  id="path" type="hidden" name="path"  />');
-                $("#path").val(path);
+                    }
+                });
 
-                $(this).append('<input  id="ini_content" type="hidden" name="ini_content"/>');
-                $("#ini_content").val(ini_content);
-
-                //if had choose_map means the conflict file had been choose ,so need to post to download let download page choose the specific file.
-                {% if chose_map %}
-                    var chose_files = JSON.stringify({{ chose_map |safe }});
-                    $(this).append('<input  id="chose_files" type="hidden" name="chose_files" />');
-                    $("#chose_files").val(chose_files);
-                {% endif %}
-
-                $("#export_form").append('<input id="save_ini"  type="hidden" name="save_ini"/>');
-
-            //TODO used restful to save data
-                 $('#export_form').attr('action', '{% url "save_ini" token %}').submit();
             });
-
 
             <!--pass value from choose page to download page needs-->
             $("#chose_form").one("submit", function (e) {

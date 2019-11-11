@@ -12,4 +12,5 @@ urlpatterns = [
     url("", include(router.urls)),
     url("pn_delete/$", DeleteProjectPNView),
     url("station_delete/$", DeleteProjectStationView),
+    url("get_stored/$", GetScriptSorted),
 ]
