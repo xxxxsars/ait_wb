@@ -40,11 +40,17 @@ def upload_index(request):
             handle_uploaded_file(request.FILES['file'], task_id)
 
 
-            if 'attachment' in request.FILES:
-               handle_attachment(request.FILES['attachment'],task_id)
 
             up = Upload_TestCase.objects.create(task_id=task_id, task_name=task_name, description=task_descript,
                                                 script_name=script_name,sample=sample)
+
+            if 'attachment' in request.FILES:
+                handle_attachment(request.FILES['attachment'],task_id)
+                up.existed_attachment = True
+            else:
+                up.existed_attachment = False
+
+
 
             for i, e in enumerate(arguments):
                 argument = arguments[i]

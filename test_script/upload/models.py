@@ -10,7 +10,7 @@ class Upload_TestCase(models.Model):
     sample = models.CharField(max_length=255,default="")
     description =  models.TextField()
     script_name = models.CharField(max_length=255)
-
+    existed_attachment = models.BooleanField(default=False)
     class Meta:
         db_table = "test_case"
 

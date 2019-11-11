@@ -18,19 +18,6 @@ def list_task(request):
 
 
 def no_attach_tasks():
-    path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-    task_ids = [i.task_id for i in Upload_TestCase.objects.all()]
-
-
-    no_attach_ids = []
-
-
-    for id in task_ids:
-        check_path = handle_path(path,"upload_folder",id,"attachment")
-        if os.path.exists(check_path)== False:
-            no_attach_ids.append(id)
-        elif len(os.listdir(check_path) ) == 0:
-            no_attach_ids.append(id)
-
+    task_infos = Upload_TestCase.objects.filter(existed_attachment = False)
+    no_attach_ids = [task.task_id   for task in task_infos]
     return no_attach_ids

@@ -45,11 +45,15 @@ def modify_index(request, task_id):
                     error_message = "Upload file is no valid zip file."
                     return render(request, "script_modify.html", locals())
 
+            up = Upload_TestCase.objects.get(task_id=task_id)
+
             if 'attachment' in request.FILES:
                 handle_update_attachment(request.FILES['attachment'], id)
+                up.existed_attachment =True
+            else:
+                up.existed_attachment = False
 
             # handle post task information
-            up = Upload_TestCase.objects.get(task_id=task_id)
             up.task_name = task_name
             up.script_name = script_name
             up.description = task_descript
