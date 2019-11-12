@@ -11,11 +11,11 @@ from django.http import HttpResponse
 
 import random
 import string
-from datetime import datetime
 import zipfile
 import json
 import collections
-
+from datetime import datetime
+from common.handler import *
 from common.limit import set_parameter_arg, set_parameter_other, task_id_reg
 from common.handler import *
 from project.forms import *
@@ -549,7 +549,7 @@ def download(request, token):
     file = open(file_path, 'rb')
     response = StreamingHttpResponse(file)
     response['Content-Type'] = 'application/octet-stream'
-    response['Content-Disposition'] = 'attachment;filename="%s.zip"' % datetime.now().strftime(
+    response['Content-Disposition'] = 'attachment;filename="%s.zip"' % datetime.datetime.now().strftime(
         '%Y-%m-%d_%H-%M-%S')
 
 
