@@ -37,6 +37,9 @@
             text-align: center;
         }
 
+        tbody tr:last-child {
+            border-bottom: 1px solid #dee2e6;
+        }
 
     </style>
 {% endblock %}
@@ -81,23 +84,31 @@
                         projectName = dtRow.find("td.project_name").text();
 
 
-                        var csrftoken = getCookie('csrftoken');
-
-
                         $.ajax({
                             url: "/project/delete/" + projectName, // the endpoint,commonly same url
                             type: 'DELETE',
                             data: {
-                                csrfmiddlewaretoken: csrftoken,
+                                csrfmiddlewaretoken: getCookie('csrftoken'),
                             },
 
                             success: function (json) {
+                                //remove the sub part number and   station item
+                                var compare_class = dtRow.attr("class").split(" ")[1].replace("treegrid-", "");
                                 $("#project_table").find("tbody tr").each(function () {
                                     tr_array = $(this).attr("class").split(" ");
-                                    if (jQuery.inArray(projectName, tr_array) !== -1) {
-                                        $(this).remove()
-                                    }
+
+                                    var tr_line = $(this);
+                                    $.each(tr_array, function (i, v) {
+                                        if (v.indexOf(compare_class) > 0) {
+                                            tr_line.remove()
+                                        }
+                                    })
                                 });
+
+                                //if didn't hava any project will show message
+                                if ($("#project_table tbody tr").length == 0) {
+                                    $("#project_table tbody").append('<tr><td colspan="5"><div class="text-center"> No data available in table</div></td></tr>')
+                                }
 
                             },
 
@@ -143,7 +154,10 @@
                     part_number = cls_array[1];
                     {#console.log(project_name,part_number,cls_array)#}
 
+
                     if (confirm("Are you sure to delete this row?")) {
+
+
                         if (part_number == "DEFAULT") {
 
                             alert("'DEFAULT' can't be deleted!")
@@ -159,14 +173,18 @@
                                 },
 
                                 success: function (json) {
+                                    //remove the sub station item
+                                    var compare_class = dtRow.attr("class").split(" ")[2].replace("treegrid-", "");
                                     $("#project_table").find("tbody tr").each(function () {
                                         tr_array = $(this).attr("class").split(" ");
-                                        if (jQuery.inArray(part_number, tr_array) !== -1 && jQuery.inArray(project_name, tr_array) !== -1) {
-                                            $(this).remove()
-                                        }
+
+                                        var tr_line = $(this);
+                                        $.each(tr_array, function (i, v) {
+                                            if (v.indexOf(compare_class) > 0) {
+                                                tr_line.remove()
+                                            }
+                                        })
                                     });
-
-
                                 },
 
                                 //處理失敗時會做的動作
@@ -194,7 +212,7 @@
                     project_name = cls_array[0];
                     part_number = cls_array[1];
 
-                    location.href = "/project/modify_station/" + project_name +"/"+part_number;
+                    location.href = "/project/modify_station/" + project_name + "/" + part_number;
                 });
             });
 
@@ -216,6 +234,8 @@
                     station_name = cls_array[2];
 
                     if (confirm("Are you sure to delete this row?")) {
+
+
                         $.ajax({
                             url: "/project/station_delete/", // the endpoint,commonly same url
                             type: 'POST',
@@ -227,15 +247,7 @@
                             },
 
                             success: function (json) {
-
-                                $("#project_table").find("tbody tr").each(function () {
-                                    tr_array = $(this).attr("class").split(" ");
-                                    if (jQuery.inArray(part_number, tr_array) !== -1 && jQuery.inArray(project_name, tr_array) !== -1 && jQuery.inArray(station_name, tr_array) !== -1) {
-                                        $(this).remove()
-                                    }
-                                });
-
-
+                                $this.closest('tr').remove();
                             },
                             //處理失敗時會做的動作
                             error: function (xhr, errmsg, err) {
@@ -258,7 +270,7 @@
                     project_name = cls_array[0];
                     part_number = cls_array[1];
                     station_name = cls_array[2];
-                    location.href = "/project/modify_script/" + project_name +"/"+part_number+"/"+station_name;
+                    location.href = "/project/modify_script/" + project_name + "/" + part_number + "/" + station_name;
 
                 });
             });
@@ -296,106 +308,117 @@
         </thead>
 
         <tbody>
-        {% for prj in project_structure %}
-            <tr class="{{ prj|lookup:"project_name" }} treegrid-{{ prj|lookup:"project_id" }} expanded">
-                <td class="project_name">{{ prj|lookup:"project_name" }}</td>
-                {% if request.user.is_staff %}
-                    <td>{{ prj|lookup:"owner_user" }}</td>
-                {% endif %}
-                <td>
-                    {{ prj|lookup:"date"|date:'Y-m-d' }}
-                </td>
 
-                <td>
-                    {{ prj|lookup:"date"|date:'h:i A' }}
-                </td>
-                <td>
-                    <div class="text-right">
-                        <div class="btn-group">
-                            <button type="button"
-                                    class="btn btn-outline-primary btn-xs  btn-md center-block prj-edit"
-                                    data-toggle="tooltip" data-placement="top"
-                                    title="Edit Project">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button type="button"
-                                    class=" btn btn-outline-danger btn-xs   btn-md center-block prj-delete"
-                                    data-toggle="tooltip" data-placement="top"
-                                    title="Delete Project"><i
-                                    class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
 
+        {% if project_structure|length == 0 %}
+            <tr>
+                <td colspan="5">
+                    <div class="text-center"> No data available in table</div>
                 </td>
             </tr>
 
-
-            {% for pn in prj|lookup:"pn_list" %}
-                <tr class="{{ prj|lookup:"project_name" }} {{ pn|lookup:"part_number" }}  treegrid-{{ pn|lookup:"pn_id" }} treegrid-parent-{{ prj|lookup:"project_id" }}">
-
-                    <td colspan="4">{{ pn|lookup:"part_number" }}</td>
+        {% else %}
+            {% for prj in project_structure %}
+                <tr class="{{ prj|lookup:"project_name" }} treegrid-{{ prj|lookup:"project_id" }} expanded">
+                    <td class="project_name">{{ prj|lookup:"project_name" }}</td>
+                    {% if request.user.is_staff %}
+                        <td>{{ prj|lookup:"owner_user" }}</td>
+                    {% endif %}
                     <td>
+                        {{ prj|lookup:"date"|date:'Y-m-d' }}
+                    </td>
 
+                    <td>
+                        {{ prj|lookup:"date"|date:'h:i A' }}
+                    </td>
+                    <td>
                         <div class="text-right">
                             <div class="btn-group">
                                 <button type="button"
-                                        class="btn btn-outline-primary btn-xs  btn-md center-block pn-edit"
+                                        class="btn btn-outline-primary btn-xs  btn-md center-block prj-edit"
                                         data-toggle="tooltip" data-placement="top"
-                                        title="Edit Part Number">
+                                        title="Edit Project">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <button type="button"
-                                        class=" btn btn-outline-danger btn-xs   btn-md center-block pn-delete"
+                                        class=" btn btn-outline-danger btn-xs   btn-md center-block prj-delete"
                                         data-toggle="tooltip" data-placement="top"
-                                        title="Delete Part Number"><i
+                                        title="Delete Project"><i
                                         class="fas fa-trash"></i>
                                 </button>
                             </div>
-
                         </div>
 
                     </td>
                 </tr>
 
 
+                {% for pn in prj|lookup:"pn_list" %}
+                    <tr class="{{ prj|lookup:"project_name" }} {{ pn|lookup:"part_number" }} treegrid-{{ pn|lookup:"pn_id" }} treegrid-parent-{{ prj|lookup:"project_id" }}">
 
-                {% for st in pn|lookup:"st_list" %}
-
-                    <tr class="{{ prj|lookup:"project_name" }} {{ pn|lookup:"part_number" }} {{ st|lookup:"station_name" }} treegrid-parent-{{ pn|lookup:"pn_id" }}">
-                        <td colspan="4">{{ st|lookup:"station_name" }}
-
-                        </td>
-
+                        <td colspan="4">{{ pn|lookup:"part_number" }}</td>
                         <td>
+
                             <div class="text-right">
                                 <div class="btn-group">
                                     <button type="button"
-                                            class=" btn btn-outline-success btn-xs   btn-md center-block st-download "
+                                            class="btn btn-outline-primary btn-xs  btn-md center-block pn-edit"
                                             data-toggle="tooltip" data-placement="top"
-                                            title="Download TestScript"><i
-                                            class="fas fa-download"></i>
-                                    </button>
-                                    <button type="button"
-                                            class="btn btn-outline-primary btn-xs  btn-md center-block st-edit"
-                                            data-toggle="tooltip" data-placement="top"
-                                            title="Edit Station">
+                                            title="Edit Part Number">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <button type="button"
-                                            class=" btn btn-outline-danger btn-xs   btn-md center-block st-delete "
+                                            class=" btn btn-outline-danger btn-xs   btn-md center-block pn-delete"
                                             data-toggle="tooltip" data-placement="top"
-                                            title="Delete Station"><i
+                                            title="Delete Part Number"><i
                                             class="fas fa-trash"></i>
                                     </button>
                                 </div>
+
                             </div>
+
                         </td>
                     </tr>
-                {% endfor %}
-            {% endfor %}
 
-        {% endfor %}
+
+
+                    {% for st in pn|lookup:"st_list" %}
+
+                        <tr class="{{ prj|lookup:"project_name" }} {{ pn|lookup:"part_number" }} {{ st|lookup:"station_name" }} treegrid-parent-{{ pn|lookup:"pn_id" }}">
+                            <td colspan="4">{{ st|lookup:"station_name" }}
+
+                            </td>
+
+                            <td>
+                                <div class="text-right">
+                                    <div class="btn-group">
+                                        <button type="button"
+                                                class=" btn btn-outline-success btn-xs   btn-md center-block st-download "
+                                                data-toggle="tooltip" data-placement="top"
+                                                title="Download TestScript"><i
+                                                class="fas fa-download"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-outline-primary btn-xs  btn-md center-block st-edit"
+                                                data-toggle="tooltip" data-placement="top"
+                                                title="Edit Station">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button type="button"
+                                                class=" btn btn-outline-danger btn-xs   btn-md center-block st-delete "
+                                                data-toggle="tooltip" data-placement="top"
+                                                title="Delete Station"><i
+                                                class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+
+            {% endfor %}
+        {% endif %}
         </tbody>
     </table>
 

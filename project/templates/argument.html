@@ -155,9 +155,6 @@
 
                     if (confirm("Are you sure to delete this row?")) {
 
-                        delete_task_info(project_task_id);
-
-
                         $.ajax({
                             url: "/project/task_delete/" + project_task_id, // the endpoint,commonly same url
                             type: 'DELETE',
@@ -168,14 +165,18 @@
 
                             success: function (json) {
                                 dtRow.remove();
+                                //clean global  "task_infos" array
+                                delete_task_info(project_task_id);
+
+                                //if didn't have data will show no data message
+                                var table_row = $("#task_table tbody").find("tr").length;
+                                if (table_row ==0) {
+                                    $("#task_table tbody").append('<tr class="odd"><td valign="top" colspan="9" class="dataTables_empty">No data available in table</td></tr>')
+                                }
 
 
-                            }
-                            ,
-
-
+                            },
                             error: function (xhr, errmsg, err) {
-
                                 console.log("Delete failde."); // provide a bit more info about the error to the console
                                 dtRow.remove()
                             }
@@ -238,7 +239,7 @@
                     $("#arg_append").append(format(i, v))
                 });
                 //it will return the "task_id_project_task_id" example 0000001_1
-                all_sorted_tasks_id = []
+                all_sorted_tasks_id = [];
                 $('#task_table tbody tr td').each(function () {
                     if ($(this).hasClass("task_id")) {
                         task_id = $(this).text();

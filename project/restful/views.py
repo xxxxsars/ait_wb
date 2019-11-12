@@ -105,15 +105,18 @@ class DeleteProjectTaskView(viewsets.ModelViewSet):
         part_number = instance.station_id.project_pn_id
         station_name = instance.station_id
         project_task_id = instance.id
-        project_order_instance =Project_TestScript_order.objects.get(project_name=project_name,part_number=part_number,station_name=station_name)
-        script_oder_list = (project_order_instance.script_oder).split(" ")
-        for prj_id in script_oder_list:
-            # if delete project_task_id in project_task_order will remove it from order table
-            if str(project_task_id) ==prj_id:
-                script_oder_list.remove(prj_id)
-        project_order_instance.script_oder = " ".join(script_oder_list)
-        project_order_instance.save()
 
+        prj_script_instances  = Project_TestScript_order.objects.filter(project_name=project_name,part_number=part_number,station_name=station_name)
+
+        if prj_script_instances.exists():
+            project_order_instance =prj_script_instances[0]
+            script_oder_list = (project_order_instance.script_oder).split(" ")
+            for prj_id in script_oder_list:
+                # if delete project_task_id in project_task_order will remove it from order table
+                if str(project_task_id) ==prj_id:
+                    script_oder_list.remove(prj_id)
+            project_order_instance.script_oder = " ".join(script_oder_list)
+            project_order_instance.save()
 
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)

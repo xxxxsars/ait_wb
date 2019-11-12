@@ -60,7 +60,6 @@ def list_project(request):
 
         project_dict["pn_list"] = pn_list
         project_structure.append(project_dict)
-
     return render(request, "project_list.html", locals())
 
 

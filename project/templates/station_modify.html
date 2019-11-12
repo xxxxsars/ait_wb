@@ -90,32 +90,42 @@
                 var project_name = '{{ project_name|escapejs }}';
                 var part_number = '{{ part_number|escapejs }}';
                 var remove_tr = $(this).closest('tr');
-                var station_name = remove_tr.find('input[name="{{ part_number }}"]').val()
-
-                if (confirm("Are you sure to delete this row?")) {
-                    $.ajax({
-                        url: "/project/station_delete/", // the endpoint,commonly same url
-                        type: 'POST',
-                        data: {
-                            csrfmiddlewaretoken: getCookie("csrftoken"),
-                            "project_name": project_name,
-                            "part_number": part_number,
-                            "station_name": station_name
-                        },
-
-                        success: function (json) {
-
-                            remove_tr.remove();
+                var station_name = remove_tr.find('input[name="{{ part_number }}"]').val();
 
 
-                        },
-                        //處理失敗時會做的動作
-                        error: function (xhr, errmsg, err) {
-                            console.log("part number not in database");
-                            remove_tr.remove();// provide a bit more info about the error to the console
-                        }
-                    });
+                var rowCount = $("#part-table tbody").find('input').length;
+
+
+                if (rowCount > 1) {
+                    if (confirm("Are you sure to delete this row?")) {
+                        $.ajax({
+                            url: "/project/station_delete/", // the endpoint,commonly same url
+                            type: 'POST',
+                            data: {
+                                csrfmiddlewaretoken: getCookie("csrftoken"),
+                                "project_name": project_name,
+                                "part_number": part_number,
+                                "station_name": station_name
+                            },
+
+                            success: function (json) {
+
+                                remove_tr.remove();
+
+
+                            },
+                            //處理失敗時會做的動作
+                            error: function (xhr, errmsg, err) {
+                                console.log("part number not in database");
+                                remove_tr.remove();// provide a bit more info about the error to the console
+                            }
+                        });
+                    }
+
+                }else{
+                     alert("You must provide at least one station name!")
                 }
+
 
             });
 
@@ -131,23 +141,23 @@
 
             //if had datas means posted ,even the result current ,will set the post value to all station input
             {% if datas %}
-                    var row = {{ datas|lookup:part_number|safe}}
-                    var rowCount = row.length;
-                    if (rowCount >= 1) {
-                        for (i = 1; i <= rowCount; i++) {
-                            $("#part-table tbody.{{ part_number }}").append(table_clone())
-                        }
+                var row = {{ datas|lookup:part_number|safe}}
+                var rowCount = row.length;
+                if (rowCount >= 1) {
+                    for (i = 1; i <= rowCount; i++) {
+                        $("#part-table tbody.{{ part_number }}").append(table_clone())
                     }
-                    $("#part-table tbody.{{ part_number }}").each(function () {
+                }
+                $("#part-table tbody.{{ part_number }}").each(function () {
 
-                        var values = row;
+                    var values = row;
 
-                        $(this).find("input[name='{{ part_number }}']").each(function (i) {
-                            $(this).val(values[i])
+                    $(this).find("input[name='{{ part_number }}']").each(function (i) {
+                        $(this).val(values[i])
 
-                        })
+                    })
 
-                    });
+                });
 
 
             {% endif %}
@@ -163,7 +173,8 @@
                     var append_target = $($(this).closest("tr").attr("data-target"));
 
 
-                    $(append_target).append(table_clone(part_number))
+                    $(append_target).append(table_clone(part_number));
+                    $("#no-station").remove()
                 })
             });
 
@@ -214,6 +225,8 @@
                             remove_tr.remove()
                         }
 
+                    } else {
+                        alert("You must provide at least one station name!")
                     }
 
                 })
@@ -287,6 +300,30 @@
             {% if datas %}
 
             {% else %}
+                {% if st_list.count == 0 %}
+                    <tr>
+                        <td colspan="3">
+                            <div class="input-group mb-3">
+
+                                <div style="margin-left: 10%"><input type="text" name="{{ pn_instance.part_number }}"
+                                                                     class="form-control station_name"
+                                                                     placeholder="Set station name" maxlength="255"
+                                                                     required="" id="id_station_name"
+                                ></div>
+
+
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-danger specific-st-remove" type="button"><i
+                                            class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+
+                    </tr>
+                {% endif %}
+
+
                 {% for st in st_list %}
                     <tr>
                         <td colspan="3">
