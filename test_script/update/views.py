@@ -111,7 +111,7 @@ def modify_index(request, task_id):
 
                 # check new argument not deplicate
                 if len([item for item, count in collections.Counter(arguments).items() if count > 1]) > 0:
-                    error_message = "Your parameters only allow unique values."
+                    error_message = "Your arguments only allow unique values."
                     return render(request, "script_modify.html", locals())
 
                 for i, e in enumerate(arguments):

@@ -51,11 +51,28 @@ def upload_index(request):
                 up.existed_attachment = False
 
 
-
+            post_args = []
             for i, e in enumerate(arguments):
                 argument = arguments[i]
                 description = descripts[i]
                 value = values[i]
+
+                # check the argument
+                if argument in post_args:
+                    error_message = "Your arguments only allow unique values."
+                    return render(request, "upload.html", locals())
+                else:
+                    post_args.append(argument)
+
+                if input_argument.search(argument) != None:
+                    error_message = "Your arguments only allow number, letter and underline."
+                    return render(request, "upload.html", locals())
+
+                if valid_default_value(value) == False:
+                    error_message = "Your default value does not match the rule."
+                    return render(request, "upload.html", locals())
+
+
                 Arguments.objects.create(argument=argument, description=description, default_value=value, task_id=up)
 
             susessful = "Upload  Test Case ID: [ %s ] was successfully!" % task_id
