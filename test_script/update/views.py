@@ -58,6 +58,7 @@ def modify_index(request, task_id):
             up.script_name = script_name
             up.description = task_descript
             up.sample = sample
+            up.time = datetime.datetime.now()
 
             # handle modify argument
             arg_infos = Arguments.objects.filter(task_id=task_info)
