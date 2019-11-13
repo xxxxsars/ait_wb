@@ -13,4 +13,5 @@ urlpatterns = [
     url("pn_delete/$", DeleteProjectPNView),
     url("station_delete/$", DeleteProjectStationView),
     url("get_stored/$", GetScriptSorted),
+    url("download_script/(?P<project_name>\w{7})/(?P<part_number>\w+)/(?P<station_name>\w+)/$",download)
 ]

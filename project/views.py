@@ -54,12 +54,32 @@ def list_project(request):
                 if st_object.exists():
                     for st_id, st in enumerate(st_object):
                         st_dict = model_to_dict(st)
+
+                        # get station task list from order table and  project_task table
+                        task_order_instances = Project_TestScript_order.objects.filter(project_name=p, part_number=pn,
+                                                                                station_name=st)
+                        if task_order_instances.exists():
+                            task_order_list = (task_order_instances[0].script_oder).split(" ")
+                            task_list = [str(p.id) for p in Project_task.objects.filter(station_id=st)]
+                            # check order and current project task list have any difference
+                            ini_not_saved = len(([i for i in task_list + task_order_list if
+                                                  i not in task_list or i not in task_order_list])) > 0
+
+                            if ini_not_saved:
+                                st_dict["download"] = False
+                            else:
+                                st_dict["download"] = True
+                        else:
+                            st_dict["download"] = False
+
+
                         st_list.append(st_dict)
 
                 pn_dict["st_list"] = st_list
 
         project_dict["pn_list"] = pn_list
         project_structure.append(project_dict)
+
     return render(request, "project_list.html", locals())
 
 
@@ -430,6 +450,8 @@ def modify_script(request, project_name, part_number, station_name):
         if "add_task" in request.POST:
             datas = Upload_TestCase.objects.all()
             posted_ids = (request.POST["add_task"]).split(",")
+
+            # if the original argument page paramter had been change will be modify it.
             save_modify_tasks(request.POST, station_instance, posted_ids)
             no_att_tasks = no_attach_tasks()
             return render(request, "script_list.html", locals())
@@ -468,7 +490,7 @@ def modify_script(request, project_name, part_number, station_name):
 
             ini_content_map = gen_ini_contents(project_infos)
 
-            # if  will save and change to confirm page (not matter file confilicted )
+            # if  will save and change to confirm page (not matter file conflicted )
             save_modify_tasks(request.POST, station_instance, not_dedup_task_ids)
 
             # if on "confirm page" will save testScript ordering and return order list
@@ -997,26 +1019,6 @@ def modify_project_name(old_name, new_name):
     Project.objects.get(project_name=old_name).delete()
 
     modify_project_folder(user_name, new_name, old_name)
-
-
-# todo fix sorted_task_id
-def sorted_task_ids(user_name, project_name, part_number, station_name):
-    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-    root_path = handle_path(path, "download_folder", user_name, project_name, part_number, station_name)
-
-    ini_path = os.path.join(root_path, "testScript.ini")
-
-    sorted_ids = []
-
-    r = re.compile("^\[.*_(%s\d{2})_.*\]$" % task_id_reg)
-    with open(ini_path, "r") as f:
-        for line in f.readlines():
-            matched = r.search(line)
-            if matched:
-                sorted_ids.append(matched.group(1))
-
-    return sorted_ids
 
 
 def sorted_arg_value(task_id, value_map):

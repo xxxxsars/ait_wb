@@ -276,12 +276,27 @@
             });
 
 
+            $('#project_table tbody .st-download').each(function () {
+
+                $(this).on('click', function (evt) {
+
+                    var editRow = $(this).closest('tr');
+                    cls_array = (editRow.attr("class").split(" "));
+                    project_name = cls_array[0];
+                    part_number = cls_array[1];
+                    station_name = cls_array[2];
+                    location.href = "/project/download_script/" + project_name + "/" + part_number + "/" + station_name;
+
+                });
+            });
+
+
         });
 
         $(document).ready(function () {
 
             $('.tree').treegrid({});
-            {#$('.tree').treegrid('collapseAll');#}
+            $('.tree').treegrid('collapseAll');
 
 
         });
@@ -294,10 +309,12 @@
 
 
 
+
+
     <table class="tree table  table-hover" id="project_table">
         <thead>
         <tr>
-            <th width="20%">Project Structure</th>
+            <th    {% if request.user.is_staff %} width="20%"  {% else %} width="30%" {% endif %}>Project Structure</th>
             {% if request.user.is_staff %}
                 <th>Onwer User</th>
             {% endif %}
@@ -356,7 +373,8 @@
                 {% for pn in prj|lookup:"pn_list" %}
                     <tr class="{{ prj|lookup:"project_name" }} {{ pn|lookup:"part_number" }} treegrid-{{ pn|lookup:"pn_id" }} treegrid-parent-{{ prj|lookup:"project_id" }}">
 
-                        <td colspan="4">{{ pn|lookup:"part_number" }}</td>
+                        <td {% if request.user.is_staff %} colspan="4"{% else %}
+                                                           colspan="3" {% endif %}>{{ pn|lookup:"part_number" }}</td>
                         <td>
 
                             <div class="text-right">
@@ -385,7 +403,10 @@
                     {% for st in pn|lookup:"st_list" %}
 
                         <tr class="{{ prj|lookup:"project_name" }} {{ pn|lookup:"part_number" }} {{ st|lookup:"station_name" }} treegrid-parent-{{ pn|lookup:"pn_id" }}">
-                            <td colspan="4">{{ st|lookup:"station_name" }}
+
+
+                            <td  {% if request.user.is_staff %} colspan="4"{% else %}
+                                                                colspan="3"  {% endif %}>{{ st|lookup:"station_name" }}
 
                             </td>
 
@@ -393,11 +414,20 @@
                                 <div class="text-right">
                                     <div class="btn-group">
                                         <button type="button"
+
+                                                {% if  st|lookup:"download" %}
                                                 class=" btn btn-outline-success btn-xs   btn-md center-block st-download "
+                                                {% else %}
+                                                disabled
+                                                class=" btn btn-outline-secondary btn-xs   btn-md center-block st-download "
+
+                                                {% endif %}
                                                 data-toggle="tooltip" data-placement="top"
                                                 title="Download TestScript"><i
                                                 class="fas fa-download"></i>
                                         </button>
+
+
                                         <button type="button"
                                                 class="btn btn-outline-primary btn-xs  btn-md center-block st-edit"
                                                 data-toggle="tooltip" data-placement="top"
