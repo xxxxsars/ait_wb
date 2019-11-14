@@ -13,11 +13,11 @@ import random
 import string
 import zipfile
 import json
+import shutil
 import collections
 from datetime import datetime
 from common.handler import *
 from common.limit import set_parameter_arg, set_parameter_other, task_id_reg
-from common.handler import *
 from project.forms import *
 from project.models import *
 from project.restful.views import delete_file
@@ -376,8 +376,7 @@ def select_script(request, project_name, part_number, station_name):
                 if len(cf) > 0:
                     chose_map[cf] = request.POST[cf]
 
-            save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids, chose_map,
-                            True)
+            save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids, chose_map)
 
             # if render the dowload confirm page need "not_dedup_task_ids"  "ini_content_map" "confilct_files" "testScript_order_list"
             return render(request, "confirm.html", locals())
@@ -411,8 +410,7 @@ def select_script(request, project_name, part_number, station_name):
             else:
                 # the testScript ini will be save and used the db order save it.
                 save_ini_contents(ini_content_map, testScript_order_list, token)
-                save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids, None,
-                                False)
+                save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids, None)
 
             return render(request, "confirm.html", locals())
 
@@ -476,8 +474,7 @@ def modify_script(request, project_name, part_number, station_name):
 
             # the testScript ini will be save and used the db order save it.
             save_ini_contents(ini_content_map, testScript_order_list, token)
-            save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids, chose_map,
-                            True)
+            save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids, chose_map)
 
             return render(request, "confirm.html", locals())
 
@@ -509,24 +506,13 @@ def modify_script(request, project_name, part_number, station_name):
             # if not conflicted will save ,it had conflicted will save on conflicted page
             else:
                 save_ini_contents(ini_content_map, testScript_order_list, token)
-                save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids, None,
-                                False)
+                save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids, None)
 
             return render(request, "confirm.html", locals())
 
     return render(request, "argument.html", locals())
 
-
-def save_task_files(token, username, project_name, part_number, station_name, task_list, chose_map, is_conflicted):
-    if is_conflicted:
-
-        conflict_archive_folder(task_list, token, chose_map)
-    else:
-        archive_folder(task_list, token)
-    save_project_files(token, username, project_name, part_number, station_name)
-
-
-
+@login_required(login_url="/user/login/")
 def save_ini(request,token):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if request.POST:
@@ -550,11 +536,9 @@ def save_ini(request,token):
             # save new ini and create new zip file for download used.
             if "chose_files" in request.POST:
                 chose_map = eval(request.POST["chose_files"])
-                save_task_files(token, username, project_name, part_number, station_name, task_list, chose_map,
-                                True)
+                save_task_files(token, username, project_name, part_number, station_name, task_list, chose_map)
             else:
-                save_task_files(token, username, project_name, part_number, station_name, task_list, None,
-                                False)
+                save_task_files(token, username, project_name, part_number, station_name, task_list, None)
 
             # save the new order to db
             sorted_list = request.POST.getlist("sroted_list[]")
@@ -563,115 +547,61 @@ def save_ini(request,token):
         return HttpResponse(status=200)
 
 
-def download(request, token):
-    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    file_path = os.path.join(handle_path(path, "download_folder"), "%s.zip" % token)
-
-    # provide the download link service
-    file = open(file_path, 'rb')
-    response = StreamingHttpResponse(file)
-    response['Content-Type'] = 'application/octet-stream'
-    response['Content-Disposition'] = 'attachment;filename="%s.zip"' % datetime.datetime.now().strftime(
-        '%Y-%m-%d_%H-%M-%S')
-
-
-    return response
-
-
-def archive_folder(task_list, token):
+def save_task_files(token ,username, project_name, part_number, station_name,task_list,chose_files):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     config_path = handle_path(path, "ait_config")
-    dest_path = handle_path(path, "download_folder")
     script_path = "TestScriptRes"
+    ini_path = os.path.join(handle_path(path, "download_folder"), "%s.ini" % token)
+    dest_path = handle_path(path,"download_folder",username, project_name, part_number, station_name)
 
-    ini_path = os.path.join(dest_path, "%s.ini" % token)
-
-    dest_zip = "%s.zip" % token
-
-    zf = zipfile.ZipFile(os.path.join(dest_path, dest_zip), mode='w')
+    chose_files_path = []
+    if chose_files != None:
+        for file, task_id in chose_files.items():
+            chose_files_path.append(os.path.join(handle_path(path, "upload_folder", task_id), file))
 
     compressed_file = []
     for task_id in task_list:
         file_path = handle_path(path, "upload_folder", task_id)
 
-        # add source pyfile
+        # copy the task file to the user folder
         attach_path = handle_path(file_path, "attachment")
         for root, folders, files in os.walk(file_path):
-            for sfile in files:
+            for f in files:
                 # ignore attachment path
                 if root != attach_path:
-                    if sfile not in compressed_file:
-                        aFile = os.path.join(root, sfile)
-                        zf.write(aFile, os.path.join(script_path, os.path.relpath(aFile, file_path)))
-                        compressed_file.append(sfile)
+                    if f not in compressed_file:
+                        full_file_path = os.path.join(root, f)
+                        # remove unless path  prefix
+                        dest_copy_file = os.path.relpath(full_file_path, file_path)
+                        dest = handle_path(dest_path, script_path, os.path.dirname(dest_copy_file))
+                        # if had conflicted files will only copy chose files.
+                        if chose_files!=None:
+
+                            if dest_copy_file in list(chose_files.keys()):
+                                if full_file_path in chose_files_path:
+                                    shutil.copy2(full_file_path, os.path.join(dest, (os.path.basename(dest_copy_file))))
+                                    compressed_file.append(f)
+                                elif f not in compressed_file:
+                                    shutil.copy2(full_file_path, os.path.join(dest, (os.path.basename(dest_copy_file))))
+                                    compressed_file.append(f)
+
+                        # if did not have conflict_files will coop all task file to user folder
+                        else:
+                            # create the dest file path
+                            shutil.copy2(full_file_path,os.path.join(dest,(os.path.basename(dest_copy_file))))
+                            compressed_file.append(f)
 
     # add default configuration
     for root, folders, files in os.walk(config_path):
-        for sfile in files:
-            aFile = os.path.join(root, sfile)
-            zf.write(aFile, os.path.relpath(aFile, config_path))
+        for f in files:
+            full_file_path = os.path.join(root, f)
+            dest =  os.path.join(dest_path,os.path.relpath(full_file_path, config_path))
+            shutil.copy2(full_file_path, dest)
 
     # add ini
-    zf.write(ini_path, "testScript.ini")
+    shutil.copy2(ini_path, os.path.join(dest_path,"testScript.ini"))
 
     os.remove(ini_path)
-
-    zf.close()
-
-
-def conflict_archive_folder(task_list, token, chose_files):
-    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-    config_path = handle_path(path, "ait_config")
-    dest_path = handle_path(path, "download_folder")
-    script_path = "TestScriptRes"
-    file_path = handle_path(path, "upload_folder")
-
-    ini_path = os.path.join(dest_path, "%s.ini" % token)
-
-    dest_zip = "%s.zip" % token
-
-    zf = zipfile.ZipFile(os.path.join(dest_path, dest_zip), mode='w')
-
-    chose_files_path = []
-    for file, task in chose_files.items():
-        chose_files_path.append(os.path.join(os.path.join(file_path, task), file))
-
-    compressed_file = []
-    for task_id in task_list:
-        source_file_path = handle_path(file_path, task_id)
-        attach_path = handle_path(source_file_path, "attachment")
-
-        # add source pyfile
-        for root, folders, files in os.walk(source_file_path):
-            for sfile in files:
-                # ignore attachment path
-                if root != attach_path:
-                    aFile = os.path.join(root, sfile)
-                    dest_file = os.path.relpath(aFile, source_file_path)
-
-                    if dest_file in list(chose_files.keys()):
-                        if aFile in chose_files_path:
-                            zf.write(aFile, os.path.join(script_path, dest_file))
-
-                    # if had compress file not compress again
-                    elif sfile not in compressed_file:
-                        zf.write(aFile, os.path.join(script_path, dest_file))
-                        compressed_file.append(sfile)
-
-    # add default configuration
-    for root, folders, files in os.walk(config_path):
-        for sfile in files:
-            aFile = os.path.join(root, sfile)
-
-            zf.write(aFile, os.path.relpath(aFile, config_path))
-
-    # add ini
-    zf.write(ini_path, "testScript.ini")
-
-    os.remove(ini_path)
-    zf.close()
-
 
 def task_files(task_list):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

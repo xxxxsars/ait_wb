@@ -137,7 +137,13 @@
             $("#btn-download").click(function () {
                 //remove save_ini tag ,it will not save file only download
                 $("#save_ini").remove();
-                $('#export_form').attr('action', '{% url "export_task" token %}').submit();
+                var info = {{ testScript_path |safe }};
+                project_name = info[0];
+                part_number = info[1];
+                station_name = info[2];
+                location.href = "/project/download_script/" + project_name + "/" + part_number + "/" + station_name;
+
+
             });
 
 
@@ -317,7 +323,7 @@
         <form id="export_form"
               method="post">{% csrf_token %}
 
-            <button id="btn-download" type="submit" class="btn btn-success btn-lg btn-block"><i
+            <button id="btn-download" type="button" class="btn btn-success btn-lg btn-block"><i
                     class="fas fa-download"></i>
                 Download
             </button>

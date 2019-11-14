@@ -3,12 +3,7 @@ from django.conf.urls import url
 from project.views import *
 
 urlpatterns = [
-
-
-    url("^download/(?P<token>\w{30})/$", download, name="export_task"),
-
     url("^save_ini/(?P<token>\w{30})/$", save_ini,name="save_ini"),
-
 
 
     url("^list/$", list_project, name="list_project"),
