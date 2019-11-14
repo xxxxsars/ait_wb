@@ -207,16 +207,6 @@
                         return false;
                     }
 
-                    //handle the project add new task action
-                    {#                    {% if is_project and selected_task %}#}
-                    {#                        var selected_tasks = {{ selected_task|safe }};#}
-                    {##}
-                    {#                        $.each(selected_tasks, function (index,id) {#}
-                    {#                        rows_selected.push(id);#}
-                    {#                        });#}
-                    {#                        #}
-                    {#                    {% endif %}#}
-
 
                     {% if is_modify %}
                         $(this).append('<input name="add_task_ids"  type="hidden" value=' + rows_selected + '>');
@@ -225,7 +215,6 @@
                         $(this).append('<input name="task_ids"  type="hidden" value=' + rows_selected + '>');
 
                     {% endif %}
-                    {#e.preventDefault();#}
 
                 });
 
@@ -543,18 +532,18 @@
                                 <div class="text-center ">
                                     <div class="btn-group">
 
-                                        <button type="button" data-toggle="tooltip" data-placement="top" title="Edit"
+                                        <button type="button"
                                                 class="btn btn-outline-primary btn-xs  btn-md center-block dt-edit">
                                             <i class="fas fa-edit"></i>
                                         </button>
 
 
-                                        <button type="button" data-toggle="tooltip" data-placement="top" title="Delete"
+                                        <button type="button"
                                                 class="edit_btn btn btn-outline-danger btn-xs btn-md center-block dt-delete">
                                             <i class="fas fa-trash"></i></button>
 
 
-                                        <button type="button" data-toggle="tooltip" data-placement="top"
+                                        <button type="button" 
                                                 title="Download attachment"
 
                                                 {% if data.task_id in no_att_tasks %}

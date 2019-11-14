@@ -476,6 +476,8 @@ def modify_script(request, project_name, part_number, station_name):
                 if len(cf) > 0:
                     chose_map[cf] = request.POST[cf]
 
+            print(chose_map)
+
             # the testScript ini will be save and used the db order save it.
             save_ini_contents(ini_content_map, testScript_order_list, token)
             save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids, chose_map)
@@ -560,6 +562,10 @@ def save_task_files(token ,username, project_name, part_number, station_name,tas
     script_path = "TestScriptRes"
     ini_path = os.path.join(handle_path(path, "download_folder"), "%s.ini" % token)
     dest_path = handle_path(path,"download_folder",username, project_name, part_number, station_name)
+    shutil.rmtree(dest_path)
+
+    if not os.path.exists(dest_path):
+        os.makedirs(dest_path)
 
     chose_files_path = []
     if chose_files != None:
