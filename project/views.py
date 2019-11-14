@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.http import StreamingHttpResponse, Http404
+from django.http import StreamingHttpResponse, Http404,HttpResponseBadRequest
 from django.contrib.auth.models import User
 from django.core.exceptions import SuspiciousOperation
 from django.http import HttpResponse
@@ -400,11 +400,15 @@ def select_script(request, project_name, part_number, station_name):
             # if  will save and change to confirm page (not matter file confilicted )
             save_modify_tasks(request.POST, station_instance, not_dedup_task_ids)
 
+
+
             # check conflict files
             cf = conflict_files(not_dedup_task_ids)
             if len(cf.keys()) != 0:
+                if 'ajax_saved' in request.POST:
+                    return  HttpResponseBadRequest(content= 'You have some conflicting files. Please click "Next" to proceed.')
                 cf_tasks = get_conflict_tasks(cf)
-                err_message = "You have some conflicting files.Please select the file to be compressed into TestCase zip. "
+                err_message = "You have some conflicting files.Please select the file to be compressed into TestCase zip."
                 return render(request, "confirm.html", locals())
             # if not conflicted will save ,it had conflicted will save on conflicted page
             else:
@@ -500,10 +504,13 @@ def modify_script(request, project_name, part_number, station_name):
             # check conflict files
             cf = conflict_files(not_dedup_task_ids)
             if len(cf.keys()) != 0:
+                if 'ajax_saved' in request.POST:
+                    return  HttpResponseBadRequest(content= 'You have some conflicting files. Please click "Next" to proceed.')
+
                 cf_tasks = get_conflict_tasks(cf)
                 err_message = "You have some conflicting files.Please select the file to be compressed into TestCase zip."
                 return render(request, "confirm.html", locals())
-            # if not conflicted will save ,it had conflicted will save on conflicted page
+            # if not conflicted will save ,it had conflicted will change the page to the  conflicted page
             else:
                 save_ini_contents(ini_content_map, testScript_order_list, token)
                 save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids, None)

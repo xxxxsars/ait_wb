@@ -63,8 +63,9 @@
 
 {% block js %}
     <script>
-
+        //global parameter
         task_infos = {{ prj_task_li|safe }};
+        save_count = 0;
 
         function getCookie(name) {
             var cookieValue = null;
@@ -101,10 +102,7 @@
 
         // Formatting function for row details - modify as you need
         function format(index, task_id) {
-
             var tr_content = "";
-
-
             $.each(task_infos, function (task_index, info) {
                 if ($.isEmptyObject(info) === false) {
                     if (task_index == index) {
@@ -112,11 +110,9 @@
 
                         project_task_id = info.id;
                         $.each(info["args"], function (arg_index, arg_info) {
-
                             argument = arg_info.argument;
                             default_value = arg_info.default_value;
                             description = arg_info.description;
-
 
                             add =
                                 '<tr>' +
@@ -167,9 +163,12 @@
                                 //clean global  "task_infos" array
                                 delete_task_info(project_task_id);
 
+                                //set not save.
+                                save_count = 0;
+                                $("#allsubmit").hide();
                                 //if didn't have data will show no data message
                                 var table_row = $("#task_table tbody").find("tr").length;
-                                if (table_row ==0) {
+                                if (table_row == 0) {
                                     $("#task_table tbody").append('<tr class="odd"><td valign="top" colspan="9" class="dataTables_empty">No data available in table</td></tr>')
                                     $("#allsubmit").hide()
                                 }
@@ -219,35 +218,135 @@
         });
 
 
-function goodbye(e) {
-    if(!e) e = window.event;
-    //e.cancelBubble is supported by IE - this will kill the bubbling process.
-    e.cancelBubble = true;
-    e.returnValue = 'You sure you want to leave?'; //This is displayed on the dialog
-
-    //e.stopPropagation works in Firefox.
-    if (e.stopPropagation) {
-        e.stopPropagation();
-        e.preventDefault();
-    }
-}
-
-
         $(document).ready(function () {
 
+            //handler the page live event ,if not clicked save will show alert message.
+            window.onbeforeunload = function (e) {
+                console.log(save_count);
+                if (save_count == 0) {
 
-             //if not data hide the next button
-             if (($("#task_table tbody tr")).length == 0){
-                 $("#allsubmit").hide()
-             }
+
+                    var message = "Your confirmation message goes here.",
+                        e = e || window.event;
+                    // For IE and Firefox
+                    if (e) {
+                        e.returnValue = message;
+                    }
+
+                    // For Safari
+                    return message;
+                }
+
+
+            };
+
+
+            //if not data hide the next button
+            if (($("#task_table tbody tr")).length == 0) {
+                $("#allsubmit").hide()
+            }
+
+            //if not click save button hide the next button
+            if (save_count == 0) {
+                $("#allsubmit").hide()
+            }
+
+
+            $("#btn-save").click(function (e) {
+                save_count += 1;
+
+
+                //clean old append
+                $('#arg_append').empty();
+
+                task_ids = [];
+                $(".task_id").each(function () {
+                    task_ids.push($(this).text())
+                });
+
+                //append the arg paramter to other form
+                $.each(task_ids, function (i, v) {
+                    $("#arg_append").append(format(i, v))
+                });
+
+
+                //it will return the "task_id_project_task_id" example 0000001_1
+                all_sorted_tasks_id = [];
+                $('#task_table tbody tr td').each(function () {
+                    if ($(this).hasClass("task_id")) {
+                        task_id = $(this).text();
+
+                        project_task_id = $(this).attr("project_task_id");
+
+
+                        all_sorted_tasks_id.push(task_id + "_" + project_task_id)
+                    }
+                });
+
+                $("#arg_append").append('<input type="text" name="all_task"  type="hidden" value="' + all_sorted_tasks_id + '">');
+
+                $("#arg_append").append('<input type="text" name="ajax_saved"  type="hidden">');
+
+
+                data = $("#other_form").serialize();
+
+
+                $.ajax({
+                    type: "POST",
+                    url: window.location.href,
+                    data: data, // serializes the form's elements.
+                    success: function (data) {
+                        $("#saved-message").empty();
+
+                        $("#saved-message").append(
+                            '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                            '<strong>Save TestScript was Successfully!</strong>' +
+                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                            '<span aria-hidden="true">&times;</span>' +
+                            '</button>' +
+                            '</div>')
+                        //auto close alert  after 4 seconds.
+                        $(".alert").delay(4000).slideUp(200, function () {
+                            $(this).alert('close');
+                        });
+
+
+                    },
+                    error: function (xhr, errmsg, err) {
+
+
+                        $("#saved-message").empty();
+
+                        $("#saved-message").append(
+                            '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                            '<strong>'+xhr.responseText+'</strong>' +
+                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                            '<span aria-hidden="true">&times;</span>' +
+                            '</button>' +
+                            '</div>')
+
+                        //auto close alert  after 4 seconds.
+                        $(".alert").delay(4000).slideUp(200, function () {
+                            $(this).alert('close');
+                        });
+
+                    }
+                });
+
+                e.preventDefault();
+
+
+                if (save_count > 0) {
+                    $("#allsubmit").show()
+                }
+            });
 
 
             //if click "next" will submit all argument to confirm.html
             $("#allsubmit").click(function (e) {
                 e.preventDefault();
 
-                console.log(task_infos);
-
+                $("#arg_append").empty();
                 task_ids = [];
                 $(".task_id").each(function () {
                     task_ids.push($(this).text())
@@ -279,6 +378,7 @@ function goodbye(e) {
             $("#add_task").click(function (e) {
                 e.preventDefault();
 
+                save_count +=1;
                 task_ids = [];
 
                 $(".task_id").each(function () {
@@ -314,7 +414,6 @@ function goodbye(e) {
 
             // Add event listener for opening and closing details
             $('#task_table tbody').on('click', 'td.details-control', function () {
-                console.log("in")
                 var tr = $(this).closest('tr');
                 var row = table.row(tr);
 
@@ -351,6 +450,9 @@ function goodbye(e) {
 
 
 {% block body %}
+    <div id="saved-message"></div>
+
+
     <div class="text-right" style="padding-bottom: 30px">
         <button id="add_task" type="submit" class="btn btn-outline-success">Add <i class="fas fa-plus"></i>
         </button>
@@ -455,5 +557,7 @@ function goodbye(e) {
         <div id="arg_append" style="display: none"></div>
     </form>
 
-
+    <div class=text-center>
+        <button id="btn-save" class="btn btn-outline-primary" type="button"><i class="fas fa-save"></i> Save</button>
+    </div>
 {% endblock %}
