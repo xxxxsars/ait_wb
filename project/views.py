@@ -8,7 +8,7 @@ from django.forms.models import model_to_dict
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.http import HttpResponse
-
+from django.contrib.auth.models import User
 import random
 import string
 import zipfile
@@ -28,6 +28,7 @@ from test_script.list.views import no_attach_tasks
 def list_project(request):
     is_project = True
     username = request.user.username
+    user_list =  [u.username for u in User.objects.all()]
     if request.user.is_staff:
         datas = Project.objects.all()
 
@@ -80,6 +81,7 @@ def list_project(request):
         project_dict["pn_list"] = pn_list
         project_structure.append(project_dict)
 
+        print(project_structure)
     return render(request, "project_list.html", locals())
 
 
@@ -154,7 +156,7 @@ def modify_project(request, project_name, message=None):
     if Project.objects.filter(project_name=project_name).exists() == False:
         return Http404
 
-    user_name = request.user.username
+    username = Project.objects.get(project_name=project_name).owner_user.username
     pn_list = Project_PN.objects.filter(project_name=project_name)
 
     # handle the redirct by modify project name
@@ -212,7 +214,7 @@ def modify_project(request, project_name, message=None):
 @login_required(login_url='/usr/login')
 def set_station(request, project_name):
     is_project = True
-    username = request.user.username
+    username = Project.objects.get(project_name=project_name).owner_user.username
     # check project is valid
     if not request.user.is_staff:
         project_list = [prj[0] for prj in
@@ -269,7 +271,7 @@ def set_station(request, project_name):
 @login_required(login_url='/usr/login')
 def modify_station(request, project_name, part_number):
     is_project = True
-    username = request.user.username
+    username = Project.objects.get(project_name=project_name).owner_user.username
     # check project is valid
     if not request.user.is_staff:
         project_list = [prj[0] for prj in
@@ -314,7 +316,7 @@ def modify_station(request, project_name, part_number):
 def select_script(request, project_name, part_number, station_name):
     is_project = True
 
-    username = request.user.username
+    username = Project.objects.get(project_name=project_name).owner_user.username
     testScript_path = [project_name, part_number, station_name]
     station_instance = get_station_instacne(project_name, part_number, station_name)
 
@@ -426,7 +428,7 @@ def modify_script(request, project_name, part_number, station_name):
     is_project = True
     is_modify = True
 
-    username = request.user.username
+    username = Project.objects.get(project_name=project_name).owner_user.username
     testScript_path = [project_name, part_number, station_name]
     station_instance = get_station_instacne(project_name, part_number, station_name)
     projetc_task_instances = Project_task.objects.filter(station_id=station_instance)
