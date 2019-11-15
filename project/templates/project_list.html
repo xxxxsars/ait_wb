@@ -6,19 +6,22 @@
 
 
 
-    <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
 
 
 
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/bootstrap-select/dist/css/bootstrap-select.min.css" %}">
 
 
     <link type="text/css" rel="stylesheet"
           href="{% static "bower_components/jquery-treegrid/css/jquery.treegrid.css" %}">
 
 
-
+    <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
 
     <script src="{% static "bower_components/jquery-treegrid/js/jquery.treegrid.js" %}"></script>
+
+    <script src="{% static "bower_components/bootstrap-select/dist/js/bootstrap-select.min.js" %}"></script>
 
 
 
@@ -39,6 +42,10 @@
 
         tbody tr:last-child {
             border-bottom: 1px solid #dee2e6;
+        }
+
+        .table tbody tr td {
+            vertical-align: middle;
         }
 
     </style>
@@ -72,242 +79,267 @@
         }
 
 
+        $(function () {
+            $(".change-user").each(function () {
+
+                $(this).click(function () {
+
+
+                    var dtRow = $(this).closest('tr');
+                    var cls_array = (dtRow.attr("class").split(" "));
+                    var username = $(this).closest("div.input-group").find("select.owner-user option:selected").text();
+                    var project_name = cls_array[0];
+
+                    $.ajax({
+                        url: "/project/modify_user/",
+                        type: 'POST',
+                        data: {
+                            csrfmiddlewaretoken: getCookie('csrftoken'),
+                            project_name: project_name,
+                            username: username
+                        },
+
+                        success: function (json) {
+                            $("#message").empty();
+
+                            $("#message").append(
+                                '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                                '<strong>Changed Project owner user was Successfully!</strong>' +
+                                '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                                '<span aria-hidden="true">&times;</span>' +
+                                '</button>' +
+                                '</div>')
+                            //auto close alert  after 4 seconds.
+                            $(".alert").delay(4000).slideUp(200, function () {
+                                $(this).alert('close');
+
+                            })
+                        },
+                        error: function (xhr, errmsg, err) {
+                            $("#message").empty();
+
+                            $("#message").append(
+                                '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                                '<strong>Changed Project owner user was failed!</strong>' +
+                                '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                                '<span aria-hidden="true">&times;</span>' +
+                                '</button>' +
+                                '</div>')
+                            //auto close alert  after 4 seconds.
+                            $(".alert").delay(4000).slideUp(200, function () {
+                                $(this).alert('close');
+
+                            })
+                        }
+                    });
+
+
+                })
+            })
+        });
+
+
         // project button action
         $(function () {
-            $('#project_table tbody .prj-delete').each(function () {
-                $(this).on('click', function (evt) {
-                    $this = $(this);
-                    var dtRow = $this.closest('tr');
-
-                    if (confirm("Are you sure to delete this row?")) {
-
-                        projectName = dtRow.find("td.project_name").text();
+            $('.dropdown-project').each(function () {
 
 
-                        $.ajax({
-                            url: "/project/delete/" + projectName, // the endpoint,commonly same url
-                            type: 'DELETE',
-                            data: {
-                                csrfmiddlewaretoken: getCookie('csrftoken'),
-                            },
+                $(this).find(".dropdown-item").each(function () {
+                    $(this).click(function () {
+                        var dtRow = $(this).closest('tr');
+                        cls_array = (dtRow.attr("class").split(" "));
 
-                            success: function (json) {
-                                //remove the sub part number and   station item
-                                var compare_class = dtRow.attr("class").split(" ")[1].replace("treegrid-", "");
-                                $("#project_table").find("tbody tr").each(function () {
-                                    tr_array = $(this).attr("class").split(" ");
+                        project_name = cls_array[0];
 
-                                    var tr_line = $(this);
-                                    $.each(tr_array, function (i, v) {
-                                        if (v.indexOf(compare_class) > 0) {
-                                            tr_line.remove()
+                        var action = $(this).text();
+
+                        if (action == "Edit") {
+
+                            location.href = "/project/modify_project/" + project_name
+
+                        } else if (action == "Delete") {
+                            if (confirm("Are you sure to delete this row?")) {
+
+                                projectName = dtRow.find("td.project_name").text();
+
+
+                                $.ajax({
+                                    url: "/project/delete/" + projectName, // the endpoint,commonly same url
+                                    type: 'DELETE',
+                                    data: {
+                                        csrfmiddlewaretoken: getCookie('csrftoken'),
+                                    },
+
+                                    success: function (json) {
+                                        //remove the sub part number and   station item
+                                        var compare_class = dtRow.attr("class").split(" ")[1].replace("treegrid-", "");
+                                        $("#project_table").find("tbody tr").each(function () {
+                                            tr_array = $(this).attr("class").split(" ");
+
+                                            var tr_line = $(this);
+                                            $.each(tr_array, function (i, v) {
+                                                if (v.indexOf(compare_class) > 0) {
+                                                    tr_line.remove()
+                                                }
+                                            })
+                                        });
+
+                                        //if didn't hava any project will show message
+                                        if ($("#project_table tbody tr").length == 0) {
+                                            $("#project_table tbody").append('<tr><td colspan="5"><div class="text-center"> No data available in table</div></td></tr>')
                                         }
-                                    })
+
+                                    },
+
+                                    //處理失敗時會做的動作
+                                    error: function (xhr, errmsg, err) {
+                                        console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                                    }
                                 });
-
-                                //if didn't hava any project will show message
-                                if ($("#project_table tbody tr").length == 0) {
-                                    $("#project_table tbody").append('<tr><td colspan="5"><div class="text-center"> No data available in table</div></td></tr>')
-                                }
-
-                            },
-
-                            //處理失敗時會做的動作
-                            error: function (xhr, errmsg, err) {
-                                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
                             }
-                        });
-
-
-                    }
-                });
-
-
-            });
-
-
-            $('#project_table tbody .prj-edit').each(function () {
-
-                $(this).on('click', function (evt) {
-
-                    var editRow = $(this).closest('tr');
-                    project_name = editRow.find("td.project_name").text();
-
-                    location.href = "/project/modify_project/" + project_name
-                });
-            });
-
-
+                        }
+                    })
+                })
+            })
         });
 
 
         // part number button action
         $(function () {
-            $('#project_table tbody .pn-delete').each(function () {
-                $(this).on('click', function (evt) {
-                    $this = $(this);
-                    var dtRow = $this.closest('tr');
-
-                    cls_array = (dtRow.attr("class").split(" "));
-
-                    project_name = cls_array[0];
-                    part_number = cls_array[1];
-                    {#console.log(project_name,part_number,cls_array)#}
+            $('.dropdown-partnumber').each(function () {
 
 
-                    if (confirm("Are you sure to delete this row?")) {
+                $(this).find(".dropdown-item").each(function () {
+                    $(this).click(function () {
+                        var dtRow = $(this).closest('tr');
+
+                        cls_array = (dtRow.attr("class").split(" "));
+
+                        project_name = cls_array[0];
+                        part_number = cls_array[1];
+                        var action = $(this).text();
+
+                        if (action == "Edit") {
+
+                            location.href = "/project/modify_station/" + project_name + "/" + part_number;
+
+                        } else if (action == "Delete") {
+
+                            if (confirm("Are you sure to delete this row?")) {
 
 
-                        if (part_number == "DEFAULT") {
+                                if (part_number == "DEFAULT") {
 
-                            alert("'DEFAULT' can't be deleted!")
+                                    alert("'DEFAULT' can't be deleted!")
 
-                        } else {
-                            $.ajax({
-                                url: "/project/pn_delete/", // the endpoint,commonly same url
-                                type: 'POST',
-                                data: {
-                                    csrfmiddlewaretoken: getCookie("csrftoken"),
-                                    "project_name": project_name,
-                                    "part_number": part_number,
-                                },
+                                } else {
+                                    $.ajax({
+                                        url: "/project/pn_delete/", // the endpoint,commonly same url
+                                        type: 'POST',
+                                        data: {
+                                            csrfmiddlewaretoken: getCookie("csrftoken"),
+                                            "project_name": project_name,
+                                            "part_number": part_number,
+                                        },
 
-                                success: function (json) {
-                                    //remove the sub station item
-                                    var compare_class = dtRow.attr("class").split(" ")[2].replace("treegrid-", "");
-                                    $("#project_table").find("tbody tr").each(function () {
-                                        tr_array = $(this).attr("class").split(" ");
+                                        success: function (json) {
+                                            //remove the sub station item
+                                            var compare_class = dtRow.attr("class").split(" ")[2].replace("treegrid-", "");
+                                            $("#project_table").find("tbody tr").each(function () {
+                                                tr_array = $(this).attr("class").split(" ");
 
-                                        var tr_line = $(this);
-                                        $.each(tr_array, function (i, v) {
-                                            if (v.indexOf(compare_class) > 0) {
-                                                tr_line.remove()
-                                            }
-                                        })
+                                                var tr_line = $(this);
+                                                $.each(tr_array, function (i, v) {
+                                                    if (v.indexOf(compare_class) > 0) {
+                                                        tr_line.remove()
+                                                    }
+                                                })
+                                            });
+                                        },
+
+                                        //處理失敗時會做的動作
+                                        error: function (xhr, errmsg, err) {
+                                            console.log("part number not in database"); // provide a bit more info about the error to the console
+                                        }
                                     });
-                                },
-
-                                //處理失敗時會做的動作
-                                error: function (xhr, errmsg, err) {
-                                    console.log("part number not in database"); // provide a bit more info about the error to the console
                                 }
-                            });
+
+                            }
                         }
 
-                    }
-
-                });
-
-
-            });
+                    })
+                })
 
 
-            $('#project_table tbody .pn-edit').each(function () {
-
-                $(this).on('click', function (evt) {
-
-                    var editRow = $(this).closest('tr');
-                    cls_array = (editRow.attr("class").split(" "));
-
-                    project_name = cls_array[0];
-                    part_number = cls_array[1];
-
-                    location.href = "/project/modify_station/" + project_name + "/" + part_number;
-                });
-            });
-
-
+            })
         });
-
 
         // station  button action
         $(function () {
-            $('#project_table tbody .st-delete').each(function () {
-                $(this).on('click', function (evt) {
-                    $this = $(this);
-                    var dtRow = $this.closest('tr');
-
-                    cls_array = (dtRow.attr("class").split(" "));
-
-                    project_name = cls_array[0];
-                    part_number = cls_array[1];
-                    station_name = cls_array[2];
-
-                    if (confirm("Are you sure to delete this row?")) {
+            $('.dropdown-station').each(function () {
 
 
-                        $.ajax({
-                            url: "/project/station_delete/", // the endpoint,commonly same url
-                            type: 'POST',
-                            data: {
-                                csrfmiddlewaretoken: getCookie("csrftoken"),
-                                "project_name": project_name,
-                                "part_number": part_number,
-                                "station_name": station_name
-                            },
+                $(this).find(".dropdown-item").each(function () {
+                    $(this).click(function () {
+                        var dtRow = $(this).closest('tr');
 
-                            success: function (json) {
-                                $this.closest('tr').remove();
-                            },
-                            //處理失敗時會做的動作
-                            error: function (xhr, errmsg, err) {
-                                console.log("part number not in database"); // provide a bit more info about the error to the console
+                        cls_array = (dtRow.attr("class").split(" "));
+
+                        project_name = cls_array[0];
+                        part_number = cls_array[1];
+                        station_name = cls_array[2];
+                        var action = $(this).text();
+
+                        if (action == "Edit") {
+
+                            location.href = "/project/modify_script/" + project_name + "/" + part_number + "/" + station_name;
+
+                        } else if (action == "Delete") {
+                            if (confirm("Are you sure to delete this row?")) {
+
+
+                                $.ajax({
+                                    url: "/project/station_delete/", // the endpoint,commonly same url
+                                    type: 'POST',
+                                    data: {
+                                        csrfmiddlewaretoken: getCookie("csrftoken"),
+                                        "project_name": project_name,
+                                        "part_number": part_number,
+                                        "station_name": station_name
+                                    },
+
+                                    success: function (json) {
+                                        $this.closest('tr').remove();
+                                    },
+                                    //處理失敗時會做的動作
+                                    error: function (xhr, errmsg, err) {
+                                        console.log("part number not in database"); // provide a bit more info about the error to the console
+                                    }
+                                });
                             }
-                        });
-                    }
-                });
 
-
-            });
-
-
-            $('#project_table tbody .st-edit').each(function () {
-
-                $(this).on('click', function (evt) {
-
-                    var editRow = $(this).closest('tr');
-                    cls_array = (editRow.attr("class").split(" "));
-                    project_name = cls_array[0];
-                    part_number = cls_array[1];
-                    station_name = cls_array[2];
-                    location.href = "/project/modify_script/" + project_name + "/" + part_number + "/" + station_name;
-
-                });
-            });
-
-
-            $('#project_table tbody .st-download').each(function () {
-
-                $(this).on('click', function (evt) {
-
-                    var editRow = $(this).closest('tr');
-                    cls_array = (editRow.attr("class").split(" "));
-                    project_name = cls_array[0];
-                    part_number = cls_array[1];
-                    station_name = cls_array[2];
-                    location.href = "/project/download_script/" + project_name + "/" + part_number + "/" + station_name;
-
-                });
-            });
-
-
+                        } else if (action == "Download") {
+                            location.href = "/project/download_script/" + project_name + "/" + part_number + "/" + station_name;
+                        }
+                    })
+                })
+            })
         });
+
 
         $(document).ready(function () {
 
             $('.tree').treegrid({});
-            $('.tree').treegrid('collapseAll');
-
-
+            {#$('.tree').treegrid('collapseAll');#}
         });
     </script>
 {% endblock %}
 {% block body %}
-    <p style="text-align: center;font-weight:600;font-size: 26px;">[ {{ username |title }} ] Project</p>
+    <h3>[ {{ username |title }} ] Project</h3>
     <br>
 
 
-
+    <div id="message"></div>
 
 
 
@@ -320,7 +352,9 @@
             {% endif %}
             <th>Create Date</th>
             <th>Create Time</th>
-            <th style="text-align: right">Action</th>
+            <th style="text-align: right">
+                <div style="padding-right: 10%"> Action</div>
+            </th>
         </tr>
         </thead>
 
@@ -339,7 +373,26 @@
                 <tr class="{{ prj|lookup:"project_name" }} treegrid-{{ prj|lookup:"project_id" }} expanded">
                     <td class="project_name">{{ prj|lookup:"project_name" }}</td>
                     {% if request.user.is_staff %}
-                        <td>{{ prj|lookup:"owner_user" }}</td>
+                        {#                        <td>{{ prj|lookup:"owner_user" }}</td>#}
+
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <select class=" selectpicker  show-tick owner-user "
+                                        title="No User" data-width="50%">
+
+                                    {% for u in user_list %}
+                                        <option value="{{ u }}" {% if prj|lookup:"owner_user" == u %}
+                                                selected {% endif %}>{{ u }}</option>
+                                    {% endfor %}
+                                </select>
+
+                                <button class="btn btn-sm btn-outline-primary change-user  " type="button"><i
+                                        class="fas fa-user-check"></i></button>
+
+                            </div>
+
+
+                        </td>
                     {% endif %}
                     <td>
                         {{ prj|lookup:"date"|date:'Y-m-d' }}
@@ -349,18 +402,26 @@
                         {{ prj|lookup:"date"|date:'h:i A' }}
                     </td>
                     <td>
-                        <div class="text-right">
-                            <div class="btn-group">
-                                <button type="button"
-                                        class="btn btn-outline-primary btn-xs  btn-md center-block prj-edit">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button type="button"
-                                        class=" btn btn-outline-danger btn-xs   btn-md center-block prj-delete"><i
-                                        class="fas fa-trash"></i>
-                                </button>
+                        <div class="dropdown text-right">
+
+                            <button class="btn btn-success dropdown-toggle" type="button"
+                                    id="btnItemsDemo"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+
+                                Action
+
+                            </button>
+
+                            <div class="dropdown-menu dropdown-project" aria-labelledby="btnItemsDemo">
+
+                                <button class="dropdown-item" type="button">Edit</button>
+
+                                <button class="dropdown-item" type="button">Delete</button>
+
                             </div>
+
                         </div>
+
 
                     </td>
                 </tr>
@@ -372,17 +433,22 @@
                         <td {% if request.user.is_staff %} colspan="4"{% else %}
                                                            colspan="3" {% endif %}>{{ pn|lookup:"part_number" }}</td>
                         <td>
+                            <div class="dropdown text-right">
 
-                            <div class="text-right">
-                                <div class="btn-group">
-                                    <button type="button"
-                                            class="btn btn-outline-primary btn-xs  btn-md center-block pn-edit">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button type="button"
-                                            class=" btn btn-outline-danger btn-xs   btn-md center-block pn-delete"><i
-                                            class="fas fa-trash"></i>
-                                    </button>
+                                <button class="btn btn-success dropdown-toggle" type="button" id="btnItemsDemo"
+                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+
+                                    Action
+
+                                </button>
+
+                                <div class="dropdown-menu dropdown-partnumber" aria-labelledby="btnItemsDemo">
+
+                                    <button class="dropdown-item" type="button">Edit</button>
+
+                                    <button class="dropdown-item" type="button">Delete</button>
+
+
                                 </div>
 
                             </div>
@@ -403,30 +469,29 @@
                             </td>
 
                             <td>
-                                <div class="text-right">
-                                    <div class="btn-group">
-                                        <button type="button"
 
-                                                {% if  st|lookup:"download" %}
-                                                class=" btn btn-outline-success btn-xs   btn-md center-block st-download"
-                                                {% else %}
-                                                disabled
-                                                class=" btn btn-outline-secondary btn-xs   btn-md center-block st-download"
-                                                {% endif %}>
-                                                <i class="fas fa-download"></i>
-                                        </button>
+                                <div class="dropdown text-right">
 
+                                    <button class="btn btn-success dropdown-toggle" type="button" id="btnItemsDemo"
+                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 
-                                        <button type="button"
-                                                class="btn btn-outline-primary btn-xs  btn-md center-block st-edit">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button type="button"
-                                                class=" btn btn-outline-danger btn-xs   btn-md center-block st-delete "><i
-                                                class="fas fa-trash"></i>
+                                        Action
+
+                                    </button>
+
+                                    <div class="dropdown-menu dropdown-station" aria-labelledby="btnItemsDemo">
+
+                                        <button class="dropdown-item" type="button">Edit</button>
+
+                                        <button class="dropdown-item" type="button">Delete</button>
+
+                                        <button class="dropdown-item" type="button"
+                                                {% if  st|lookup:"download" == False %}disabled{% endif %}>Download
                                         </button>
                                     </div>
+
                                 </div>
+
                             </td>
                         </tr>
                     {% endfor %}
@@ -436,6 +501,9 @@
         {% endif %}
         </tbody>
     </table>
+
+
+
 
 
 {% endblock %}

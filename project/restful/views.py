@@ -66,6 +66,29 @@ def DeleteProjectPNView(request):
         return Response(status=status.HTTP_200_OK)
 
 
+
+@api_view(["POST"])
+@authentication_classes((BasicAuthentication,))
+def ModifyOwnerUser(request):
+    if request.method == "POST":
+        project_name = request.data.get("project_name")
+        username = request.data.get("username")
+
+        project_instances = Project.objects.filter(project_name= project_name)
+
+        if project_instances.exists():
+            print(project_name,username,project_instances)
+            prj_instance = project_instances[0]
+
+            new_user_instance = User.objects.get(username=username)
+            prj_instance.owner_user = new_user_instance
+            prj_instance.save()
+            return Response(status=status.HTTP_200_OK)
+
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(["POST"])
 @authentication_classes((BasicAuthentication,))
 def GetScriptSorted(request):
