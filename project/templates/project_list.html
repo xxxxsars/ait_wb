@@ -83,14 +83,12 @@
             $(".change-user").each(function () {
 
                 $(this).click(function () {
-
-
                     var dtRow = $(this).closest('tr');
                     var cls_array = (dtRow.attr("class").split(" "));
                     var username = $(this).closest("div.input-group").find("select.owner-user option:selected").text();
                     var project_name = cls_array[0];
-
-                    $.ajax({
+                      if (confirm("Are you sure to change this project owner user?")) {
+                          $.ajax({
                         url: "/project/modify_user/",
                         type: 'POST',
                         data: {
@@ -132,8 +130,7 @@
                             })
                         }
                     });
-
-
+                      }
                 })
             })
         });

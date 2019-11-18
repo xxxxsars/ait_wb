@@ -77,10 +77,12 @@ def ModifyOwnerUser(request):
         project_instances = Project.objects.filter(project_name= project_name)
 
         if project_instances.exists():
-            print(project_name,username,project_instances)
             prj_instance = project_instances[0]
+            old_username = prj_instance.owner_user.username
 
             new_user_instance = User.objects.get(username=username)
+
+            change_project(project_name,old_username,username)
             prj_instance.owner_user = new_user_instance
             prj_instance.save()
             return Response(status=status.HTTP_200_OK)
@@ -188,6 +190,23 @@ class DeleteProjectView(viewsets.ModelViewSet):
         # print(request.user)
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+def change_project(project_name,old_username, new_username):
+    path = handle_path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "download_folder")
+
+    old_path = handle_path(path, old_username, project_name)
+    new_path = handle_path(path, new_username)
+
+    # Delete project with the same name has been forced to move
+    if not os.path.exists(new_path):
+        os.makedirs(new_path)
+    # if the project was existed on the user folder will remove it.
+    elif os.path.exists(os.path.join(new_path,project_name)):
+        shutil.rmtree(os.path.join(new_path,project_name))
+
+    shutil.move(old_path, new_path)
+
 
 
 def delete_file(username, *args):
