@@ -81,11 +81,10 @@
             $("#add_argument").click(function () {
 
                 var info = '<tr>' +
-                    '<td>{{ a.argument }}</td>' +
-                    '<td>{{ a.default_value }}</td>' +
-                    '<td>{{ a.description }}</td>' +
-                    '<td>'+
-                    '</td></tr>';
+                    '<td> <input type="text" name="argument" class="form-control" maxlength="255" required="" id="id_argument"></td>' +
+                    '<td><input type="text" name="default_value" class="form-control" maxlength="255" required="" id="id_default_value"></td>' +
+                    '<td><input type="text" name="description" class="form-control" maxlength="255" required="" id="id_description"></td>' +
+                    ' </tr>';
                 if (rowCount < max_fields) {
                     $("#task-table tbody").append(info);
                     rowCount += 1;
@@ -318,7 +317,7 @@
 
 
         <div class="text-center">
-             <button class="btn btn-outline-primary" type="submit"><i class="fas fa-save"></i> Save</button>
+            <button class="btn btn-outline-primary" type="submit"><i class="fas fa-save"></i> Save</button>
         </div>
 
 

@@ -87,50 +87,50 @@
                     var cls_array = (dtRow.attr("class").split(" "));
                     var username = $(this).closest("div.input-group").find("select.owner-user option:selected").text();
                     var project_name = cls_array[0];
-                      if (confirm("Are you sure to change this project owner user?")) {
-                          $.ajax({
-                        url: "/project/modify_user/",
-                        type: 'POST',
-                        data: {
-                            csrfmiddlewaretoken: getCookie('csrftoken'),
-                            project_name: project_name,
-                            username: username
-                        },
+                    if (confirm("Are you sure to change this project owner user?")) {
+                        $.ajax({
+                            url: "/project/modify_user/",
+                            type: 'POST',
+                            data: {
+                                csrfmiddlewaretoken: getCookie('csrftoken'),
+                                project_name: project_name,
+                                username: username
+                            },
 
-                        success: function (json) {
-                            $("#message").empty();
+                            success: function (json) {
+                                $("#message").empty();
 
-                            $("#message").append(
-                                '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
-                                '<strong>Changed Project owner user was Successfully!</strong>' +
-                                '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-                                '<span aria-hidden="true">&times;</span>' +
-                                '</button>' +
-                                '</div>')
-                            //auto close alert  after 4 seconds.
-                            $(".alert").delay(4000).slideUp(200, function () {
-                                $(this).alert('close');
+                                $("#message").append(
+                                    '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                                    '<strong>Changed Project owner user was Successfully!</strong>' +
+                                    '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                                    '<span aria-hidden="true">&times;</span>' +
+                                    '</button>' +
+                                    '</div>')
+                                //auto close alert  after 4 seconds.
+                                $(".alert").delay(4000).slideUp(200, function () {
+                                    $(this).alert('close');
 
-                            })
-                        },
-                        error: function (xhr, errmsg, err) {
-                            $("#message").empty();
+                                })
+                            },
+                            error: function (xhr, errmsg, err) {
+                                $("#message").empty();
 
-                            $("#message").append(
-                                '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
-                                '<strong>Changed Project owner user was failed!</strong>' +
-                                '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-                                '<span aria-hidden="true">&times;</span>' +
-                                '</button>' +
-                                '</div>')
-                            //auto close alert  after 4 seconds.
-                            $(".alert").delay(4000).slideUp(200, function () {
-                                $(this).alert('close');
+                                $("#message").append(
+                                    '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                                    '<strong>Changed Project owner user was failed!</strong>' +
+                                    '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                                    '<span aria-hidden="true">&times;</span>' +
+                                    '</button>' +
+                                    '</div>')
+                                //auto close alert  after 4 seconds.
+                                $(".alert").delay(4000).slideUp(200, function () {
+                                    $(this).alert('close');
 
-                            })
-                        }
-                    });
-                      }
+                                })
+                            }
+                        });
+                    }
                 })
             })
         });
@@ -287,6 +287,8 @@
                         station_name = cls_array[2];
                         var action = $(this).text();
 
+
+                        console.log(action)
                         if (action == "Edit") {
 
                             location.href = "/project/modify_script/" + project_name + "/" + part_number + "/" + station_name;
@@ -483,8 +485,7 @@
                                         <button class="dropdown-item" type="button">Delete</button>
 
                                         <button class="dropdown-item" type="button"
-                                                {% if  st|lookup:"download" == False %}disabled{% endif %}>Download
-                                        </button>
+                                                {% if  st|lookup:"download" == False %}disabled{% endif %}>Download</button>
                                     </div>
 
                                 </div>

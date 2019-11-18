@@ -80,7 +80,6 @@ def list_project(request):
 
         project_dict["pn_list"] = pn_list
         project_structure.append(project_dict)
-
     return render(request, "project_list.html", locals())
 
 
@@ -477,7 +476,6 @@ def modify_script(request, project_name, part_number, station_name):
                 if len(cf) > 0:
                     chose_map[cf] = request.POST[cf]
 
-            print(chose_map)
 
             # the testScript ini will be save and used the db order save it.
             save_ini_contents(ini_content_map, testScript_order_list, token)

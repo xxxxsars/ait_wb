@@ -15,6 +15,7 @@ from common.handler import handle_path
 def upload_index(request):
     is_script = True
     if request.method == 'POST':
+        datas = dict(request.POST)
         a = ArgumentForm(request.POST)
         u = UploadFileForm(request.POST, request.FILES)
 
