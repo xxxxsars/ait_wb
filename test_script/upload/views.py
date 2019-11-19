@@ -7,7 +7,7 @@ import os, re
 import zipfile
 import platform
 
-from common.handler import handle_path
+from common.handler import *
 
 # Create your views here.
 
@@ -84,38 +84,6 @@ def upload_index(request):
         u = UploadFileForm()
 
     return render(request, "upload.html", locals())
-
-
-def get_serial_number(task_id):
-    datas = Upload_TestCase.objects.filter(task_id__iregex=r"^%s\d{2}" % task_id).values()
-    if len(datas) == 0:
-        return "00"
-    serials = []
-    for data in datas:
-        serial = re.search(r'(\d{2})$', data["task_id"]).group(1)
-        serials.append(int(serial))
-
-    # get not increment the smallest serial number
-    tmp = [i for i in range(100)]
-    not_increment = []
-    for i in tmp[:max(serials)]:
-        if i not in serials:
-            not_increment.append(i)
-
-    if len(not_increment) != 0:
-        serial_number = min(not_increment)
-
-    # if not increment get max serials add 1
-    else:
-        serial_number = max(serials) + 1
-
-    if serial_number > 99:
-        raise ValueError("Your serial id is gather than 99.")
-
-    serial = "%02d" % serial_number
-
-    return serial
-
 
 
 def handle_attachment(f,task_id):
