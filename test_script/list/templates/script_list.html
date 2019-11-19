@@ -544,8 +544,6 @@
 
 
                                         <button type="button"
-                                                title="Download attachment"
-
                                                 {% if data.task_id in no_att_tasks %}
                                                 disabled  class="btn  btn-outline-secondary dt-attach"
                                                 {% else %}
@@ -557,15 +555,13 @@
                             {% else %}
                                 <div class="text-center">
                                     <div class="text-center btn-group">
-                                        <button type="button" data-toggle="tooltip" data-placement="top" title="Edit"
+                                             <button type="button"
                                                 class="btn btn-outline-primary btn-xs  btn-md center-block dt-edit">
                                             <i class="fas fa-edit"></i>
                                         </button>
 
 
-                                        <button type="button" data-toggle="tooltip" data-placement="top"
-                                                title="Download attachment"
-
+                                        <button type="button"
                                                 {% if data.task_id in no_att_tasks %}
                                                 disabled  class="btn  btn-outline-secondary dt-attach"
                                                 {% else %}
