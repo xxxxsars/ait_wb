@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load staticfiles %}
-
+{% load filter %}
 {% block css %}
     <style>
         h3 {
@@ -59,6 +59,12 @@
 
         $(document).ready(function () {
 
+
+            //auto close alert  after 4 seconds.
+            $(".alert").delay(4000).slideUp(200, function () {
+                $(this).alert('close');
+            });
+
             {% if render_value %}
                 $("input[name='task_id']").val('{{ task_info.task_id }}').attr("readonly", "readonly");
                 $("input[name='task_name']").val('{{ task_info.task_name }}');
@@ -71,24 +77,49 @@
 
 
 
-
+            var new_row = '<tr>' +
+                '<td> <input type="text" name="argument" class="form-control" maxlength="255" required="" id="id_argument"></td>' +
+                '<td><input type="text" name="default_value" class="form-control" maxlength="255" required="" id="id_default_value"></td>' +
+                '<td><input type="text" name="description" class="form-control" maxlength="255" required="" id="id_description"></td>' +
+                '<td style="text-align: center">' +
+                '<button type="button" class="btn btn-outline-secondary dt-delete" disabled><i class="fas fa-times" disabled></i>' +
+                '</button></td> </tr>';
 
 
             var max_fields = 19;
-            var rowCount = $("#argument_info input[name='argument']").length;
+            var rowCount = 0;
 
+
+            //if post had error will restore those data
+            {% if error_message or u.errors   %}
+                {% if datas %}
+                    var args = {{ datas|lookup:'argument'|safe }};
+                    var values = {{ datas|lookup:'default_value'|safe }};
+                    var descript = {{ datas|lookup:'description'|safe }};
+                    var baseCount = $("#task-table tbody tr").length;
+                    rowCount = args.length + baseCount;
+
+                    for (i = 0; i < args.length; i++) {
+                        $("#task-table tbody").append(new_row)
+                    }
+
+                    $("#task-table tbody tr").each(function () {
+                        if ($(this).index() + 1 > baseCount) {
+                            $(this).find("input[name='argument']").val(args[($(this).index()) - baseCount]);
+                            $(this).find("input[name='default_value']").val(values[($(this).index()) - baseCount]);
+                            $(this).find("input[name='description']").val(descript[($(this).index()) - baseCount]);
+                        }
+                    });
+                {% endif %}
+            {% else %}
+                rowCount = $("#task-table tbody tr").length;
+            {% endif %}
 
             $("#add_argument").click(function () {
 
-                var info = '<tr>' +
-                    '<td> <input type="text" name="argument" class="form-control" maxlength="255" required="" id="id_argument"></td>' +
-                    '<td><input type="text" name="default_value" class="form-control" maxlength="255" required="" id="id_default_value"></td>' +
-                    '<td><input type="text" name="description" class="form-control" maxlength="255" required="" id="id_description"></td>' +
-                    ' </tr>';
                 if (rowCount < max_fields) {
-                    $("#task-table tbody").append(info);
+                    $("#task-table tbody").append(new_row);
                     rowCount += 1;
-
                 }
                 else {
                     alert("Max argument is 20!")
@@ -96,10 +127,20 @@
             });
 
             $("#remove_argument").click(function (e) {
+                var lastRow = $("#task-table tbody tr").last();
                 {# orginal argument colume cant be remove#}
                 if ($("#task-table  tbody tr").length > 1) {
-                    $("#task-table tbody tr").last().remove();
-                    rowCount -= 1;
+                    if (lastRow.closest("tr").find('input[name="argument"]').val() != "") {
+                        if (confirm("Are you sure to remove this row?")) {
+                            lastRow.remove();
+                            rowCount -= 1;
+                        }
+                    } else {
+                        lastRow.remove();
+                        rowCount -= 1;
+                    }
+                } else {
+                    alert("Your must provide one argument!")
                 }
             });
 
@@ -154,8 +195,11 @@
     {% if u.errors %}
         {% for field in u %}
             {% for error in field.errors %}
-                <div class="alert alert-danger">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     <strong>{{ error|escape }}</strong>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
             {% endfor %}
         {% endfor %}
@@ -165,16 +209,22 @@
 
 
     {% if susessful %}
-        <div class="alert alert-success">
-            <strong> {{ susessful }}</strong>
+        <div>
+            <strong>{{ susessful }}</strong>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
         </div>
     {% endif %}
 
 
 
     {% if error_message %}
-        <div class="alert alert-danger">
-            <strong> {{ error_message }}</strong>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>{{ error_message|escape }}</strong>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
         </div>
     {% endif %}
 

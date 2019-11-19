@@ -11,7 +11,10 @@ def get_key(value):
 
 
 def lookup(value, arg):
-    return value[arg]
+    if arg in value:
+        return value[arg]
+    else:
+        return []
 
 
 def get_list(value):

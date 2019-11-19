@@ -30,7 +30,7 @@ def modify_index(request, task_id):
 
     if request.POST:
         u = UpdateFileForm(request.POST, request.FILES)
-
+        datas = dict(request.POST)
         if u.is_valid():
             id = request.POST["task_id"]
             task_name = request.POST["task_name"]
