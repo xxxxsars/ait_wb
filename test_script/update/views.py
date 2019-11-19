@@ -16,7 +16,7 @@ from project.models import *
 
 
 @login_required(login_url="/user/login/")
-def modify_index(request, task_id):
+def modify_index(request, task_id,message = None):
     is_script = True
 
     u = UpdateFileForm()
@@ -27,6 +27,10 @@ def modify_index(request, task_id):
     task_info = Upload_TestCase.objects.get(task_id=task_id)
     args = Arguments.objects.filter(task_id=task_info)
     render_value = True
+    if message !=None:
+        susessful = message
+
+
 
     if request.POST:
         u = UpdateFileForm(request.POST, request.FILES)
@@ -121,6 +125,10 @@ def modify_index(request, task_id):
 
                     if argument in db_args:
                         error_message = "Your parameters only allow unique values."
+                        return render(request, "script_modify.html", locals())
+
+                    if valid_default_value(value) == False:
+                        error_message = "Your default value does not match the rule."
                         return render(request, "script_modify.html", locals())
 
                     a = Arguments.objects.create(argument=argument, description=description, default_value=value,

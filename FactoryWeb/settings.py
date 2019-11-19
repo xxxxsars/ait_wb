@@ -130,3 +130,6 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'test_script/upload/static'),
 
 )
+
+# set login auth one day
+SESSION_COOKIE_AGE = 60*60*24

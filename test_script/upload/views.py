@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from test_script.upload.forms import *
@@ -51,7 +51,6 @@ def upload_index(request):
             else:
                 up.existed_attachment = False
 
-
             post_args = []
             for i, e in enumerate(arguments):
                 argument = arguments[i]
@@ -63,12 +62,13 @@ def upload_index(request):
                     error_message = "Your arguments only allow unique values."
                     return render(request, "upload.html", locals())
                 else:
-                    post_args.append(argument)
+                    if input_argument.search(argument) != None:
+                        error_message = "Your arguments only allow number, letter and underline."
+                        return render(request, "upload.html", locals())
+                    else:
+                        post_args.append(argument)
 
-                if input_argument.search(argument) != None:
-                    error_message = "Your arguments only allow number, letter and underline."
-                    return render(request, "upload.html", locals())
-
+                # check default value
                 if valid_default_value(value) == False:
                     error_message = "Your default value does not match the rule."
                     return render(request, "upload.html", locals())
@@ -77,7 +77,8 @@ def upload_index(request):
                 Arguments.objects.create(argument=argument, description=description, default_value=value, task_id=up)
 
             susessful = "Upload  Test Case ID: [ %s ] was successfully!" % task_id
-            return render(request, "upload.html", locals())
+            return redirect("/testCase/modify/%s/%s" % (task_id, susessful))
+
     else:
         a = ArgumentForm()
         u = UploadFileForm()
