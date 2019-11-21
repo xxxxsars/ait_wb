@@ -60,7 +60,7 @@
                 $("#attachment_file").next('.custom-file-label').html('<p class="text-dark">' + '{{ attach_name }}' + '</div>');
             {% endif %}
 
-            var download_zip_name = {{ task_info.task_id }} +".zip "+" ({{ modify_time }})";
+            var download_zip_name = "{{ task_info.task_id }}" +".zip "+" ({{ modify_time }})";
             $("#zip_file").next('.custom-file-label').html(download_zip_name);
 
 
