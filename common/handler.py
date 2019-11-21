@@ -2,6 +2,7 @@ import os
 import platform
 import re
 import shutil
+import time
 import hashlib
 from common.limit import *
 import os
@@ -143,23 +144,30 @@ def modify_pn_folder(username, project_name, old_name, new_name):
     os.rename(old_path, new_path)
 
 
-from project.views import *
+def get_attach_name(task_id):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    attach_path = os.path.join( handle_path(path,"upload_folder",task_id),"attachment")
+
+    if os.path.exists(attach_path):
+        return  os.listdir(attach_path)[0]
+    return ""
 
 
+def get_modify_time(task_id):
+    path =(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    root_path  = handle_path(path, "upload_folder", task_id)
+    updata_file_path = ""
+    for file in os.listdir(root_path):
+        if file != "attachment" and re.search("^\.",file) ==None:
+            file_path = os.path.join(root_path, file)
+            updata_file_path = file_path
+            # get first file
+            break
+
+    print("sdfsdf",updata_file_path)
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(updata_file_path)))
 
 
-
-
-if __name__ == "__main__":
-    project_infos = [
-        {'task_id': '000001', 'project_task_id': '25', 'script_name': 'sdfdsf.sdf', 'task_name': '0001', 'timeout': '1',
-         'exitcode': 'exitCode', 'retry': '3', 'sleep': '0', 'criteria': 'success', 'args': ['01', '111']},
-        {'task_id': '000003', 'project_task_id': '29', 'script_name': 'fsdf.sd', 'task_name': 'sdfsdfs11',
-         'timeout': '30', 'exitcode': 'exitCode', 'retry': '3', 'sleep': '0', 'criteria': 'success', 'args': []}]
-
-    project_name = "1111111"
-    part_number = "DEFAULT"
-    station_name = "2222222"
 
 
 

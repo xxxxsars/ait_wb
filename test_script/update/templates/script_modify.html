@@ -39,25 +39,29 @@
             return cookieValue;
         }
 
-        {#display the upload file name#}
+        //display the upload file name
         $(function () {
             $('#zip_file').on('change', function () {
-                //get the file name
+
                 var fileName = $(this).val();
-                //replace the "Choose a file" label
                 $(this).next('.custom-file-label').html(fileName);
             });
 
 
             $('#attachment_file').on('change', function () {
-                //get the file name
                 var fileName = $(this).val();
-                //replace the "Choose a file" label
                 $(this).next('.custom-file-label').html(fileName);
             });
         });
 
         $(document).ready(function () {
+            //if on modify page will show the file info
+            {% if task_info.existed_attachment %}
+                $("#attachment_file").next('.custom-file-label').html('<p class="text-dark">' + '{{ attach_name }}' + '</div>');
+            {% endif %}
+
+            var download_zip_name = {{ task_info.task_id }} +".zip "+" ({{ modify_time }})";
+            $("#zip_file").next('.custom-file-label').html(download_zip_name);
 
 
             //auto close alert  after 4 seconds.
@@ -144,8 +148,47 @@
                 }
             });
 
-            <!--delete specific argument-->
+
             var taskID = $("input[name=task_id]").val();
+
+
+            //download uploaded TestCase file
+            $("#download_script").click(function () {
+                location.href = "/testCase/script_download/" + taskID;
+            });
+
+
+            $("#delete_attach").click(function () {
+
+                var btnObj = $(this);
+                if (confirm("Are you sure to delete attachment?")) {
+                    var csrftoken = getCookie('csrftoken');
+
+                    $.ajax({
+                        url: "/testCase/delete_attach/",
+                        type: 'POST',
+                        data: {
+                            csrfmiddlewaretoken: csrftoken,
+                            "task_id": taskID,
+                        },
+
+                        success: function (json) {
+                            $("#attachment_file").next('.custom-file-label').html('<p class="text-muted">' + 'Please Upload attachment' + '</p>');
+                             btnObj.closest("div.input-group-append").remove()
+                        },
+
+                        //處理失敗時會做的動作
+                        error: function (xhr, errmsg, err) {
+                            console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                        }
+                    });
+
+
+                }
+            });
+
+
+            <!--delete specific argument-->
             $('#task-table tbody .dt-delete').each(function () {
                 $(this).on('click', function (evt) {
                     var dtRow = $(this).parents('tr');
@@ -288,19 +331,35 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="input-group">
+                <label style="padding-top: 1%"> Attachment&emsp;</label>
                     <div class="custom-file">
                         {{ u.attachment }}
-                        <label class="custom-file-label" for="attachment_file">Please Upload attachment</label>
+                        <label class="custom-file-label" for="attachment_file"><p class="text-muted">Please Upload
+                            attachment</p></label>
                     </div>
+
+                    {% if task_info.existed_attachment %}
+                        <div class="input-group-append">
+                            <button id="delete_attach" class="btn btn-outline-danger" type="button"><i class="fas fa-times"></i></button>
+                        </div>
+                    {% endif %}
                 </div>
 
             </div>
 
             <div class="col-md-6">
                 <div class="input-group">
+                   <label style="padding-top: 1%">TestScript Zip&emsp;</label>
                     <div class="custom-file">
                         {{ u.file }}
-                        <label class="custom-file-label" for="zip_file">Please Upload TestScript zip file</label>
+                        <label class="custom-file-label" for="zip_file"><p class="text-muted">Please Upload TestScript
+                            zip file</p></label>
+                    </div>
+
+                    <div class="input-group-append">
+                        <button id="download_script" class="btn btn-outline-success" type="button" data-toggle="tooltip"
+                                data-placement="top"
+                                title="Downolad the testScript zip"><i class="fas fa-download"></i></button>
                     </div>
                 </div>
             </div>

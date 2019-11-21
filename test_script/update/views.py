@@ -11,7 +11,7 @@ import collections
 from test_script.update.forms import *
 from test_script.upload.forms import *
 from common.limit import input_argument, valid_default_value
-from common.handler import handle_path
+from common.handler import handle_path,get_attach_name,get_modify_time
 from project.models import *
 
 
@@ -21,14 +21,20 @@ def modify_index(request, task_id,message = None):
 
     u = UpdateFileForm()
 
-    # let js can't dynamic add argument column
+    # handle the "GET" function
     a = ArgumentForm()
-
     task_info = Upload_TestCase.objects.get(task_id=task_id)
     args = Arguments.objects.filter(task_id=task_info)
     render_value = True
     if message !=None:
         susessful = message
+
+    # update the attachment name
+    if task_info.existed_attachment:
+        attach_name = get_attach_name(task_id)
+
+    # update testScript zip modified time
+    modify_time = get_modify_time(task_id)
 
 
 
@@ -54,8 +60,7 @@ def modify_index(request, task_id,message = None):
             if 'attachment' in request.FILES:
                 handle_update_attachment(request.FILES['attachment'], id)
                 up.existed_attachment =True
-            else:
-                up.existed_attachment = False
+                attach_name = request.FILES["attachment"].name
 
             # handle post task information
             up.task_name = task_name
@@ -148,11 +153,18 @@ def modify_index(request, task_id,message = None):
             task_info = Upload_TestCase.objects.get(task_id=task_id)
             args = Arguments.objects.filter(task_id=task_info)
 
+
+
         else:
             # if not valid display post data
             render_value = False
 
+
+
     return render(request, "script_modify.html", locals())
+
+
+
 
 
 def handle_update_attachment(f, task_id):

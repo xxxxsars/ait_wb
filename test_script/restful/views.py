@@ -1,6 +1,7 @@
 import os
 from django.http import StreamingHttpResponse
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 
 from rest_framework import status
 from rest_framework import viewsets
@@ -10,12 +11,60 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 
+from io import StringIO,BytesIO
 import zipfile, os, shutil, platform
 
 from test_script.update.forms import *
 from test_script.restful.serializer import *
 
 from common.handler import handle_path
+
+
+@api_view(["POST"])
+@authentication_classes((BasicAuthentication,))
+def delete_attachment(request):
+    if request.method == "POST":
+        if "task_id" not in request.data:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        task_id = request.data.get("task_id")
+
+        task_instance = Upload_TestCase.objects.get(task_id=task_id)
+        task_instance.existed_attachment = False
+
+
+        path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        remove_path = handle_path(path, "upload_folder",task_id,"attachment")
+        shutil.rmtree(remove_path)
+
+        task_instance.save()
+        return Response(status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@authentication_classes((BasicAuthentication,))
+def script_download(request,task_id):
+    if request.method == "GET":
+        path = handle_path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+                           "upload_folder", task_id)
+
+        attach_path = os.path.join(path,'attachment')
+        s = BytesIO()
+        zf = zipfile.ZipFile(s, "w", compression=zipfile.ZIP_DEFLATED)
+
+        # the array inner dict key is source file path ,value is target file path
+        for root, folders, files in os.walk(path):
+            for sfile in files:
+                if root!= attach_path:
+                    aFile = os.path.join(root, sfile)
+                    zf.write(aFile, os.path.relpath(aFile, path))
+        zf.close()
+        response = HttpResponse(s.getvalue(), content_type='application/x-zip-compressed')
+        response['Content-Disposition'] = 'attachment; filename="%s.zip"' % task_id
+        response['Content-Length'] = s.tell()
+
+        return response
+
+    return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["POST"])

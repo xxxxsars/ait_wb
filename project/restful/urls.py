@@ -15,4 +15,5 @@ urlpatterns = [
     url("get_stored/$", GetScriptSorted),
     url("modify_user/$", ModifyOwnerUser),
     url("download_script/(?P<project_name>\w{7})/(?P<part_number>\w+)/(?P<station_name>\w+)/$",download)
+
 ]
