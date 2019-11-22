@@ -100,19 +100,17 @@
                             },
 
                             success: function (json) {
-                                console.log(json); // another sanity check
-
+                                var table = $('#task-table').DataTable();
+                                table.row(dtRow).remove().draw(false);// another sanity check
                             },
 
                             //處理失敗時會做的動作
                             error: function (xhr, errmsg, err) {
-                                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                                console.log("delete failed",xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
                             }
                         });
 
 
-                        var table = $('#task-table').DataTable();
-                        table.row(dtRow).remove().draw(false);
                     }
                 });
 
@@ -241,20 +239,20 @@
                         "width": "10%",
                         "targets": 1,
                     },
-                                                {
-                        "width": "15%",
-                        "targets": 3,
-                    },
-
-                                               {
-                        "width": "15%",
-                        "targets": 5,
-                    },
+                        {
+                            "width": "15%",
+                            "targets": 3,
+                        },
 
                         {
-                        "width": "10%",
-                        "targets": 6,
-                    }
+                            "width": "15%",
+                            "targets": 5,
+                        },
+
+                        {
+                            "width": "10%",
+                            "targets": 6,
+                        }
 
 
                     ],
@@ -544,6 +542,7 @@
 
 
                                         <button type="button"
+
                                                 {% if data.task_id in no_att_tasks %}
                                                 disabled  class="btn  btn-outline-secondary dt-attach"
                                                 {% else %}
@@ -555,7 +554,7 @@
                             {% else %}
                                 <div class="text-center">
                                     <div class="text-center btn-group">
-                                             <button type="button"
+                                        <button type="button"
                                                 class="btn btn-outline-primary btn-xs  btn-md center-block dt-edit">
                                             <i class="fas fa-edit"></i>
                                         </button>

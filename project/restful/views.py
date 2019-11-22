@@ -13,7 +13,7 @@ from project.models import *
 import os, platform, shutil,zipfile
 from io import StringIO,BytesIO
 
-from common.handler import handle_path
+from common.handler import handle_path,AdminAuthentication
 from django.http import StreamingHttpResponse
 from project.models import *
 
@@ -21,7 +21,8 @@ from project.models import *
 
 
 @api_view(["POST"])
-@authentication_classes((BasicAuthentication,))
+@authentication_classes((BasicAuthentication,SessionAuthentication))
+@permission_classes([IsAuthenticated])
 def DeleteProjectStationView(request):
     if request.method == "POST":
         project_name = request.data.get("project_name")
@@ -45,7 +46,8 @@ def DeleteProjectStationView(request):
 
 
 @api_view(["POST"])
-@authentication_classes((BasicAuthentication,))
+@authentication_classes((BasicAuthentication,SessionAuthentication))
+@permission_classes([IsAuthenticated])
 def DeleteProjectPNView(request):
     if request.method == "POST":
 
@@ -68,7 +70,8 @@ def DeleteProjectPNView(request):
 
 
 @api_view(["POST"])
-@authentication_classes((BasicAuthentication,))
+@authentication_classes((AdminAuthentication,))
+@permission_classes([IsAuthenticated])
 def ModifyOwnerUser(request):
     if request.method == "POST":
         project_name = request.data.get("project_name")
@@ -92,7 +95,8 @@ def ModifyOwnerUser(request):
 
 
 @api_view(["POST"])
-@authentication_classes((BasicAuthentication,))
+@authentication_classes((BasicAuthentication,SessionAuthentication))
+@permission_classes([IsAuthenticated])
 def GetScriptSorted(request):
     if request.method == "POST":
         project_name = request.data.get("project_name")
@@ -111,7 +115,8 @@ def GetScriptSorted(request):
 
 
 @api_view(["GET"])
-@authentication_classes((BasicAuthentication,))
+@authentication_classes((BasicAuthentication,SessionAuthentication))
+@permission_classes([IsAuthenticated])
 def download(request,project_name,part_number,station_name):
     if request.method == "GET":
         station_instance = get_station_instacne(project_name, part_number, station_name)
@@ -140,7 +145,7 @@ class DeleteProjectTaskView(viewsets.ModelViewSet):
     queryset = Project_task.objects.all()
     serializer_class = ProjectTaskSerializer
     authentication_classes = [BasicAuthentication, ]
-
+    permission_classes = [IsAuthenticated]
     # http_method_names = ['delete']
 
     # permission_classes = (IsAdminUser,)
@@ -177,6 +182,7 @@ class DeleteProjectView(viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
     authentication_classes = [BasicAuthentication, ]
+    permission_classes = [IsAuthenticated]
     http_method_names = ['delete']
 
     # permission_classes = (IsAdminUser,)

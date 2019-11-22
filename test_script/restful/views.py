@@ -17,21 +17,26 @@ import zipfile, os, shutil, platform
 from test_script.update.forms import *
 from test_script.restful.serializer import *
 
-from common.handler import handle_path
+from common.handler import handle_path,AdminAuthentication
 
-
+from django.contrib.auth import login
 @api_view(["POST"])
-@authentication_classes((BasicAuthentication,))
+@authentication_classes((BasicAuthentication,SessionAuthentication))
+@permission_classes([IsAuthenticated])
 def delete_attachment(request):
     if request.method == "POST":
+        task_ids = [ u.task_id  for u in Upload_TestCase.objects.all() ]
         if "task_id" not in request.data:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
         task_id = request.data.get("task_id")
+        if task_id not in task_ids:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
         task_instance = Upload_TestCase.objects.get(task_id=task_id)
         task_instance.existed_attachment = False
 
-
+        print(request.user,request.auth)
         path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         remove_path = handle_path(path, "upload_folder",task_id,"attachment")
         shutil.rmtree(remove_path)
@@ -41,7 +46,8 @@ def delete_attachment(request):
 
 
 @api_view(["GET"])
-@authentication_classes((BasicAuthentication,))
+@authentication_classes((BasicAuthentication,SessionAuthentication))
+@permission_classes([IsAuthenticated])
 def script_download(request,task_id):
     if request.method == "GET":
         path = handle_path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
@@ -68,7 +74,8 @@ def script_download(request,task_id):
 
 
 @api_view(["POST"])
-@authentication_classes((BasicAuthentication,))
+@authentication_classes((BasicAuthentication,SessionAuthentication))
+@permission_classes([IsAuthenticated])
 def DeleteArgumentView(request, format=None):
     if request.method == "POST":
         task_id = request.data.get("task_id")
@@ -92,7 +99,8 @@ def DeleteArgumentView(request, format=None):
 class DeleteTestCaseView(viewsets.ModelViewSet):
     queryset = Upload_TestCase.objects.all()
     serializer_class = TaskSerializer
-    authentication_classes = [BasicAuthentication]
+    authentication_classes = [AdminAuthentication,]
+    permission_classes = [IsAuthenticated]
     http_method_names = ['delete']
 
     # permission_classes = (IsAdminUser,)
