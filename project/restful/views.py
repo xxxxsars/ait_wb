@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsAdminUser
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, RemoteUserAuthentication
 
 from django.http import HttpResponse
@@ -13,7 +13,7 @@ from project.models import *
 import os, platform, shutil,zipfile
 from io import StringIO,BytesIO
 
-from common.handler import handle_path,AdminAuthentication
+from common.handler import handle_path
 from django.http import StreamingHttpResponse
 from project.models import *
 
@@ -22,7 +22,6 @@ from project.models import *
 
 @api_view(["POST"])
 @authentication_classes((BasicAuthentication,SessionAuthentication))
-@permission_classes([IsAuthenticated])
 def DeleteProjectStationView(request):
     if request.method == "POST":
         project_name = request.data.get("project_name")
@@ -47,7 +46,6 @@ def DeleteProjectStationView(request):
 
 @api_view(["POST"])
 @authentication_classes((BasicAuthentication,SessionAuthentication))
-@permission_classes([IsAuthenticated])
 def DeleteProjectPNView(request):
     if request.method == "POST":
 
@@ -70,8 +68,8 @@ def DeleteProjectPNView(request):
 
 
 @api_view(["POST"])
-@authentication_classes((AdminAuthentication,))
-@permission_classes([IsAuthenticated])
+@authentication_classes((SessionAuthentication,BasicAuthentication))
+@permission_classes([IsAdminUser])
 def ModifyOwnerUser(request):
     if request.method == "POST":
         project_name = request.data.get("project_name")
@@ -94,9 +92,28 @@ def ModifyOwnerUser(request):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+
+class DeleteProjectView(viewsets.ModelViewSet):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+    authentication_classes = [BasicAuthentication ]
+    http_method_names = ['delete']
+
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        project_name = instance.project_name
+        owner_user = instance.owner_user.username
+
+        delete_file(owner_user, project_name)
+        # print(request.user)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
 @api_view(["POST"])
 @authentication_classes((BasicAuthentication,SessionAuthentication))
-@permission_classes([IsAuthenticated])
 def GetScriptSorted(request):
     if request.method == "POST":
         project_name = request.data.get("project_name")
@@ -116,7 +133,6 @@ def GetScriptSorted(request):
 
 @api_view(["GET"])
 @authentication_classes((BasicAuthentication,SessionAuthentication))
-@permission_classes([IsAuthenticated])
 def download(request,project_name,part_number,station_name):
     if request.method == "GET":
         station_instance = get_station_instacne(project_name, part_number, station_name)
@@ -144,9 +160,8 @@ def download(request,project_name,part_number,station_name):
 class DeleteProjectTaskView(viewsets.ModelViewSet):
     queryset = Project_task.objects.all()
     serializer_class = ProjectTaskSerializer
-    authentication_classes = [BasicAuthentication, ]
-    permission_classes = [IsAuthenticated]
-    # http_method_names = ['delete']
+    authentication_classes = [BasicAuthentication ]
+    http_method_names = ['delete']
 
     # permission_classes = (IsAdminUser,)
 
@@ -174,26 +189,6 @@ class DeleteProjectTaskView(viewsets.ModelViewSet):
             project_order_instance.script_oder = " ".join(script_oder_list)
             project_order_instance.save()
 
-        self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class DeleteProjectView(viewsets.ModelViewSet):
-    queryset = Project.objects.all()
-    serializer_class = ProjectSerializer
-    authentication_classes = [BasicAuthentication, ]
-    permission_classes = [IsAuthenticated]
-    http_method_names = ['delete']
-
-    # permission_classes = (IsAdminUser,)
-
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        project_name = instance.project_name
-        owner_user = instance.owner_user.username
-
-        delete_file(owner_user, project_name)
-        # print(request.user)
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 

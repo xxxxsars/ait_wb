@@ -287,8 +287,6 @@
                         station_name = cls_array[2];
                         var action = $(this).text();
 
-
-                        console.log(action)
                         if (action == "Edit") {
 
                             location.href = "/project/modify_script/" + project_name + "/" + part_number + "/" + station_name;
@@ -308,7 +306,7 @@
                                     },
 
                                     success: function (json) {
-                                        $this.closest('tr').remove();
+                                        dtRow.remove();
                                     },
                                     //處理失敗時會做的動作
                                     error: function (xhr, errmsg, err) {

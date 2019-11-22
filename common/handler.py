@@ -170,30 +170,6 @@ def get_modify_time(task_id):
 
 
 
-class AdminAuthentication(authentication.SessionAuthentication):
-    def authenticate(self, request):
-
-        """
-        Returns a `User` if the request session currently has a logged in user.
-        Otherwise returns `None`.
-        """
-
-        # Get the session-based user from the underlying HttpRequest object
-        user = getattr(request._request, 'user', None)
-        # Unauthenticated, CSRF validation not required
-        if not user or not user.is_active:
-            return None
-
-        self.enforce_csrf(request)
-
-        if not User.objects.get(username=user).is_staff:
-            print(User.objects.get(username=user).is_staff)
-            return None
-
-        return (user, None)
-
-
-
 
 
 

@@ -9,7 +9,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.permissions import IsAuthenticated
+
 
 from io import StringIO,BytesIO
 import zipfile, os, shutil, platform
@@ -17,12 +17,11 @@ import zipfile, os, shutil, platform
 from test_script.update.forms import *
 from test_script.restful.serializer import *
 
-from common.handler import handle_path,AdminAuthentication
+from common.handler import handle_path
 
 from django.contrib.auth import login
 @api_view(["POST"])
 @authentication_classes((BasicAuthentication,SessionAuthentication))
-@permission_classes([IsAuthenticated])
 def delete_attachment(request):
     if request.method == "POST":
         task_ids = [ u.task_id  for u in Upload_TestCase.objects.all() ]
@@ -47,7 +46,6 @@ def delete_attachment(request):
 
 @api_view(["GET"])
 @authentication_classes((BasicAuthentication,SessionAuthentication))
-@permission_classes([IsAuthenticated])
 def script_download(request,task_id):
     if request.method == "GET":
         path = handle_path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
@@ -75,7 +73,6 @@ def script_download(request,task_id):
 
 @api_view(["POST"])
 @authentication_classes((BasicAuthentication,SessionAuthentication))
-@permission_classes([IsAuthenticated])
 def DeleteArgumentView(request, format=None):
     if request.method == "POST":
         task_id = request.data.get("task_id")
@@ -99,8 +96,8 @@ def DeleteArgumentView(request, format=None):
 class DeleteTestCaseView(viewsets.ModelViewSet):
     queryset = Upload_TestCase.objects.all()
     serializer_class = TaskSerializer
-    authentication_classes = [AdminAuthentication,]
-    permission_classes = [IsAuthenticated]
+    authentication_classes = [BasicAuthentication,]
+    permission_classes = [IsAdminUser,]
     http_method_names = ['delete']
 
     # permission_classes = (IsAdminUser,)

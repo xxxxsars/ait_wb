@@ -133,3 +133,10 @@ STATICFILES_DIRS = (
 
 # set login auth one day
 SESSION_COOKIE_AGE = 60*60*24
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+}
