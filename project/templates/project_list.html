@@ -328,6 +328,8 @@
 
             $('.tree').treegrid({});
             {#$('.tree').treegrid('collapseAll');#}
+
+
         });
     </script>
 {% endblock %}
@@ -336,14 +338,16 @@
     <br>
 
 
-    <div id="message"></div>
 
+    <div id="message"></div>
 
 
     <table class="tree table  table-hover" id="project_table">
         <thead>
         <tr>
-            <th    {% if request.user.is_staff %} width="20%"  {% else %} width="30%" {% endif %}>Project Structure</th>
+            <th    {% if request.user.is_staff %} width="20%"  {% else %} width="30%" {% endif %}>Project
+                Structure
+            </th>
             {% if request.user.is_staff %}
                 <th>Onwer User</th>
             {% endif %}
@@ -482,8 +486,12 @@
 
                                         <button class="dropdown-item" type="button">Delete</button>
 
-                                        <button class="dropdown-item" type="button"
-                                                {% if  st|lookup:"download" == False %}disabled{% endif %}>Download</button>
+
+                                        {% if  st|lookup:"download" == False %}
+                                             <button class="dropdown-item" type="button" disabled>Download</button>
+                                        {% else %}
+                                            <button class="dropdown-item" type="button">Download</button>
+                                        {% endif %}
                                     </div>
 
                                 </div>

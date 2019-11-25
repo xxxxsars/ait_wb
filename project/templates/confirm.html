@@ -51,9 +51,6 @@
         $(document).ready(function () {
 
 
-            //compare the render order ,if not compare on db will hide download button.
-            {#//todo restful get order list form database#}
-            {#db_sorted_list = {{ testScript_order_list |safe }};#}
 
 
             //if on modify page ,it item had been move will create new testScript.ini
@@ -94,10 +91,6 @@
                                     project_sroted_list.push($(this).attr("id"))
                                 });
 
-
-                                console.log(db_sorted_list, project_sroted_list)
-
-
                                 var not_compare_count = 0;
                                 $.each(project_sroted_list, function (i, value) {
                                     if (value != db_sorted_list[i]) {
@@ -108,12 +101,12 @@
 
                                 if (not_compare_count > 0) {
                                     console.log(not_compare_count, project_sroted_list, db_sorted_list);
-                                    $("#btn-download").hide();
+                                    $("#download-group").hide();
                                     $('#btn-save').show()
 
 
                                 } else {
-                                    $("#btn-download").show();
+                                    $("#download-group").show();
                                     $('#btn-save').hide()
                                 }
 
@@ -145,6 +138,15 @@
 
 
             });
+
+
+            $("#btn-select").click(function () {
+                                var info = {{ testScript_path |safe }};
+                project_name = info[0];
+                part_number = info[1];
+                station_name = info[2];
+                location.href = "/project/modify_station/" + project_name + "/" + part_number;
+            })
 
 
             //default is hiding when the task order had been move will show the button.
@@ -185,7 +187,7 @@
 
                     success: function (json) {
                         //if successful will show the download button.
-                        $("#btn-download").show();
+                        $("#download-group").show();
                         $('#btn-save').hide()
                     },
 
@@ -323,10 +325,26 @@
         <form id="export_form"
               method="post">{% csrf_token %}
 
-            <button id="btn-download" type="button" class="btn btn-success btn-lg btn-block"><i
-                    class="fas fa-download"></i>
-                Download
-            </button>
+
+
+            {% if is_project %}
+
+            {% endif %}
+            <div class="row" id="download-group">
+                <div class="col">
+                    <button id="btn-download" type="button" class="btn btn-success btn-lg btn-block"><i
+                            class="fas fa-download"></i>
+                        Download
+                    </button>
+                </div>
+                <div class="col">
+                    <button id="btn-select" type="button" class="btn btn-primary btn-lg btn-block"><i
+                            class="fas fa-share"></i>
+                        Edit other Station
+                    </button>
+                </div>
+            </div>
+
 
             <button id="btn-save" type="button" class="btn btn-primary btn-lg btn-block"><i
                     class="fas fa-save"></i>

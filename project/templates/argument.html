@@ -456,12 +456,8 @@
     <div class="text-right" style="padding-bottom: 30px">
         <button id="add_task" type="submit" class="btn btn-outline-success">Add <i class="fas fa-plus"></i>
         </button>
-
-        <button id="allsubmit" type="submit" class="btn btn-outline-primary">Next <i
-                class="fas fa-forward"></i>
-        </button>
-
     </div>
+
     <form id="other_form" enctype="multipart/form-data" method="post" action="">{% csrf_token %}
 
         <table id="task_table" class="row-border" style="width:100%">
@@ -559,5 +555,9 @@
 
     <div class=text-center>
         <button id="btn-save" class="btn btn-outline-primary" type="button"><i class="fas fa-save"></i> Save</button>
+
+        <button id="allsubmit" type="submit" class="btn btn-outline-primary">Next <i
+                class="fas fa-share"></i>
+        </button>
     </div>
 {% endblock %}

@@ -67,20 +67,20 @@
         }
 
         function table_clone() {
-            return '                <tr>' +
-                '                    <td colspan="3">\n' +
-                '                        <div class="input-group mb-3">\n' +
-                '                        <div style="margin-left: 10%"><input type="text" name="{{ part_number }}"' +
-                '                                                                 class="form-control station_name"' +
-                '                                                                 placeholder="Set station name" maxlength="255"' +
-                '                                                                 required="" id="id_station_name"> </div>' +
-                '                                <div class="input-group-append">\n' +
-                '                                    <button class="btn btn-outline-danger specific-st-remove" type="button"><i\n' +
-                '                                            class="fas fa-trash"></i>\n' +
-                '                                    </button>\n' +
-                '                                </div>' +
-                '                    </td>\n' +
-                '                </tr>'
+            return '<tr>' +
+                '    <td colspan="3">' +
+                '        <div class="input-group mb-3">' +
+                '        <div style="margin-left: 10%"><input type="text" name="{{ part_number }}"' +
+                '                                                 class="form-control station_name"' +
+                '                                                 placeholder="Set station name" maxlength="255"' +
+                '                                                 required="" id="id_station_name"> </div>' +
+                '                <div class="input-group-append">' +
+                '                    <button class="btn btn-outline-danger specific-st-remove" type="button"><i' +
+                '                            class="fas fa-trash"></i>' +
+                '                    </button>' +
+                '                </div>' +
+                '    </td>' +
+                '</tr>'
         }
 
 
@@ -122,8 +122,8 @@
                         });
                     }
 
-                }else{
-                     alert("You must provide at least one station name!")
+                } else {
+                    alert("You must provide at least one station name!")
                 }
 
 
@@ -160,6 +160,18 @@
                 });
 
 
+            {% endif %}
+
+
+
+            {% if datas and errors|trans_not %}
+                $("#part-table tbody tr").find('div.input-group').append('<div class="input-group-append"><button type="button" class="btn btn-outline-primary select-script"><i class="fas fa-share"></i></button></div>');
+                $(".select-script").click(function () {
+                    var project_name = '{{ project_name }}';
+                    var part_number = '{{ part_number }}';
+                     var station_name =  ($(this).closest("div.input-group.mb-3").find('input').val());
+                    location.href = '/project/modify_script/' + project_name + '/' + part_number + '/' + station_name;
+                });
             {% endif %}
 
 

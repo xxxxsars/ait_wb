@@ -2,6 +2,17 @@
 {% load staticfiles %}
 {% load filter %}
 
+
+
+{% block head %}
+    <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
+
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/datatables.net-dt/css/select.dataTables.min.css" %}">
+
+
+{% endblock %}
+
 {% block js %}
     <script>
         function getCookie(name) {
@@ -19,6 +30,10 @@
             }
             return cookieValue;
         }
+
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        });
 
         function table_clone() {
             return '<tr>' +
@@ -40,10 +55,11 @@
 
 
         $(function () {
+
+
             $(document).on("click", ".specific-pn-remove", function () {
 
                 var remove_tr = $(this).closest('tr');
-                remove_tr.remove();
                 var part_number = remove_tr.find("input[name='part_number']").val();
                 var project_name = $('input[name="project_name"]').val();
 
@@ -78,7 +94,7 @@
 
 
                     }
-                }else{
+                } else {
                     remove_tr.remove();
                 }
 
@@ -89,46 +105,40 @@
 
         $(document).ready(function () {
 
+
+
             //auto close alert  after 4 seconds.
             $(".alert").delay(4000).slideUp(200, function () {
                 $(this).alert('close');
             });
 
 
-
-
-
             //set the post value to form
-            {% if datas and save_post %}
-                var saved_pn = {{ datas|lookup:"part_number" |safe}}
+            {% if datas  %}
+                var saved_pn = {{ datas|lookup:"part_number" |safe}};
 
-                    post_count = saved_pn.length;
+                post_count = saved_pn.length;
+
+                defualt_input_count = $("#part-number-table").find("input[name='part_number']").length
 
 
-                //first input was django default create
-                if (post_count > 1) {
-
-                    for (i = 1; i <= count; i++) {
+                //ignore default input
+                if (post_count > defualt_input_count) {
+                    for (i = defualt_input_count; i < post_count; i++) {
                         $("#part-number-table tbody").append(table_clone());
                     }
 
-
+                    //set value for new input
                     $("#part-number-table tbody tr").each(function () {
-
-                        $(this).find("input[name='part_number']").val(saved_pn[($(this).index())])
-
+                        if ($(this).index() >= defualt_input_count) {
+                            $(this).find("input[name='part_number']").val(saved_pn[($(this).index())])
+                        }
                     })
-
                 };
 
                 $('input[name="project_name"]').val({{ datas|lookup:"project_name"|safe}});
 
             {% endif %}
-
-
-
-
-
 
             $("#add_pratnumber").click(function () {
                 var clone_html = table_clone();
@@ -179,6 +189,27 @@
                     }
                 }
             });
+
+            {% if datas and c.errors|trans_not  and errors|trans_not%}
+                $("#part-number-table tbody tr").each(function () {
+                    $(this).find('div.input-group').append(
+                        '<div class="input-group-append">' +
+                        '<button class="btn btn-outline-primary set-station" type="button">' +
+                        '<i class="fas fa-share"></i></button></div>')
+
+
+                });
+
+
+
+                $(".set-station").click(function () {
+                    var project_name = "{{ project_name }}";
+                    var part_number = ($(this).closest("div.input-group").find('input').val());
+                    location.href = "/project/modify_station/" + project_name + "/" + part_number;
+                });
+
+            {% endif %}
+
 
 
         });
@@ -247,8 +278,7 @@
 
             <div class="col-sm-9">
                 <input type="text" name="project_name" class="form-control" maxlength="255" required=""
-                       id="id_project_name"    {% if datas  is None  or save_post|trans_not %}
-                       value="{{ project_name }}"{% endif %}>
+                       id="id_project_name" value="{{ project_name }}">
             </div>
         </div>
 
@@ -282,9 +312,11 @@
                     <tr>
                         <td class="pn_input">
                             {% if pn.part_number == "DEFAULT" %}
-                                <input type="text" name="part_number" class="form-control" maxlength="255" required=""
-                                       id="id_part_number" readonly="readonly" value="{{ pn.part_number }}">
-
+                                <div class="input-group ">
+                                    <input type="text" name="part_number" class="form-control" maxlength="255"
+                                           required=""
+                                           id="id_part_number" readonly="readonly" value="{{ pn.part_number }}">
+                                </div>
                             {% else %}
 
                                 <div class="input-group ">
@@ -298,6 +330,7 @@
                                         </button>
                                     </div>
 
+
                                 </div>
                             {% endif %}
                         </td>
@@ -307,9 +340,11 @@
             </tbody>
         </table>
 
+
         <div class=text-center>
-            <button class="btn btn-outline-primary" type="submit"><i class="fas fa-save"></i> Save</button>
+            <button class="btn btn-outline-primary" type="submit">Save</button>
         </div>
+
 
     </form>
 

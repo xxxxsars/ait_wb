@@ -96,6 +96,11 @@ def create_project(request):
             project_name = request.POST['project_name']
             part_number = list(filter(None, request.POST.getlist("part_number")))
 
+            # check post data is valid
+            if len([item for item, count in dict(collections.Counter(part_number)).items() if count > 1]) > 0:
+                errors = "Your PartNumber had some has some repetition."
+                return render(request, "project_modify.html", locals())
+
             r = input_part_station
             if len([e for e in part_number if r.search(e) == None]) > 0:
                 errors = "Your PartNumber not match the PartNumber rules."
@@ -162,7 +167,7 @@ def modify_project(request, project_name, message=None):
         susessful = message
 
     if request.POST:
-        save_post = True
+        datas = dict(request.POST)
         # project_create
         c = CreateProjectForm(request.POST)
 
@@ -195,13 +200,12 @@ def modify_project(request, project_name, message=None):
                 # no matter project modify should handle PartNumber
                 modify_part_number(post_project_name, post_part_numbers)
                 message = "Modify Project successfully!"
-                save_post = False
                 return redirect("/project/modify_project/%s/%s" % (post_project_name, message))
             # no matter project modify should handle PartNumber
             modify_part_number(post_project_name, post_part_numbers)
             susessful = "Modify Project successfully!"
-            save_post = False
             return render(request, "project_modify.html", locals())
+
         else:
             datas = dict(request.POST)
             return render(request, "project_modify.html", locals())
@@ -414,7 +418,7 @@ def select_script(request, project_name, part_number, station_name):
             else:
                 # the testScript ini will be save and used the db order save it.
                 save_ini_contents(ini_content_map, testScript_order_list, token)
-                save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids, None)
+                save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids)
 
             return render(request, "confirm.html", locals())
 
@@ -514,7 +518,7 @@ def modify_script(request, project_name, part_number, station_name):
             # if not conflicted will save ,it had conflicted will change the page to the  conflicted page
             else:
                 save_ini_contents(ini_content_map, testScript_order_list, token)
-                save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids, None)
+                save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids)
 
             return render(request, "confirm.html", locals())
 
@@ -546,7 +550,7 @@ def save_ini(request,token):
                 chose_map = eval(request.POST["chose_files"])
                 save_task_files(token, username, project_name, part_number, station_name, task_list, chose_map)
             else:
-                save_task_files(token, username, project_name, part_number, station_name, task_list, None)
+                save_task_files(token, username, project_name, part_number, station_name, task_list)
 
             # save the new order to db
             sorted_list = request.POST.getlist("sroted_list[]")
@@ -555,7 +559,8 @@ def save_ini(request,token):
         return HttpResponse(status=200)
 
 
-def save_task_files(token ,username, project_name, part_number, station_name,task_list,chose_files):
+def save_task_files(token ,username, project_name, part_number, station_name,task_list,chose_files=None):
+    print(token ,username, project_name, part_number, station_name,task_list,chose_files)
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     config_path = handle_path(path, "ait_config")
     script_path = "TestScriptRes"
@@ -825,28 +830,6 @@ def save_modify_tasks(post, station_instance, posted_ids):
                 argument_name = arg.argument.argument
                 arg.default_value = post["arg_%s_%s_%s" % (argument_name, id, arg.project_task_id.id)]
                 arg.save()
-
-
-def save_project_files(token, username, project_name, part_number, station_name):
-    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-    source_path = handle_path(path, "download_folder")
-
-    source_zip = os.path.join(source_path, "%s.zip" % token)
-    dest_path = handle_path(source_path, username, project_name, part_number, station_name)
-
-    if not os.path.exists(dest_path):
-        os.makedirs(dest_path)
-
-    else:
-        for root, dirs, files in os.walk(dest_path):
-            for f in files:
-                os.unlink(os.path.join(root, f))
-            for d in dirs:
-                shutil.rmtree(os.path.join(root, d))
-
-    with zipfile.ZipFile(source_zip, 'r') as zip_ref:
-        zip_ref.extractall(dest_path)
 
 
 def save_testScript_order(project_name, part_number, station_name, sorted_list,force_change_sortted):
