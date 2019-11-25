@@ -542,15 +542,10 @@ def save_ini(request,token):
             project_name = path[0]
             part_number = path[1]
             station_name = path[2]
-            task_list = request.POST.getlist("task_list[]")
 
 
-            # save new ini and create new zip file for download used.
-            if "chose_files" in request.POST:
-                chose_map = eval(request.POST["chose_files"])
-                save_task_files(token, username, project_name, part_number, station_name, task_list, chose_map)
-            else:
-                save_task_files(token, username, project_name, part_number, station_name, task_list)
+            # save new ini
+            save_token_ini(token ,username, project_name, part_number, station_name)
 
             # save the new order to db
             sorted_list = request.POST.getlist("sroted_list[]")
@@ -559,12 +554,17 @@ def save_ini(request,token):
         return HttpResponse(status=200)
 
 
+def save_token_ini(token ,username, project_name, part_number, station_name):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    dest_path = handle_path(path, "download_folder", username, project_name, part_number, station_name)
+    ini_path = os.path.join(handle_path(path, "download_folder"), "%s.ini" % token)
+    shutil.copy2(ini_path, os.path.join(dest_path,"testScript.ini"))
+    os.remove(ini_path)
+
 def save_task_files(token ,username, project_name, part_number, station_name,task_list,chose_files=None):
-    print(token ,username, project_name, part_number, station_name,task_list,chose_files)
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     config_path = handle_path(path, "ait_config")
     script_path = "TestScriptRes"
-    ini_path = os.path.join(handle_path(path, "download_folder"), "%s.ini" % token)
     dest_path = handle_path(path,"download_folder",username, project_name, part_number, station_name)
     shutil.rmtree(dest_path)
 
@@ -576,49 +576,16 @@ def save_task_files(token ,username, project_name, part_number, station_name,tas
         for file, task_id in chose_files.items():
             chose_files_path.append(os.path.join(handle_path(path, "upload_folder", task_id), file))
 
-    compressed_file = []
-    for task_id in task_list:
-        file_path = handle_path(path, "upload_folder", task_id)
-
-        # copy the task file to the user folder
-        attach_path = handle_path(file_path, "attachment")
-        for root, folders, files in os.walk(file_path):
-            for f in files:
-                # ignore attachment path
-                if root != attach_path:
-                    if f not in compressed_file:
-                        full_file_path = os.path.join(root, f)
-                        # remove unless path  prefix
-                        dest_copy_file = os.path.relpath(full_file_path, file_path)
-                        dest = handle_path(dest_path, script_path, os.path.dirname(dest_copy_file))
-                        # if had conflicted files will only copy chose files.
-                        if chose_files!=None:
-
-                            if dest_copy_file in list(chose_files.keys()):
-                                if full_file_path in chose_files_path:
-                                    shutil.copy2(full_file_path, os.path.join(dest, (os.path.basename(dest_copy_file))))
-                                    compressed_file.append(f)
-                                elif f not in compressed_file:
-                                    shutil.copy2(full_file_path, os.path.join(dest, (os.path.basename(dest_copy_file))))
-                                    compressed_file.append(f)
-
-                        # if did not have conflict_files will coop all task file to user folder
-                        else:
-                            # create the dest file path
-                            shutil.copy2(full_file_path,os.path.join(dest,(os.path.basename(dest_copy_file))))
-                            compressed_file.append(f)
-
-    # add default configuration
-    for root, folders, files in os.walk(config_path):
-        for f in files:
-            full_file_path = os.path.join(root, f)
-            dest =  os.path.join(dest_path,os.path.relpath(full_file_path, config_path))
-            shutil.copy2(full_file_path, dest)
+    # create task files information json file
+    json_data = {}
+    with open( os.path.join(dest_path ,"file_info.json"),"w") as f:
+        json_data["task_list"] = task_list
+        if chose_files!=None:
+            json_data["chose_file"] = chose_files
+        json.dump(json_data,f)
 
     # add ini
-    shutil.copy2(ini_path, os.path.join(dest_path,"testScript.ini"))
-
-    os.remove(ini_path)
+    save_token_ini(token, username, project_name, part_number, station_name)
 
 def task_files(task_list):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

@@ -13,7 +13,7 @@ from project.models import *
 import os, platform, shutil,zipfile
 from io import StringIO,BytesIO
 
-from common.handler import handle_path
+from common.handler import handle_path,get_download_file
 from django.http import StreamingHttpResponse
 from project.models import *
 
@@ -136,19 +136,15 @@ def GetScriptSorted(request):
 def download(request,project_name,part_number,station_name):
     if request.method == "GET":
         station_instance = get_station_instacne(project_name, part_number, station_name)
-        owner_user = station_instance.project_pn_id.project_name.owner_user
-        path = handle_path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-                           "download_folder", str(owner_user), project_name, part_number, station_name)
-
+        owner_user =station_instance.project_pn_id.project_name.owner_user.username
 
         s = BytesIO()
         zf = zipfile.ZipFile(s, "w",compression=zipfile.ZIP_DEFLATED)
-
+        files = get_download_file(owner_user,project_name, part_number, station_name)
         # the array inner dict key is source file path ,value is target file path
-        for root, folders, files in os.walk(path):
-            for sfile in files:
-                aFile = os.path.join(root, sfile)
-                zf.write(aFile, os.path.relpath(aFile, path))
+        for f in files:
+            zf.write(f[0], f[1])
+
         zf.close()
         response = HttpResponse(s.getvalue(), content_type='application/x-zip-compressed')
         response['Content-Disposition'] = 'attachment; filename="%s.zip"' % datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')

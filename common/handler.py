@@ -6,7 +6,7 @@ import time
 import hashlib
 from common.limit import *
 import os
-
+import json
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'FactoryWeb.settings')
 import django
@@ -149,19 +149,19 @@ def modify_pn_folder(username, project_name, old_name, new_name):
 
 def get_attach_name(task_id):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    attach_path = os.path.join( handle_path(path,"upload_folder",task_id),"attachment")
+    attach_path = os.path.join(handle_path(path, "upload_folder", task_id), "attachment")
 
     if os.path.exists(attach_path):
-        return  os.listdir(attach_path)[0]
+        return os.listdir(attach_path)[0]
     return ""
 
 
 def get_modify_time(task_id):
-    path =(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    root_path  = handle_path(path, "upload_folder", task_id)
+    path = (os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    root_path = handle_path(path, "upload_folder", task_id)
     updata_file_path = ""
     for file in os.listdir(root_path):
-        if file != "attachment" and re.search("^\.",file) ==None:
+        if file != "attachment" and re.search("^\.", file) == None:
             file_path = os.path.join(root_path, file)
             updata_file_path = file_path
             # get first file
@@ -169,8 +169,65 @@ def get_modify_time(task_id):
     return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(updata_file_path)))
 
 
+def get_download_file(owner_user, project_name, part_number, station_name):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    config_path = handle_path(path, "ait_config")
+    project_path = handle_path(path, "download_folder", owner_user, project_name, part_number, station_name)
+    json_file = os.path.join(project_path, "file_info.json")
+    script_path = "TestScriptRes"
+
+    json_data = json.load(open(json_file, 'r'))
+
+    task_list = json_data['task_list']
+    chose_files = None
+    if "chose_file" in json_data:
+        chose_files = json_data['chose_file']
+    chose_files_path = []
+    if chose_files != None:
+        for file, task_id in chose_files.items():
+            chose_files_path.append(os.path.join(handle_path(path, "upload_folder", task_id), file))
+
+    compressed_file = []
+
+    zip_files = []
+
+    for task_id in task_list:
+        file_path = handle_path(path, "upload_folder", task_id)
+        attach_path = handle_path(file_path, "attachment")
+        for root, folders, files in os.walk(file_path):
+            for f in files:
+                # ignore attachment path
+                if root != attach_path:
+                    if f not in compressed_file:
+                        full_file_path = os.path.join(root, f)
+                        # remove unless path  prefix
+                        dest_copy_file = os.path.relpath(full_file_path, file_path)
+                        dest = os.path.join(script_path, os.path.dirname(dest_copy_file))
+
+                        # if had conflicted files will only copy chose files.
+                        if chose_files != None:
+                            if dest_copy_file in list(chose_files.keys()):
+                                if full_file_path in chose_files_path:
+                                    zip_files.append(
+                                        (full_file_path, os.path.join(dest, (os.path.basename(dest_copy_file)))))
+                            elif f not in compressed_file:
+                                zip_files.append(
+                                    (full_file_path, os.path.join(dest, (os.path.basename(dest_copy_file)))))
+                                compressed_file.append(f)
+
+                        # if did not have conflict_files will coop all task file to user folder
+                        else:
+                            # create the dest file path
+                            zip_files.append(
+                                (full_file_path, os.path.join(dest, (os.path.basename(dest_copy_file)))))
+                            compressed_file.append(f)
 
 
+    zip_files.append((os.path.join(project_path,"testScript.ini"),"testScript.ini"))
+    for root, folders, files in os.walk(config_path):
+        for f in files:
+            full_file_path = os.path.join(root, f)
+            zip_files.append((full_file_path, f))
 
-
+    return zip_files
 

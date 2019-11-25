@@ -35,7 +35,6 @@ def delete_attachment(request):
         task_instance = Upload_TestCase.objects.get(task_id=task_id)
         task_instance.existed_attachment = False
 
-        print(request.user,request.auth)
         path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         remove_path = handle_path(path, "upload_folder",task_id,"attachment")
         shutil.rmtree(remove_path)
