@@ -1,0 +1,44 @@
+{
+  "name": "ng-sidebar",
+  "version": "1.0.1",
+  "keywords": [
+    "semantic-ui",
+    "sidebar"
+  ],
+  "main": [
+    "dist/ngSidebar.js"
+  ],
+  "ignore": [
+    "bower_components",
+    "node_modules",
+    "spec",
+    "src",
+    "vendor",
+    "Gruntfile.js",
+    "karma.conf.coffee",
+    "package.json",
+    "screenshot.png"
+  ],
+  "authors": [
+    {
+      "name": "Miller Augusto S. Martins",
+      "email": "miller.augusto@gmail.com",
+      "homepage": "http://br.linkedin.com/pub/miller-augusto/2a/38b/832/"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:miamarti/Semantic-UI.ngSidebar.git"
+  },
+  "homepage": "https://github.com/miamarti/Semantic-UI.ngSidebar",
+  "_release": "1.0.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "v1.0.1",
+    "commit": "64ca7fe32a29074089f2692758368db865bda02b"
+  },
+  "_source": "https://github.com/miamarti/Semantic-UI.ngSidebar.git",
+  "_target": "^1.0.1",
+  "_originalSource": "Semantic-UI.ngSidebar",
+  "_direct": true
+}

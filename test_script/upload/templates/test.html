@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load filter %}
+
+
+{% block head %}
+
+
+
+
+
+
+    <script src="{% static "bower_components/jquery-ui/jquery-ui.min.js" %}"></script>
+    <script src="{% static "bower_components/blueimp-file-upload/js/jquery.fileupload.js" %}"></script>
+
+
+
+{% endblock %}
+
+{% block css %}
+    <style>
+
+        #progress {
+            height: 10px;
+            width: 500px;
+            border: 1px solid gold;
+            position: relative;
+            border-radius: 5px;
+        }
+
+        #progress .progress-item {
+            height: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: chartreuse;
+            border-radius: 5px;
+            transition: width .3s linear;
+        }
+    </style>
+
+{% endblock %}
+
+
+
+{% block js %}
+    <script>
+
+
+        $(function () {
+            $('#fileupload').on('change', function () {
+                //get the file name
+                var fileName = $(this).val();
+                //replace the "Choose a file" label
+                $(this).next('.custom-file-label').html(fileName);
+            });
+
+
+        });
+
+        $(function () {
+            /* 1. OPEN THE FILE EXPLORER WINDOW */
+            $("#up_btn").click(function () {
+                $("#upload-form").submit()
+            });
+
+            var m = $('#modal-progress');
+
+            /* 2. INITIALIZE THE FILE UPLOAD COMPONENT */
+            $("#fileupload").fileupload({
+
+                dataType: 'json',
+                add: function (e, data) {
+                    $("#up_btn").off('click').on('click', function () {
+                        data.submit();
+
+                    });
+                },
+                sequentialUploads: true, /* 1. SEND THE FILES ONE BY ONE */
+                start: function (e) {  /* 2. WHEN THE UPLOADING PROCESS STARTS, SHOW THE MODAL */
+                    m.modal('show')
+                },
+                stop: function (e) {  /* 3. WHEN THE UPLOADING PROCESS FINALIZE, HIDE THE MODAL */
+                    //if small file will not close modal ,you should set the timeout
+                    setTimeout(function () {
+                        m.modal('hide')
+                    }, 1000)
+                },
+                progressall: function (e, data) {  /* 4. UPDATE THE PROGRESS BAR */
+                    var progress = parseInt(data.loaded / data.total * 100, 10);
+                    var strProgress = progress + "%";
+
+                    $(".progress-bar").css({"width": strProgress});
+                    $(".progress-bar").text(strProgress);
+
+                },
+                done: function (e, data) {  /* 3. PROCESS THE RESPONSE FROM THE SERVER */
+                    if (data.result.is_valid) {
+                        console.log(data.result.name)
+                    }
+
+
+                }
+            });
+
+        });
+    </script>
+{% endblock %}
+
+{% block body %}
+
+
+
+    <div class="modal fade" id="modal-progress" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="exampleModalLabel">Uploading...</h4>
+                </div>
+
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="test">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+
+
+                <div class="modal-body">
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: 0%;">0%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form enctype="multipart/form-data" method="post" action="" id="upload-form">{% csrf_token %}
+        {{ p.task_id }}
+        <div class="input-group mb-3">
+            <div class="custom-file">
+                {{ p.file }}
+                <label class="custom-file-label" for="inputGroupFile02">Choose file</label>
+            </div>
+            <div class="input-group-append">
+                <button type="button" class="btn btn-primary js-upload-photos" id="up_btn">
+                    <span class="glyphicon glyphicon-cloud-upload"></span> Upload
+                </button>
+            </div>
+        </div>
+
+
+    </form>
+
+
+
+
+
+
+
+
+
+{% endblock %}

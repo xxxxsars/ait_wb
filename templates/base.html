@@ -36,6 +36,26 @@
         }
 
     </style>
+
+
+    <script>
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+    </script>
     <!--extend css -->
     {% block css %}
 
@@ -98,7 +118,7 @@
                 <ul class="nav navbar-nav navbar-right">
                     <li><a class="nav-link" href="{% url "login" %}"><i class="fas fa-sign-in-alt"></i> Log in</a></li>
                     <li><a class="nav-link" href="{% url "logout" %}">Log out</a></li>
-                    <li class="navbar-text"><i class="fas fa-user"></i>{{ request.user.username }}</li>
+                    <li class="navbar-text"><i class="fas fa-user"></i> {{ request.user.username }}</li>
                 </ul>
             </div>
         {% endif %}

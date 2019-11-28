@@ -6,6 +6,16 @@ from common.limit import input_task_id, input_argument, input_script_name, input
     valid_default_value
 
 
+
+class PhotoForm(forms.Form):
+    task_id = forms.CharField(max_length=255, required=True, widget=forms.TextInput(attrs={'class': 'form-control'}),
+                              error_messages={'required': 'ID is empyt!', "invalid": "Please insert valid ID"})
+
+    file = forms.FileField(
+                           widget=forms.FileInput(attrs={ "id": "fileupload",'class': 'custom-file-input'}),
+                           error_messages={'required': 'Please update zip file.',
+                                           "invalid": "Please update valid zip file"},required=False)
+
 class UploadFileForm(forms.Form):
     task_id = forms.CharField(max_length=255, required=True, widget=forms.TextInput(attrs={'class': 'form-control'}),
                               error_messages={'required': 'ID is empyt!', "invalid": "Please insert valid ID"})
@@ -23,7 +33,7 @@ class UploadFileForm(forms.Form):
                                                   "invalid": "Please insert valid script name."})
 
     file = forms.FileField(required=True,
-                           widget=forms.FileInput(attrs={'class': 'custom-file-input', "id": "zip_file"}),
+                           widget=forms.FileInput(attrs={'class': 'form-control custom-file-input', "id": "zip_file"}),
                            error_messages={'required': 'Please update zip file.',
                                            "invalid": "Please update valid zip file"})
 
@@ -78,8 +88,8 @@ class UploadFileForm(forms.Form):
 
 
 class ArgumentForm(forms.Form):
-    argument = forms.CharField(max_length=255, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    description = forms.CharField(max_length=255, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    argument = forms.CharField(max_length=255, required=True,widget=forms.TextInput(attrs={'class': 'form-control'}))
+    description = forms.CharField(max_length=255, required=True,widget=forms.TextInput(attrs={'class': 'form-control'}))
 
     default_value = forms.CharField(max_length=255, required=True,
                                     widget=forms.TextInput(attrs={'class': 'form-control'}),
