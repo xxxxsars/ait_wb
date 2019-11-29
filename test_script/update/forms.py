@@ -4,8 +4,6 @@ import zipfile
 from common.limit import input_script_name, input_zip_file_name,input_task_name
 
 
-
-
 class UpdateFileForm(forms.Form):
     task_id = forms.CharField(max_length=255, required=True, widget=forms.TextInput(attrs={'class': 'form-control'}),
                               error_messages={'required': 'ID is empyt!', "invalid": "Please insert valid ID"})
@@ -31,29 +29,6 @@ class UpdateFileForm(forms.Form):
 
     attachment = forms.FileField(widget=forms.FileInput(attrs={'class': 'custom-file-input', "id": "attachment_file"}),
                                  required=False)
-
-    def clean_task_name(self):
-        task_name = self.cleaned_data['task_name']
-        task_id = self.cleaned_data['task_id']
-
-        old_task_name = Upload_TestCase.objects.get(task_id=task_id).task_name
-
-        if task_name !=old_task_name:
-            if Upload_TestCase.objects.filter(task_name=task_name).count():
-                raise forms.ValidationError("Your TestCase Name cannot be repeated.Please Update it.")
-
-        r = input_task_name
-        if r.search(task_name) != None:
-            raise forms.ValidationError("Your TestCase Name only allow number, letter and underline.")
-
-    def clean_script_name(self):
-        script_name = self.cleaned_data['script_name']
-        r = input_script_name
-
-        if r.search(script_name) == None:
-            raise forms.ValidationError(
-                'Your Script Name suffix must contains ".py" and name only allow number, letter and underline.')
-
     def clean_file(self):
         file = self.cleaned_data.get("file", False)
         if file != None:

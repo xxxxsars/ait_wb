@@ -97,38 +97,52 @@
 
         $(function () {
 
-            /* 1. OPEN THE FILE EXPLORER WINDOW */
+
+        });
+
+
+        $(document).ready(function () {
 
 
             var m = $('#modal-progress');
+            var filesList = [],
+                paramNames = [],
+                elem = $("#upload-form");
+
             /* 2. INITIALIZE THE FILE UPLOAD COMPONENT */
-            $("#zip_file").fileupload({
+            file_upload = elem.fileupload({
                 dataType: 'json',
-                add: function (e, data) {
+                singleFileUploads: false,
+                autoUpload: false,
+                sequentialUploads: true,
+                {#formData: $("#upload-form").serializeArray(),#}
 
-                    $("#upload_btn").click(function (e) {
+                {% comment %}               add: function (e, data) {
 
-                        if ($("#upload-form").data('bootstrapValidator').isValid()) {
-                            // Make the ajax call here.c
-                            data.submit();
-                        }
-                    });
-                    {% comment %}                    $("#upload_btn").off('click').on('click', function () {
 
-                                        });{% endcomment %}
+                                   $("#upload_btn").click(function (e) {
+                                       if ($("#upload-form").data('bootstrapValidator').isValid()) {
+                                           // Make the ajax call here.
+                                           console.log(data);
+                                           data.submit();
+                                       }
+                                   });
+                                                       $("#upload_btn").off('click').on('click', function () {
 
-                },
-                sequentialUploads: true, /* 1. SEND THE FILES ONE BY ONE */
-                start: function (e) {  /* 2. WHEN THE UPLOADING PROCESS STARTS, SHOW THE MODAL */
+                                                       });
+
+                               },{% endcomment %}
+
+                start: function (e) {
                     m.modal('show')
                 },
-                stop: function (e) {  /* 3. WHEN THE UPLOADING PROCESS FINALIZE, HIDE THE MODAL */
+                stop: function (e) {
                     //if small file will not close modal ,you should set the timeout
                     setTimeout(function () {
                         m.modal('hide')
                     }, 1000)
                 },
-                progressall: function (e, data) {  /* 4. UPDATE THE PROGRESS BAR */
+                progressall: function (e, data) {
                     var progress = parseInt(data.loaded / data.total * 100, 10);
                     var strProgress = progress + "%";
 
@@ -138,9 +152,7 @@
                 },
                 done: function (e, data) {  /* 3. PROCESS THE RESPONSE FROM THE SERVER */
                     var json = $.parseJSON(data.jqXHR.responseText);
-                    console.log(json)
                     if (json.is_valid) {
-
                         location.href = "/testCase/modify/" + json.task_id + "/" + json.message
                     }
                 },
@@ -157,26 +169,30 @@
                                 '<span aria-hidden="true">&times;</span>' +
                                 '</button>' +
                                 '</div>')
-
                         })
                     }
-                    //auto close alert  after 4 seconds.
-                    $(".alert").delay(4000).slideUp(200, function () {
-                        $(this).alert('close');
 
-                    })
                 },
+            }).on("fileuploadadd", function (e, data) {
+                filesList.push(data.files[0]);
+                paramNames.push(e.delegatedEvent.target.name);
             });
 
-        });
 
-
-        $(document).ready(function () {
-
+            //if click save button will check all data is valid.
             $("#upload_btn").click(function (e) {
                 $('#upload-form').bootstrapValidator('validate');
+                if ($("#upload-form").data('bootstrapValidator').isValid()) {
 
+                    file_upload.fileupload('send', {
+                        files: filesList,
+                        paramName: paramNames,
+
+                    });
+                }
             });
+
+
             $("#upload-form").bootstrapValidator({
                 message: 'This value is not valid',
                 feedbackIcons: {
@@ -212,6 +228,7 @@
                                 regexp: /^[\w|_]+\.\w+$/,
                                 message: 'The script name must contains extensions.'
                             }
+
                         }
                     },
                     task_name: {
@@ -223,6 +240,10 @@
                             regexp: {
                                 regexp: /^[\w|_|\s]+$/,
                                 message: 'The task name is incorrect.'
+                            }, remote: {
+                                message: 'Your TestCase Name cannot be repeated.',
+                                url: '/testCase/valid_script_name/',
+                                delay: 1000
                             }
                         }
                     },
@@ -247,7 +268,31 @@
                             regexp: {
                                 regexp: /^\w+$/,
                                 message: 'The argument is incorrect.'
+                            },
+
+                            callback: {
+                                message: 'The argument can not be repreated.',
+                                callback: function (value, validator, $field) {
+                                    var arg_array = [];
+                                    $("input[name='argument']").each(function () {
+                                        arg_value = $(this).val();
+                                        arg_array.push(arg_value);
+                                    });
+
+                                    var count = 0;
+                                    for (var i = 0; i < arg_array.length; i++) {
+                                        count += (arg_array[i] == value);
+                                    }
+
+                                    if (count > 1) {
+                                        return false
+                                    } else {
+                                        return true
+                                    }
+
+                                }
                             }
+
                         }
                     },
                     default_value: {
@@ -270,14 +315,6 @@
                 .on('success.field.bv', function (e, data) {
                     $("#upload_btn").removeAttr('disabled');
                 });
-
-
-
-
-            //auto close alert  after 4 seconds.
-            $(".alert").delay(4000).slideUp(200, function () {
-                $(this).alert('close');
-            });
 
 
             var new_row = '<tr>' +

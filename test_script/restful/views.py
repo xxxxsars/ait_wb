@@ -1,7 +1,7 @@
 import os
 from django.http import StreamingHttpResponse
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import HttpResponse,JsonResponse
 
 from rest_framework import status
 from rest_framework import viewsets
@@ -141,3 +141,13 @@ def attach_download(request,task_id):
     response['Content-Type'] = 'application/octet-stream'
     response['Content-Disposition'] = 'attachment;filename="%s"'%file_name
     return response
+
+
+@login_required(login_url="/user/login/")
+def valid_script_name(request):
+    if request.GET:
+        task_name = request.GET["task_name"]
+        if Upload_TestCase.objects.filter(task_name=task_name).count():
+            return JsonResponse({"valid":False})
+        else:
+            return JsonResponse({"valid": True})

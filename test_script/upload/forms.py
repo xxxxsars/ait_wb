@@ -11,8 +11,16 @@ class PhotoForm(forms.Form):
     task_id = forms.CharField(max_length=255, required=True, widget=forms.TextInput(attrs={'class': 'form-control'}),
                               error_messages={'required': 'ID is empyt!', "invalid": "Please insert valid ID"})
 
-    file = forms.FileField(
-                           widget=forms.FileInput(attrs={ "id": "fileupload",'class': 'custom-file-input'}),
+    file0 = forms.FileField(
+                           widget=forms.FileInput(attrs={ "id": "fileupload0",'class': 'custom-file-input'}),
+                           error_messages={'required': 'Please update zip file.',
+                                           "invalid": "Please update valid zip file"},required=False)
+    file1 = forms.FileField(
+                           widget=forms.FileInput(attrs={ "id": "fileupload1",'class': 'custom-file-input'}),
+                           error_messages={'required': 'Please update zip file.',
+                                           "invalid": "Please update valid zip file"},required=False)
+    file2 = forms.FileField(
+                           widget=forms.FileInput(attrs={ "id": "fileupload2",'class': 'custom-file-input'}),
                            error_messages={'required': 'Please update zip file.',
                                            "invalid": "Please update valid zip file"},required=False)
 
@@ -33,11 +41,11 @@ class UploadFileForm(forms.Form):
                                                   "invalid": "Please insert valid script name."})
 
     file = forms.FileField(required=True,
-                           widget=forms.FileInput(attrs={'class': 'form-control custom-file-input', "id": "zip_file"}),
+                           widget=forms.FileInput(attrs={'class': 'form-control custom-file-input', "id": "zip_file" ,"accept":".zip"}),
                            error_messages={'required': 'Please update zip file.',
                                            "invalid": "Please update valid zip file"})
 
-    attachment = forms.FileField(widget=forms.FileInput(attrs={'class': 'custom-file-input', "id": "attachment_file"}),required=False)
+    attachment = forms.FileField(widget=forms.FileInput(attrs={'class': 'form-control custom-file-input', "id": "attachment_file"}),required=False)
 
 
 
