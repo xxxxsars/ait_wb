@@ -110,8 +110,8 @@
                         $.ajax({
                             url: "/testCase/delete/" + taskID, // the endpoint,commonly same url
                             type: 'DELETE',
-                            data: {
-                                csrfmiddlewaretoken: getCookie('csrftoken'),
+                            beforeSend: function (xhr) {
+                                xhr.setRequestHeader("X-CSRFToken", getCookie("csrftoken"));
                             },
 
                             success: function (json) {

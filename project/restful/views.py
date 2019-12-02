@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, RemoteUserAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 from django.http import HttpResponse
 from django.http.response import JsonResponse
@@ -21,7 +22,7 @@ from project.models import *
 
 
 @api_view(["POST"])
-@authentication_classes((BasicAuthentication,SessionAuthentication))
+@authentication_classes((SessionAuthentication,))
 def DeleteProjectStationView(request):
     if request.method == "POST":
         project_name = request.data.get("project_name")
@@ -45,7 +46,7 @@ def DeleteProjectStationView(request):
 
 
 @api_view(["POST"])
-@authentication_classes((BasicAuthentication,SessionAuthentication))
+@authentication_classes((SessionAuthentication,))
 def DeleteProjectPNView(request):
     if request.method == "POST":
 
@@ -68,7 +69,7 @@ def DeleteProjectPNView(request):
 
 
 @api_view(["POST"])
-@authentication_classes((SessionAuthentication,BasicAuthentication))
+@authentication_classes((SessionAuthentication,))
 @permission_classes([IsAdminUser])
 def ModifyOwnerUser(request):
     if request.method == "POST":
@@ -96,7 +97,7 @@ def ModifyOwnerUser(request):
 class DeleteProjectView(viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
-    authentication_classes = [BasicAuthentication ]
+    authentication_classes = [SessionAuthentication ]
     http_method_names = ['delete']
 
 
@@ -113,7 +114,7 @@ class DeleteProjectView(viewsets.ModelViewSet):
 
 
 @api_view(["POST"])
-@authentication_classes((BasicAuthentication,SessionAuthentication))
+@authentication_classes((SessionAuthentication,))
 def GetScriptSorted(request):
     if request.method == "POST":
         project_name = request.data.get("project_name")
@@ -132,7 +133,7 @@ def GetScriptSorted(request):
 
 
 @api_view(["GET"])
-@authentication_classes((BasicAuthentication,SessionAuthentication))
+@authentication_classes((SessionAuthentication,))
 def download(request,project_name,part_number,station_name):
     if request.method == "GET":
         station_instance = get_station_instacne(project_name, part_number, station_name)
@@ -156,7 +157,8 @@ def download(request,project_name,part_number,station_name):
 class DeleteProjectTaskView(viewsets.ModelViewSet):
     queryset = Project_task.objects.all()
     serializer_class = ProjectTaskSerializer
-    authentication_classes = [BasicAuthentication ]
+    authentication_classes = [SessionAuthentication, ]
+    permission_classes = [IsAuthenticated]
     http_method_names = ['delete']
 
     # permission_classes = (IsAdminUser,)

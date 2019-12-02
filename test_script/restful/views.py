@@ -21,7 +21,7 @@ from common.handler import handle_path
 
 from django.contrib.auth import login
 @api_view(["POST"])
-@authentication_classes((BasicAuthentication,SessionAuthentication))
+@authentication_classes((SessionAuthentication,))
 def delete_attachment(request):
     if request.method == "POST":
         task_ids = [ u.task_id  for u in Upload_TestCase.objects.all() ]
@@ -44,7 +44,7 @@ def delete_attachment(request):
 
 
 @api_view(["GET"])
-@authentication_classes((BasicAuthentication,SessionAuthentication))
+@authentication_classes((SessionAuthentication,))
 def script_download(request,task_id):
     if request.method == "GET":
         path = handle_path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
@@ -71,7 +71,7 @@ def script_download(request,task_id):
 
 
 @api_view(["POST"])
-@authentication_classes((BasicAuthentication,SessionAuthentication))
+@authentication_classes((SessionAuthentication,))
 def DeleteArgumentView(request, format=None):
     if request.method == "POST":
         task_id = request.data.get("task_id")
@@ -94,7 +94,7 @@ def DeleteArgumentView(request, format=None):
 class DeleteTestCaseView(viewsets.ModelViewSet):
     queryset = Upload_TestCase.objects.all()
     serializer_class = TaskSerializer
-    authentication_classes = [BasicAuthentication,]
+    authentication_classes = [SessionAuthentication,]
     permission_classes = [IsAdminUser,]
     http_method_names = ['delete']
 

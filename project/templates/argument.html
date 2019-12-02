@@ -153,9 +153,8 @@
                         $.ajax({
                             url: "/project/task_delete/" + project_task_id, // the endpoint,commonly same url
                             type: 'DELETE',
-                            data: {
-                                csrfmiddlewaretoken: getCookie('csrftoken')
-                                ,
+                            beforeSend: function (xhr) {
+                                xhr.setRequestHeader("X-CSRFToken", getCookie("csrftoken"));
                             },
 
                             success: function (json) {
@@ -319,7 +318,7 @@
 
                         $("#saved-message").append(
                             '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
-                            '<strong>'+xhr.responseText+'</strong>' +
+                            '<strong>' + xhr.responseText + '</strong>' +
                             '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
                             '<span aria-hidden="true">&times;</span>' +
                             '</button>' +
@@ -378,7 +377,7 @@
             $("#add_task").click(function (e) {
                 e.preventDefault();
 
-                save_count +=1;
+                save_count += 1;
                 task_ids = [];
 
                 $(".task_id").each(function () {

@@ -165,8 +165,8 @@
                                 $.ajax({
                                     url: "/project/delete/" + projectName, // the endpoint,commonly same url
                                     type: 'DELETE',
-                                    data: {
-                                        csrfmiddlewaretoken: getCookie('csrftoken'),
+                                    beforeSend: function (xhr) {
+                                        xhr.setRequestHeader("X-CSRFToken", getCookie("csrftoken"));
                                     },
 
                                     success: function (json) {
@@ -490,7 +490,7 @@
 
 
                                         {% if  st|lookup:"download" == False %}
-                                             <button class="dropdown-item" type="button" disabled>Download</button>
+                                            <button class="dropdown-item" type="button" disabled>Download</button>
                                         {% else %}
                                             <button class="dropdown-item" type="button">Download</button>
                                         {% endif %}
