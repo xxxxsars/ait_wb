@@ -6,4 +6,6 @@ from rest_framework.routers import DefaultRouter
 urlpatterns = [
     url("^modify/(?P<task_id>\w{6})/$", modify_index, name="script_modify"),
     url("^modify/(?P<task_id>\w{6})/(?P<message>.+)/$", modify_index,),
+    url("update/",update_API,name="testCase_update"),
+
 ]

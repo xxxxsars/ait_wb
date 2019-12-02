@@ -1,16 +1,65 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 {% load filter %}
+
+
+
+{% block head %}
+
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/bootstrapvalidator/dist/css/bootstrapValidator.min.css" %}">
+
+    <script src="{% static "bower_components/jquery-ui/jquery-ui.min.js" %}"></script>
+    <script src="{% static "bower_components/blueimp-file-upload/js/jquery.fileupload.js" %}"></script>
+
+    <script src="{% static "bower_components/bootstrapvalidator/dist/js/bootstrapValidator.min.js" %}"></script>
+    <script src="{% static "bower_components/bootstrapvalidator/dist/js/language/en_US.js" %}"></script>
+
+{% endblock %}
+
 {% block css %}
     <style>
         h3 {
             text-align: center;
         }
 
-        .tooltip-inner {
-            text-align: left;
+        .help-block {
+            color: #a94442;
         }
 
+        .form-group.has-error.has-danger .form-control-label {
+            color: #a94442;
+        }
+
+        .form-group.has-error.has-danger .form-control {
+            border: 1px solid #a94442;
+            box-shadow: #a94442;
+        }
+
+        .has-success .form-control {
+            border-color: #3c763d;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+        }
+
+        .form-control-feedback {
+
+            top: 25px;
+            right: 0;
+            z-index: 2;
+            width: 34px;
+            height: 34px;
+            line-height: 34px;
+            text-align: center;
+        }
+
+        .has-error .form-control-feedback {
+            color: #a94442;
+        }
+
+        .has-success .form-control-feedback {
+            color: #3c763d;
+        }
 
     </style>
 {% endblock %}
@@ -18,11 +67,6 @@
 
 {% block js %}
     <script>
-
-        $(function () {
-            $('[data-toggle="tooltip"]').tooltip()
-        });
-
         function getCookie(name) {
             var cookieValue = null;
             if (document.cookie && document.cookie != '') {
@@ -55,19 +99,257 @@
         });
 
         $(document).ready(function () {
+
+            //auto close alert  after 4 seconds.
+            $(".alert").delay(4000).slideUp(200, function () {
+                $(this).alert('close');
+
+            })
+
+
             //if on modify page will show the file info
             {% if task_info.existed_attachment %}
                 $("#attachment_file").next('.custom-file-label').html('<p class="text-dark">' + '{{ attach_name }}' + '</div>');
             {% endif %}
 
-            var download_zip_name = "{{ task_info.task_id }}" +".zip "+" ({{ modify_time }})";
+            var download_zip_name = "{{ task_info.task_id }}" + ".zip " + " ({{ modify_time }})";
             $("#zip_file").next('.custom-file-label').html(download_zip_name);
 
 
-            //auto close alert  after 4 seconds.
-            $(".alert").delay(4000).slideUp(200, function () {
-                $(this).alert('close');
+            var m = $('#modal-progress');
+            var filesList = [],
+                paramNames = [],
+                elem = $("#update-form");
+
+
+            /* 2. INITIALIZE THE FILE UPLOAD COMPONENT */
+            file_update = elem.fileupload({
+                dataType: 'json',
+                singleFileUploads: false,
+                autoUpload: false,
+                sequentialUploads: true,
+
+
+                start: function (e) {
+                    m.modal('show')
+                },
+                stop: function (e) {
+                    //if small file will not close modal ,you should set the timeout
+                    setTimeout(function () {
+                        m.modal('hide')
+                    }, 1000)
+                },
+                progressall: function (e, data) {
+                    var progress = parseInt(data.loaded / data.total * 100, 10);
+                    var strProgress = progress + "%";
+
+                    $(".progress-bar").css({"width": strProgress});
+                    $(".progress-bar").text(strProgress);
+
+                },
+                done: function (e, data) {  /* 3. PROCESS THE RESPONSE FROM THE SERVER */
+                    $("div.alert").alert("close");
+                    var json = $.parseJSON(data.jqXHR.responseText);
+                    if (json.is_valid) {
+                        location.href = "/testCase/modify/" + json.task_id + "/" + json.message
+
+                    }
+                },
+                fail: function (e, data) {
+                    $("div.alert").alert("close");
+
+                    var json = $.parseJSON(data.jqXHR.responseText);
+                    if (json.is_valid == false) {
+                        $("#message").empty();
+                        var error_messages = json.error;
+                        $.each(error_messages, function (index, value) {
+                            $("#message").append(
+                                '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                                '<strong>' + value + '</strong>' +
+                                '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                                '<span aria-hidden="true">&times;</span>' +
+                                '</button>' +
+                                '</div>')
+                        });
+
+                        //auto close alert  after 4 seconds.
+                        $(".alert").delay(4000).slideUp(200, function () {
+                            $(this).alert('close');
+
+                        });
+
+                        //disable download zip
+                        $("#download_script").attr('disabled', 'disabled');
+                    }
+
+                },
+            }).on("fileuploadadd", function (e, data) {
+                filesList.push(data.files[0]);
+                paramNames.push(e.delegatedEvent.target.name);
             });
+
+
+            //if click save button will check all data is valid.
+            $("#update_btn").click(function (e) {
+                $('#update-form').bootstrapValidator('validate');
+                if ($("#update-form").data('bootstrapValidator').isValid()) {
+
+                    //if had updated file will use progress update
+                    if (filesList.length > 0) {
+                        file_update.fileupload('send', {
+                            files: filesList,
+                            paramName: paramNames,
+
+                        });
+                        //else using ajax update
+                    } else {
+
+
+                        $.ajax({
+                            url: "{% url "testCase_update" %}",
+                            type: 'POST',
+                            data: $("#update-form").serialize(),
+
+                            success: function (json) {
+                                $("div.alert").alert("close");
+                                location.href = "/testCase/modify/" + json.task_id + "/" + json.message
+
+                            },
+
+                            //處理失敗時會做的動作
+                            error: function (xhr, errmsg, err) {
+
+                                $("div.alert").alert("close");
+
+
+                                var json = $.parseJSON(xhr.responseText);
+                                if (json.is_valid == false) {
+                                    $("#message").empty();
+                                    var error_messages = json.error;
+                                    $.each(error_messages, function (index, value) {
+                                        $("#message").append(
+                                            '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                                            '<strong>' + value + '</strong>' +
+                                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                                            '<span aria-hidden="true">&times;</span>' +
+                                            '</button>' +
+                                            '</div>')
+                                    });
+
+                                    //auto close alert  after 4 seconds.
+                                    $(".alert").delay(4000).slideUp(200, function () {
+                                        $(this).alert('close');
+
+                                    })
+                                    //disable download zip
+                                    $("#download_script").attr('disabled', 'disabled');
+                                }
+
+                            }
+                        });
+                    }
+
+                }
+            });
+
+
+            $("#update-form").bootstrapValidator({
+                message: 'This value is not valid',
+                feedbackIcons: {
+                    valid: 'fas fa-check',
+                    invalid: 'none',
+                    validating: 'fas fa-sync-alt'
+                },
+                fields: {
+
+                    script_name: {
+                        message: 'The script name is not valid',
+                        validators: {
+                            notEmpty: {
+                                message: 'The script name cannot be empty.'
+                            },
+                            regexp: {
+                                regexp: /^[\w|_]+\.\w+$/,
+                                message: 'The script name must contains extensions.'
+                            }
+
+                        }
+                    },
+                    task_name: {
+                        message: 'The task name is not valid',
+                        validators: {
+                            notEmpty: {
+                                message: 'The task name is required and cannot be empty.'
+                            },
+                            regexp: {
+                                regexp: /^[\w|_|\s]+$/,
+                                message: 'The task name is incorrect.'
+                            }
+                        }
+                    },
+                    argument: {
+                        message: 'The argument is not valid',
+                        validators: {
+                            notEmpty: {
+                                message: 'The argument cannot be empty.'
+                            },
+                            regexp: {
+                                regexp: /^\w+$/,
+                                message: 'The argument is incorrect.'
+                            },
+
+                            callback: {
+                                message: 'The argument can not be repreated.',
+                                callback: function (value, validator, $field) {
+                                    var arg_array = [];
+                                    $("input[name='argument']").each(function () {
+                                        arg_value = $(this).val();
+                                        arg_array.push(arg_value);
+                                    });
+
+                                    var count = 0;
+                                    for (var i = 0; i < arg_array.length; i++) {
+                                        count += (arg_array[i] == value);
+                                    }
+
+                                    if (count > 1) {
+                                        return false
+                                    } else {
+                                        return true
+                                    }
+
+                                }
+                            }
+
+                        }
+                    },
+                    default_value: {
+                        message: 'The default value is not valid',
+                        validators: {
+                            notEmpty: {
+                                message: 'The default value cannot be empty.'
+                            },
+                            regexp: {
+                                regexp: /^[\w|"|\\|\.]+$/,
+                                message: 'The default value is incorrect.'
+                            }
+                        }
+                    },
+                }
+            })
+                .on('error.field.bv', function (e, data) {
+                    $("#update_btn").attr('disabled', 'disabled');
+                })
+                .on('success.field.bv', function (e, data) {
+                    $("#update_btn").removeAttr('disabled');
+                });
+
+
+
+
+
+
+
 
             {% if render_value %}
                 $("input[name='task_id']").val('{{ task_info.task_id }}').attr("readonly", "readonly");
@@ -82,9 +364,9 @@
 
 
             var new_row = '<tr>' +
-                '<td> <input type="text" name="argument" class="form-control" maxlength="255" required="" id="id_argument"></td>' +
-                '<td><input type="text" name="default_value" class="form-control" maxlength="255" required="" id="id_default_value"></td>' +
-                '<td><input type="text" name="description" class="form-control" maxlength="255" required="" id="id_description"></td>' +
+                '<td><div class="form-group"> <input type="text" name="argument" class="form-control" maxlength="255" required="" id="id_argument"></div></td>' +
+                '<td><div class="form-group"><input type="text" name="default_value" class="form-control" maxlength="255" required="" id="id_default_value"></div></td>' +
+                '<td><div class="form-group"><input type="text" name="description" class="form-control" maxlength="255" required="" id="id_description"></div></td>' +
                 '<td style="text-align: center">' +
                 '<button type="button" class="btn btn-outline-secondary dt-delete" disabled><i class="fas fa-times" disabled></i>' +
                 '</button></td> </tr>';
@@ -94,36 +376,21 @@
             var rowCount = 0;
 
 
-            //if post had error will restore those data
-            {% if error_message or u.errors   %}
-                {% if datas %}
-                    var args = {{ datas|lookup:'argument'|safe }};
-                    var values = {{ datas|lookup:'default_value'|safe }};
-                    var descript = {{ datas|lookup:'description'|safe }};
-                    var baseCount = $("#task-table tbody tr").length;
-                    rowCount = args.length + baseCount;
+            rowCount = $("#task-table tbody tr").length;
 
-                    for (i = 0; i < args.length; i++) {
-                        $("#task-table tbody").append(new_row)
-                    }
-
-                    $("#task-table tbody tr").each(function () {
-                        if ($(this).index() + 1 > baseCount) {
-                            $(this).find("input[name='argument']").val(args[($(this).index()) - baseCount]);
-                            $(this).find("input[name='default_value']").val(values[($(this).index()) - baseCount]);
-                            $(this).find("input[name='description']").val(descript[($(this).index()) - baseCount]);
-                        }
-                    });
-                {% endif %}
-            {% else %}
-                rowCount = $("#task-table tbody tr").length;
-            {% endif %}
 
             $("#add_argument").click(function () {
 
                 if (rowCount < max_fields) {
                     $("#task-table tbody").append(new_row);
+                    var lastRow = $("#task-table tbody tr").last();
+
+                    lastRow.find('input').each(function () {
+                        $('#update-form').bootstrapValidator('addField', $(this));
+                    });
+
                     rowCount += 1;
+                    $("#update_btn").attr('disabled', 'disabled');
                 }
                 else {
                     alert("Max argument is 20!")
@@ -136,12 +403,21 @@
                 if ($("#task-table  tbody tr").length > 1) {
                     if (lastRow.closest("tr").find('input[name="argument"]').val() != "") {
                         if (confirm("Are you sure to remove this row?")) {
+                            lastRow.find('input').each(function () {
+                                $('#update-form').bootstrapValidator('removeField', $(this));
+                            });
+
                             lastRow.remove();
                             rowCount -= 1;
+                            $("#update_btn").removeAttr('disabled');
                         }
                     } else {
+                        lastRow.find('input').each(function () {
+                            $('#update-form').bootstrapValidator('removeField', $(this));
+                        });
                         lastRow.remove();
                         rowCount -= 1;
+                        $("#update_btn").removeAttr('disabled');
                     }
                 } else {
                     alert("Your must provide one argument!")
@@ -174,7 +450,7 @@
 
                         success: function (json) {
                             $("#attachment_file").next('.custom-file-label').html('<p class="text-muted">' + 'Please Upload attachment' + '</p>');
-                             btnObj.closest("div.input-group-append").remove()
+                            btnObj.closest("div.input-group-append").remove()
                         },
 
                         //處理失敗時會做的動作
@@ -194,9 +470,9 @@
                     var dtRow = $(this).parents('tr');
                     if (confirm("Are you sure to delete this row?")) {
                         var csrftoken = getCookie('csrftoken');
-                        var argument = dtRow.find("input[name^='arg_']").val();
+                        var argument = dtRow.find("input[name='argument']").val();
                         $.ajax({
-                            url: "testCase/arg_delete/",
+                            url: "/testCase/arg_delete/",
                             type: 'POST',
                             data: {
                                 csrfmiddlewaretoken: csrftoken,
@@ -227,14 +503,38 @@
 {% endblock %}
 
 
-{% block head %}
-    <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
-{% endblock %}
-
 
 {% block body %}
     <h3>Modify TeseCase</h3>
+
+
+    <div id="message"></div>
     <br>
+
+    <div class="modal fade" id="modal-progress" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="exampleModalLabel">Uploading...</h4>
+                </div>
+
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="test">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+
+
+                <div class="modal-body">
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: 0%;">0%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
     {% if u.errors %}
         {% for field in u %}
             {% for error in field.errors %}
@@ -272,23 +572,25 @@
     {% endif %}
 
 
-    <form enctype="multipart/form-data" method="POST">{% csrf_token %}
+    <form enctype="multipart/form-data" method="post" action="{% url "testCase_update" %}"
+          id="update-form">{% csrf_token %}
 
         <div class="row">
             <div class="col-md-5">
-                <div class="form-group row">
-                    <label for="id" class="col-sm-4 col-form-label">ID</label>
+                <div class="form-group">
+                    <label class="col-sm-4 col-form-label form-control-label">ID</label>
                     <div class="col-sm-8">
                         {{ u.task_id }}
                     </div>
+
                 </div>
 
             </div>
 
-            <div class="col-md-7">
-                <div class="form-group row">
-                    <label for="test_case_name" class="col-sm-3 col-form-label">TestCase Name</label>
 
+            <div class="col-md-7">
+                <div class="form-group">
+                    <label for="test_case_name" class="col-sm-3 col-form-label form-control-label">TestCase Name</label>
                     <div class="col-sm-9">
                         {{ u.task_name }}
                     </div>
@@ -299,30 +601,26 @@
 
         <div class="row">
             <div class="col-md-5">
-                <div class="form-group row">
-
-
-                    <label for="script" class="col-sm-4 col-form-label">Script Name</label>
-
-                    <div class="col-sm-8">{{ u.script_name }}</div>
+                <div class="form-group">
+                    <label for="script" class="col-sm-4 col-form-label form-control-label">Script Name</label>
+                    <div class="col-sm-8">{{ u.script_name }}
+                    </div>
                 </div>
             </div>
 
             <div class="col-md-7">
-                <div class="form-group row">
-                    <label for="sample" class="col-sm-3 col-form-label">Sample
-
-                    </label>
-                    <div class="col-sm-9"> {{ u.sample }}</div>
-
+                <div class="form-group">
+                    <label for="sample" class="col-sm-3 col-form-label form-control-label">Sample</label>
+                    <div class="col-sm-9"> {{ u.sample }}
+                    </div>
                 </div>
             </div>
 
         </div>
 
-        <div class="form-group row">
+        <div class="form-group">
             <div class="col">
-                <label for="descript">TestCase Description</label>{{ u.task_description }}
+                <label for="descript" class="form-control-label">TestCase Description</label>{{ u.task_description }}
             </div>
 
         </div>
@@ -331,16 +629,16 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="input-group">
-                <label style="padding-top: 1%"> Attachment&emsp;</label>
+                    <label style="padding-top: 1%" class="form-control-label"> Attachment&emsp;</label>
                     <div class="custom-file">
                         {{ u.attachment }}
-                        <label class="custom-file-label" for="attachment_file"><p class="text-muted">Please Upload
-                            attachment</p></label>
+                        <label class="custom-file-label" for="attachment_file">Please Upload attachment</label>
                     </div>
 
                     {% if task_info.existed_attachment %}
                         <div class="input-group-append">
-                            <button id="delete_attach" class="btn btn-outline-danger" type="button"><i class="fas fa-times"></i></button>
+                            <button id="delete_attach" class="btn btn-outline-danger" type="button"><i
+                                    class="fas fa-times"></i></button>
                         </div>
                     {% endif %}
                 </div>
@@ -349,11 +647,10 @@
 
             <div class="col-md-6">
                 <div class="input-group">
-                   <label style="padding-top: 1%">TestScript Zip&emsp;</label>
+                    <label style="padding-top: 1%" class="form-control-label">TestScript Zip&emsp;</label>
                     <div class="custom-file">
                         {{ u.file }}
-                        <label class="custom-file-label" for="zip_file"><p class="text-muted">Please Upload TestScript
-                            zip file</p></label>
+                        <label class="custom-file-label" for="zip_file">Please Upload zip file</label>
                     </div>
 
                     <div class="input-group-append">
@@ -394,16 +691,25 @@
 
             {% for arg in args %}
                 <tr>
-                    <td><input name="arg_{{ arg.argument }}" type="text" class="form-control"
-                               value="{{ arg.argument }}"></td>
+                    <td>
+                        <div class="form-group">
+                            <input name="argument" type="text" class="form-control"
+                                   value="{{ arg.argument }}">
+                        </div>
+                    </td>
 
                     <td>
-                        <input name="value_{{ arg.argument }}" type="text" class="form-control"
-                               value="{{ arg.default_value }}">
+                        <div class="form-group">
+                            <input name="default_value" type="text" class="form-control"
+                                   value="{{ arg.default_value }}" required>
+                        </div>
 
                     </td>
-                    <td><input name="des_{{ arg.argument }}" type="text" class="form-control"
-                               value="{{ arg.description }}">
+                    <td>
+                        <div class="form-group">
+                            <input name="description" type="text" class="form-control"
+                                   value="{{ arg.description }}" required>
+                        </div>
                     </td>
                     <td style="text-align: center">
                         <button type="button" class="btn btn-outline-danger dt-delete"><i class="fas fa-times"></i>
@@ -416,23 +722,14 @@
             </tbody>
         </table>
 
-
-        <div id="new_argument">
-
-        </div>
-
-
         <br>
 
 
         <div class="text-center">
-            <button class="btn btn-outline-primary" type="submit"><i class="fas fa-save"></i> Save</button>
+            <button class="btn btn-outline-primary" type="button" id="update_btn"><i class="fas fa-save"></i> Save
+            </button>
         </div>
-
 
     </form>
 
-    {#    <form action="{% url "script_update" %}">#}
-    {#        <button class="btn btn-secondary" type="submit"><i class="fas fa-undo"></i> Back to Query</button>#}
-    {#    </form>#}
 {% endblock %}

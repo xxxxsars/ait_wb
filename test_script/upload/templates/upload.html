@@ -9,16 +9,11 @@
     <link type="text/css" rel="stylesheet"
           href="{% static "bower_components/bootstrapvalidator/dist/css/bootstrapValidator.min.css" %}">
 
-
     <script src="{% static "bower_components/jquery-ui/jquery-ui.min.js" %}"></script>
     <script src="{% static "bower_components/blueimp-file-upload/js/jquery.fileupload.js" %}"></script>
 
     <script src="{% static "bower_components/bootstrapvalidator/dist/js/bootstrapValidator.min.js" %}"></script>
     <script src="{% static "bower_components/bootstrapvalidator/dist/js/language/en_US.js" %}"></script>
-
-
-
-
 
 {% endblock %}
 
@@ -26,8 +21,6 @@
 
 {% block css %}
     <style>
-
-
         h3 {
             text-align: center;
         }
@@ -95,10 +88,7 @@
         });
 
 
-        $(function () {
 
-
-        });
 
 
         $(document).ready(function () {
@@ -318,7 +308,7 @@
 
 
             var new_row = '<tr>' +
-                '<td>  <div class="form-group"><input type="text" name="argument" class="form-control" maxlength="255" required="" id="id_argument"><div class="help-block with-errors"></div></div></td>' +
+                '<td> <div class="form-group"><input type="text" name="argument" class="form-control" maxlength="255" required="" id="id_argument"><div class="help-block with-errors"></div></div></td>' +
                 '<td> <div class="form-group"><input type="text" name="default_value" class="form-control" maxlength="255" required="" id="id_default_value"><div class="help-block with-errors"></div></div></td>' +
                 '<td> <div class="form-group"><input type="text" name="description" class="form-control" maxlength="255" required="" id="id_description"><div class="help-block with-errors"></div></div></td>' +
                 '</tr>';
@@ -458,6 +448,7 @@
             </div>
 
         </div>
+
         <div class="form-group">
             <div class="col">
                 <label for="descript" class="form-control-label">TestCase Description</label>{{ u.task_description }}
@@ -521,17 +512,17 @@
 
                 <td>
                     <div class="form-group">{{ a.argument }}
-                        <div class="help-block with-errors"></div>
+
                     </div>
                 </td>
                 <td>
                     <div class="form-group">{{ a.default_value }}
-                        <div class="help-block with-errors"></div>
+
                     </div>
                 </td>
                 <td>
                     <div class="form-group">{{ a.description }}
-                        <div class="help-block with-errors"></div>
+
                     </div>
                 </td>
             </tr>
@@ -544,8 +535,6 @@
         <br>
 
         <div class="text-center">
-
-
             <button class="btn btn-outline-primary" type="button" id="upload_btn"><i class="fas fa-share"></i> Submit
             </button>
 

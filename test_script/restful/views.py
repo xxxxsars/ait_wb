@@ -88,7 +88,6 @@ def DeleteArgumentView(request, format=None):
 
         arg_obj = task_args.get(argument=argument)
         arg_obj.delete()
-        # arg_obj.save()
         return Response(status=status.HTTP_200_OK)
 
 
