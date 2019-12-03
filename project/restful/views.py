@@ -191,6 +191,17 @@ class DeleteProjectTaskView(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+
+def valid_projectt_name(request):
+    if request.GET:
+        project_name = request.GET["project_name"]
+        if Project.objects.filter(project_name=project_name).count():
+            return JsonResponse({"valid":False})
+        else:
+            return JsonResponse({"valid": True})
+
+
+
 def change_project(project_name,old_username, new_username):
     path = handle_path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "download_folder")
 

@@ -2,6 +2,64 @@
 {% load staticfiles %}
 {% load filter %}
 
+
+{% block head %}
+
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/bootstrapvalidator/dist/css/bootstrapValidator.min.css" %}">
+    <script src="{% static "bower_components/jquery-ui/jquery-ui.min.js" %}"></script>
+    <script src="{% static "bower_components/bootstrapvalidator/dist/js/bootstrapValidator.min.js" %}"></script>
+    <script src="{% static "bower_components/bootstrapvalidator/dist/js/language/en_US.js" %}"></script>
+
+{% endblock %}
+
+{% block css %}
+    <style>
+        h3 {
+            text-align: center;
+        }
+
+        .help-block {
+            color: #a94442;
+        }
+
+        .form-group.has-error.has-danger .form-control-label {
+            color: #a94442;
+        }
+
+        .form-group.has-error.has-danger .form-control {
+            border: 1px solid #a94442;
+            box-shadow: #a94442;
+        }
+
+        .has-success .form-control {
+            border-color: #3c763d;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+        }
+
+        .form-control-feedback {
+
+            top: 25px;
+            right: 0;
+            z-index: 2;
+            width: 34px;
+            height: 34px;
+            line-height: 34px;
+            text-align: center;
+        }
+
+        .has-error .form-control-feedback {
+            color: #a94442;
+        }
+
+        .has-success .form-control-feedback {
+            color: #3c763d;
+        }
+
+    </style>
+{% endblock %}
+
 {% block js %}
     <script>
         function getCookie(name) {
@@ -22,20 +80,18 @@
 
         function table_clone() {
             return '<tr>' +
-                '<td class="pn_input">\n' +
-                '                                <div class="input-group ">\n' +
-                '                                    <input type="text" name="part_number" class="form-control" maxlength="255"\n' +
-                '                                           required=""\n' +
-                '                                           id="id_part_number">\n' +
-                '\n' +
-                '                                    <div class="input-group-append">\n' +
-                '                                        <button class="btn btn-outline-danger specific-pn-remove" type="button"><i\n' +
-                '                                                class="fas fa-trash"></i>\n' +
-                '                                        </button>\n' +
-                '                                    </div>\n' +
-                '\n' +
-                '                                </div></td>' +
-                '</tr>';
+                '<td class="pn_input">' +
+                '<div class="form-group">' +
+                '<div class="input-group ">' +
+                '<input type="text" name="part_number" class="form-control" maxlength="255" required id="id_part_number">' +
+                '<div class="input-group-append">' +
+                '<button class="btn btn-outline-danger specific-pn-remove" type="button"><i\n' +
+                'class="fas fa-trash"></i></button>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</td>' +
+                '</tr>'
         }
 
 
@@ -50,8 +106,6 @@
                     if (confirm("Are you sure to delete this row?")) {
 
                         if (part_number == "DEFAULT") {
-
-                            console.log("in")
                             alert("'DEFAULT' can't be deleted!")
                         } else {
 
@@ -65,14 +119,18 @@
                                 },
 
                                 success: function (json) {
-                                    remove_tr.remove()
+                                    remove_tr.find('input').each(function () {
+                                        $('#create_project').bootstrapValidator('removeField', $(this));
+                                    });
+                                    remove_tr.remove();
+                                    $("#save_btn").removeAttr('disabled');
 
                                 },
 
-                                //處理失敗時會做的動作
                                 error: function (xhr, errmsg, err) {
                                     console.log("part number not in database");
-                                    remove_tr.remove()// provide a bit more info about the error to the console
+                                    remove_tr.remove();// provide a bit more info about the error to the console
+                                     $("#save_btn").removeAttr('disabled');
                                 }
                             });
                         }
@@ -80,7 +138,11 @@
 
                     }
                 } else {
+                    remove_tr.find('input').each(function () {
+                        $('#create_project').bootstrapValidator('removeField', $(this));
+                    });
                     remove_tr.remove();
+                    $("#save_btn").removeAttr('disabled');
                 }
 
 
@@ -94,6 +156,73 @@
             $(".alert").delay(4000).slideUp(200, function () {
                 $(this).alert('close');
             });
+
+
+            $("#create_project").bootstrapValidator({
+                message: 'This value is not valid',
+                feedbackIcons: {
+                    valid: 'fas fa-check',
+                    invalid: 'none',
+                    validating: 'fas fa-sync-alt'
+                },
+                fields: {
+                    project_name: {
+                        message: 'The project name is not valid',
+                        validators: {
+                            notEmpty: {
+                                message: 'The project name cannot be empty.'
+                            },
+                            regexp: {
+                                regexp: /^\w{7}$/,
+                                message: 'The project name must contains 7 characters.'
+                            },
+                            remote: {
+                                message: 'Your Project Name cannot be repeated.',
+                                url: '/project/valid_project_name/',
+                                delay: 1000
+                            }
+
+                        }
+                    },
+
+                    part_number: {
+                        message: 'The part number is not valid',
+                        validators: {
+                            notEmpty: {
+                                message: 'The part number cannot be empty.'
+                            },
+                            regexp: {
+                                regexp: /^\w+$/,
+                                message: 'The part number is incorrect.'
+                            },
+                            callback: {
+                                message: 'The part number can not be repreated.',
+                                callback: function (value, validator, $field) {
+                                    var arg_array = [];
+                                    $("input[name='part_number']").each(function () {
+                                        arg_value = $(this).val();
+                                        arg_array.push(arg_value);
+                                    });
+
+                                    var count = 0;
+                                    for (var i = 0; i < arg_array.length; i++) {
+                                        count += (arg_array[i] == value);
+                                    }
+
+                                    if (count > 1) {
+                                        return false
+                                    } else {
+                                        return true
+                                    }
+
+                                }
+                            }
+
+                        }
+                    },
+                }
+
+            })
 
 
             var rowCount = 0;
@@ -136,13 +265,11 @@
             $("#part-number-table tbody tr").each(function () {
                 if ($(this).index() == 0) {
 
-                   $(this).closest('div').find("div.input-group-append").remove();
+                    $(this).closest('div').find("div.input-group-append").remove();
 
                     var first_pn = $(this).find("input[name='part_number']");
                     first_pn.val('DEFAULT');
                     first_pn.attr('readonly', 'readonly');
-
-
                 }
             });
 
@@ -182,7 +309,17 @@
             $("#add_pratnumber").click(function () {
                 var clone_html = table_clone();
                 $("#part-number-table tbody").append(clone_html);
+
+
+                var lastRow = $("#part-number-table tbody tr").last();
+
+
+                lastRow.find('input').each(function () {
+                    $('#create_project').bootstrapValidator('addField', $(this));
+                });
+
                 rowCount += 1;
+                $("#save_btn").attr('disabled', 'disabled');
             });
 
             $("#remove_pratnumber").click(function () {
@@ -193,6 +330,7 @@
                     var part_number = remove_tr.find("input[name='part_number']").val();
                     if (part_number != "") {
                         if (confirm("Are you sure to delete this row?")) {
+
 
                             {% if datas %}
                                 var project_name = $('input[name="project_name"]').val();
@@ -213,22 +351,38 @@
                                         },
 
                                         success: function (json) {
+                                            remove_tr.find('input').each(function () {
+                                                $('#create_project').bootstrapValidator('removeField', $(this));
+                                            });
                                             remove_tr.remove();
-
+                                            $("#save_btn").removeAttr('disabled');
                                         },
 
                                         //處理失敗時會做的動作
                                         error: function (xhr, errmsg, err) {
                                             console.log("part number not in database"); // provide a bit more info about the error to the console
+                                             $("#save_btn").removeAttr('disabled');
                                         }
                                     });
                                 }
+
+
+                            {% else %}
+                                remove_tr.find('input').each(function () {
+                                    $('#create_project').bootstrapValidator('removeField', $(this));
+                                });
+                                remove_tr.remove();
+                                $("#save_btn").removeAttr('disabled');
                             {% endif %}
 
 
                         }
                     } else {
+                        remove_tr.find('input').each(function () {
+                            $('#create_project').bootstrapValidator('removeField', $(this));
+                        });
                         remove_tr.remove();
+                        $("#save_btn").removeAttr('disabled');
                     }
 
 
@@ -245,14 +399,7 @@
 {% endblock %}
 
 
-{% block css %}
-    <style>
-        h3 {
-            text-align: center;
-        }
 
-    </style>
-{% endblock %}
 
 
 
@@ -330,17 +477,17 @@
             <tbody>
             <tr>
                 <td class="pn_input">
+                    <div class="form-group">
+                        <div class="input-group ">
+                            {{ c.part_number }}
 
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-danger specific-pn-remove" type="button"><i
+                                        class="fas fa-trash"></i>
+                                </button>
+                            </div>
 
-                    <div class="input-group ">
-                        {{ c.part_number }}
-
-                        <div class="input-group-append">
-                            <button class="btn btn-outline-danger specific-pn-remove" type="button"><i
-                                    class="fas fa-trash"></i>
-                            </button>
                         </div>
-
                     </div>
                 </td>
 
@@ -350,7 +497,9 @@
         </table>
 
 
-        {#        <div class="position-absolute bottom-center">#}
+
+
+
 
 
 
@@ -364,7 +513,7 @@
         {% else %}
 
             <div class=text-center>
-                <button class="btn btn-outline-primary" type="submit">Save</button>
+                <button class="btn btn-outline-primary" type="submit" id="save_btn">Save</button>
             </div>
         {% endif %}
     </form>
