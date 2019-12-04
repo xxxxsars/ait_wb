@@ -133,7 +133,7 @@
 
             });
 
-            return '<table id="' + task_id + '"  cellpadding="5" cellspacing="0" border="0" style="margin-left:50px;">' + tr_content + '</table>'
+            return '<table class= detail_argument "' + task_id + '"  cellpadding="5" cellspacing="0" border="0" style="margin-left:50px;">' + tr_content + '</table>'
 
         }
 
@@ -150,6 +150,7 @@
 
                     if (confirm("Are you sure to delete this row?")) {
 
+
                         $.ajax({
                             url: "/project/task_delete/" + project_task_id, // the endpoint,commonly same url
                             type: 'DELETE',
@@ -158,9 +159,19 @@
                             },
 
                             success: function (json) {
+
+                                //clean child table
+                                if (dtRow.hasClass("shown")) {
+                                    dtRow.next("tr").find("td").find('table').each(function () {
+                                        $(this).remove()
+                                    })
+
+                                }
                                 dtRow.remove();
+
                                 //clean global  "task_infos" array
                                 delete_task_info(project_task_id);
+
 
                                 //set not save.
                                 save_count = 0;
@@ -176,6 +187,14 @@
                             },
                             error: function (xhr, errmsg, err) {
                                 console.log("Delete failde."); // provide a bit more info about the error to the console
+
+                                //clean child table
+                                if (dtRow.hasClass("shown")) {
+                                    dtRow.next("tr").find("td").find('table').each(function () {
+                                        $(this).remove()
+                                    })
+
+                                }
                                 dtRow.remove()
                             }
                         });
@@ -415,7 +434,6 @@
             $('#task_table tbody').on('click', 'td.details-control', function () {
                 var tr = $(this).closest('tr');
                 var row = table.row(tr);
-
                 if (row.child.isShown()) {
                     // This row is already open - close it
                     row.child.hide();
