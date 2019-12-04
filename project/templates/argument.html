@@ -133,7 +133,7 @@
 
             });
 
-            return '<table class= detail_argument "' + task_id + '"  cellpadding="5" cellspacing="0" border="0" style="margin-left:50px;">' + tr_content + '</table>'
+            return '<table class= "detail_argument ' + task_id + '"  cellpadding="5" cellspacing="0" border="0" style="margin-left:50px;">' + tr_content + '</table>'
 
         }
 
@@ -146,7 +146,6 @@
                     var info = dtRow.find('td.task_id');
 
                     var project_task_id = info.attr("project_task_id");
-
 
                     if (confirm("Are you sure to delete this row?")) {
 
@@ -162,8 +161,11 @@
 
                                 //clean child table
                                 if (dtRow.hasClass("shown")) {
+
+
                                     dtRow.next("tr").find("td").find('table').each(function () {
-                                        $(this).remove()
+                                        $(this).closest("tr").remove();
+
                                     })
 
                                 }
@@ -191,7 +193,9 @@
                                 //clean child table
                                 if (dtRow.hasClass("shown")) {
                                     dtRow.next("tr").find("td").find('table').each(function () {
-                                        $(this).remove()
+                                        dtRow.next("tr").find("td").find('table').each(function () {
+                                            $(this).closest("tr").remove();
+                                        })
                                     })
 
                                 }
@@ -429,10 +433,9 @@
                 "order": [[1, 'asc']],
                 "bInfo": false
             });
-
             // Add event listener for opening and closing details
             $('#task_table tbody').on('click', 'td.details-control', function () {
-                var tr = $(this).closest('tr');
+                var tr = $(this).closest('tr.row_tr');
                 var row = table.row(tr);
                 if (row.child.isShown()) {
                     // This row is already open - close it
@@ -445,13 +448,9 @@
                     $(this).parents('tr').find("td").each(function () {
                         if ($(this).hasClass("task_id")) {
                             task_id = $(this).text();
-
-                            count = $(this).attr("id");
-
-                            index = count - 1
+                            index = $(".row_tr").index(tr)
                         }
                     });
-
 
                     // Open this row
                     row.child(format(index, task_id)).show();
@@ -496,7 +495,7 @@
 
 
             {% for project_di in prj_task_li %}
-                <tr>
+                <tr class="row_tr">
                     <td class="details-control"></td>
                     <td class="task_id" id="{{ forloop.counter }}"
                         project_task_id="{{ project_di|lookup:"id" }}">{{ project_di|lookup:"task_id" }}</td>
