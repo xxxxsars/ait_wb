@@ -744,7 +744,7 @@ def gen_ini_contents(project_infos):
         script_path = r'cmd=TestScriptRes\\%s' % prj_info["script_name"]
         arg_str = " ".join([arg for arg in prj_info["args"]])
 
-        content = "%s%s;%s;%s;%s;%s\ncriteria=%s" % (
+        content = "%s %s;%s;%s;%s;%s\ncriteria=%s" % (
             script_path, arg_str, prj_info["timeout"], prj_info["exitcode"], prj_info["retry"], prj_info["sleep"],
             prj_info["criteria"])
         ini_map[project_task_id] = title + content
