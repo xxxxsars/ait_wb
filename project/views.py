@@ -689,7 +689,7 @@ def get_project_infos(post):
             prj_id_reg = re.search(r"(.*)_%s$" % prj_id, k)
             if prj_id_reg:
                 prj_match = prj_id_reg.group(1)
-                prj_arg_reg = re.search(r'arg_(\w+)', prj_match)
+                prj_arg_reg = re.search(r'arg_(.+)', prj_match)
                 if prj_arg_reg:
                     tmp_arg_value_map[prj_arg_reg.group(1)] = v[0]
                 else:
@@ -917,6 +917,7 @@ def sorted_arg_value(task_id, value_map):
     task_instance = Upload_TestCase.objects.get(task_id=task_id)
     db_args = [a.argument for a in Arguments.objects.filter(task_id=task_instance)]
     sort_values = []
+
     for arg in db_args:
         sort_values.append(value_map[arg])
 
