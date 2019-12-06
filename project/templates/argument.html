@@ -3,6 +3,14 @@
 {% load  filter %}
 
 {% block head %}
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/bootstrapvalidator/dist/css/bootstrapValidator.min.css" %}">
+    <script src="{% static "bower_components/jquery-ui/jquery-ui.min.js" %}"></script>
+    <script src="{% static "bower_components/bootstrapvalidator/dist/js/bootstrapValidator.min.js" %}"></script>
+    <script src="{% static "bower_components/bootstrapvalidator/dist/js/language/en_US.js" %}"></script>
+
+
+
     <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
 
     <link type="text/css" rel="stylesheet"
@@ -15,6 +23,8 @@
           href="{% static "bower_components/datatables.net-dt/css/select.dataTables.min.css" %}">
     <link type="text/css" rel="stylesheet"
           href="{% static "bower_components/datatables.net-dt/css/query.dataTables.min.css" %}">
+
+
 
 {% endblock %}
 
@@ -57,15 +67,55 @@
         .form-control {
             border: 0;
         }
+
+        .help-block {
+            color: #a94442;
+        }
+
+        .form-group.has-error.has-danger .form-control-label {
+            color: #a94442;
+        }
+
+        .form-group.has-error.has-danger .form-control {
+            border: 1px solid #a94442;
+            box-shadow: #a94442;
+        }
+
+        .has-success .form-control {
+            border-color: #3c763d;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+        }
+
+        .form-control-feedback {
+
+            top: 25px;
+            right: 0;
+            z-index: 2;
+            width: 34px;
+            height: 34px;
+            line-height: 34px;
+            text-align: center;
+        }
+
+        .has-error .form-control-feedback {
+            color: #a94442;
+        }
+
+        .has-success .form-control-feedback {
+            color: #3c763d;
+        }
     </style>
 {% endblock %}
 
 
 {% block js %}
     <script>
-        //global parameter
-        task_infos = {{ prj_task_li|safe }};
-        save_count = 0;
+
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        });
+
 
         function getCookie(name) {
             var cookieValue = null;
@@ -83,57 +133,69 @@
             return cookieValue;
         }
 
+        //global parameter
+        task_infos = {{ prj_task_li|safe }};
+        save_count = 0;
+
 
         //if used ajax delete task ,the task_infos not be clean, the post using it, so need to clean it.
         function delete_task_info(project_task_id) {
-
             $.each(task_infos, function (i, info) {
                 if (info.id == project_task_id) {
                     delete task_infos[i];
-
                 }
-
             });
-
             task_infos = task_infos.filter(item => item);
 
         }
 
 
-        // Formatting function for row details - modify as you need
+        function check_valid_data() {
+            var all_valid = true;
+            $.each(task_infos, function (i, info) {
+
+                $.each(info.args, function (index, value) {
+                    if (value.default_value.match(/^[\w|"|\\|\\\\/|\.|\-|\s]+$/) == null) {
+                        console.log(value.default_value)
+                        all_valid = false;
+                    }
+                })
+            });
+
+            return all_valid
+        }
+
+
         function format(index, task_id) {
             var tr_content = "";
             $.each(task_infos, function (task_index, info) {
                 if ($.isEmptyObject(info) === false) {
                     if (task_index == index) {
-
-
                         project_task_id = info.id;
                         $.each(info["args"], function (arg_index, arg_info) {
                             argument = arg_info.argument;
                             default_value = arg_info.default_value;
                             description = arg_info.description;
-
                             add =
                                 '<tr>' +
                                 '<td>' + argument + '</td>' +
                                 '<td task_index=" ' + task_index + '"' + 'arg_index="' + arg_index + '">' +
+                                '<div class="form-group">' +
+
                                 '<input  data-toggle="tooltip" data-placement="left"' +
-                                'title=\'' + description + '\'type="text" name="arg_' + argument + '_' + task_id + '_' + project_task_id + '" class="arguments form-control" value=\'' + default_value + '\'>' +
+                                'title=\'' + description + '\'type="text" name="arg_' + argument + '_' + task_id + '_' + project_task_id + '" class="arguments form-control" value=\'' + default_value + '\' required >' +
+                                '</div>' +
                                 '</td>' +
                                 '</tr>';
                             tr_content += add
 
                         });
-
                     }
-
-
                 }
 
             });
 
-            return '<table class= "detail_argument ' + task_id + '"  cellpadding="5" cellspacing="0" border="0" style="margin-left:50px;">' + tr_content + '</table>'
+            return '<table class= "detail-table detail_argument ' + task_id + '"  cellpadding="5" cellspacing="0" border="0" style="margin-left:50px;">' + tr_content + '</table>'
 
         }
 
@@ -171,9 +233,12 @@
                                 }
                                 dtRow.remove();
 
-                                //clean global  "task_infos" array
-                                delete_task_info(project_task_id);
 
+                                delete_task_info(project_task_id);
+                                //check all default valid
+                                if (check_valid_data()) {
+                                    $("#btn-save").removeAttr('disabled');
+                                }
 
                                 //set not save.
                                 save_count = 0;
@@ -200,6 +265,7 @@
 
                                 }
                                 dtRow.remove()
+                                {#$("#btn-save").removeAttr('disabled');#}
                             }
                         });
 
@@ -242,24 +308,107 @@
 
         $(document).ready(function () {
 
+
+            $("#task_table").bootstrapValidator({
+                message: 'This value is not valid',
+                feedbackIcons: {
+                    valid: 'fas fa-check',
+                    invalid: 'none',
+                    validating: 'fas fa-sync-alt'
+                },
+                fields: {
+                    {% for info in prj_task_li %}
+
+                        task_name_{{ info|lookup:"task_id" }}_{{ info|lookup:"id" }}: {
+                            message: 'The task name is not valid',
+                            validators: {
+                                notEmpty: {
+                                    message: 'The task name cannot be empty.'
+                                },
+                                regexp: {
+                                    regexp: /^[\w|_|\s]+$/,
+                                    message: 'The task name is incorrect.'
+                                },
+                            }
+                        },
+
+                        exitcode_{{ info|lookup:"task_id" }}_{{ info|lookup:"id" }}: {
+                            message: 'The exit code is not valid',
+                            validators: {
+                                notEmpty: {
+                                    message: 'The exit code cannot be empty.'
+                                },
+                                regexp: {
+                                    regexp: /^\w+$/,
+                                    message: 'The exit code is incorrect.'
+                                },
+                            }
+                        },
+
+                        retry_{{ info|lookup:"task_id" }}_{{ info|lookup:"id" }}: {
+                            message: 'The retry count is not valid',
+                            validators: {
+                                notEmpty: {
+                                    message: 'The retry count cannot be empty.'
+                                },
+                                regexp: {
+                                    regexp: /^\d+$/,
+                                    message: 'The retry count is incorrect.'
+                                },
+                            }
+                        },
+
+                        sleep_{{ info|lookup:"task_id" }}_{{ info|lookup:"id" }}: {
+                            message: 'The sleep time is not valid',
+                            validators: {
+                                notEmpty: {
+                                    message: 'The sleep time cannot be empty.'
+                                },
+                                regexp: {
+                                    regexp: /^\d+$/,
+                                    message: 'The sleep time is incorrect.'
+                                },
+                            }
+                        },
+
+
+                        criteria_{{ info|lookup:"task_id" }}_{{ info|lookup:"id" }}: {
+                            message: 'The criteria is not valid',
+                            validators: {
+                                notEmpty: {
+                                    message: 'The criteria cannot be empty.'
+                                },
+                                regexp: {
+                                    regexp: /^success|failed$/,
+                                    message: 'The criteria is incorrect.'
+                                },
+                            }
+                        },
+
+
+                    {% endfor %}
+                }
+
+            }).on('error.field.bv', function (e, data) {
+                $("#btn-save").attr('disabled', 'disabled');
+            })
+                .on('success.field.bv', function (e, data) {
+                    $("#btn-save").removeAttr('disabled');
+                });
+
+
             //handler the page live event ,if not clicked save will show alert message.
             window.onbeforeunload = function (e) {
-                console.log(save_count);
                 if (save_count == 0) {
-
-
                     var message = "Your confirmation message goes here.",
                         e = e || window.event;
                     // For IE and Firefox
                     if (e) {
                         e.returnValue = message;
                     }
-
                     // For Safari
                     return message;
                 }
-
-
             };
 
 
@@ -431,7 +580,18 @@
                 "bFilter": false,
                 "ordering": false,
                 "order": [[1, 'asc']],
-                "bInfo": false
+                "bInfo": false,
+                "columnDefs": [
+                    {
+                        "width": "1%",
+                        "targets": 0
+                    },
+                    {
+                        "width": "25%",
+                        "targets": 2
+                    }
+                ]
+
             });
             // Add event listener for opening and closing details
             $('#task_table tbody').on('click', 'td.details-control', function () {
@@ -455,6 +615,52 @@
                     // Open this row
                     row.child(format(index, task_id)).show();
                     tr.addClass('shown');
+
+                    tr.next('tr').find('td').find("table.detail-table").bootstrapValidator({
+                        message: 'This value is not valid',
+                        feedbackIcons: {
+                            valid: 'fas fa-check',
+                            invalid: 'none',
+                            validating: 'fas fa-sync-alt'
+                        },
+                        fields: {
+                            {% for info in prj_task_li %}
+                                {% for arg in info|lookup:"args" %}
+                                    arg_{{ arg|lookup:"argument"}}_{{ info|lookup:"task_id" }}_{{ info|lookup:"id" }}: {
+                                        message: 'The default value is not valid',
+                                        validators: {
+                                            notEmpty: {
+                                                message: 'The default value cannot be empty.'
+                                            },
+                                            regexp: {
+                                                regexp: /^[\w|"|\\|\\\\/|\.|\-|\s]+$/,
+                                                message: 'The default value is incorrect.'
+                                            },
+                                        }
+                                    },
+                                {% endfor %}
+                            {% endfor %}
+                        }
+
+                    }).on('error.field.bv', function (e, data) {
+                        $("#btn-save").attr('disabled', 'disabled');
+                    })
+                        .on('success.field.bv', function (e, data) {
+                            $("#btn-save").removeAttr('disabled');
+                        });
+
+
+                    //hide the unless value
+                    tr.next('tr').find('td').find("table.detail-table").find("td").each(function () {
+                        var field = $(this).find('input');
+                        if (field.length) {
+                            var value = field.val();
+                            if (value.match(/^-.+/)) {
+                                field.closest('tr').hide()
+                            }
+
+                        }
+                    })
                 }
             });
         })
@@ -476,7 +682,7 @@
 
     <form id="other_form" enctype="multipart/form-data" method="post" action="">{% csrf_token %}
 
-        <table id="task_table" class="row-border" style="width:100%">
+        <table id="task_table" class="row-border">
             <thead>
             <tr>
                 <th>Arguments</th>
@@ -493,60 +699,78 @@
             </thead>
             <tbody>
 
-
+            {#todo add for all input form-group#}
             {% for project_di in prj_task_li %}
                 <tr class="row_tr">
                     <td class="details-control"></td>
                     <td class="task_id" id="{{ forloop.counter }}"
                         project_task_id="{{ project_di|lookup:"id" }}">{{ project_di|lookup:"task_id" }}</td>
-                    <td><input type="text"
-                               name="task_name_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
-                               class="form-control"
-                               value="{{ project_di| lookup:"task_name" }}"></td>
-                    <td><input type="text"
-                               name="timeout_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
-                               class="form-control"
-                               data-toggle="tooltip"
-                               data-placement="left"
-                               title="Test case timeout value"
-                               value="{{ project_di| lookup:"timeout" }}"></td>
-                    <td><input type="text"
-                               name="exitcode_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
-                               class="form-control"
-                               data-toggle="tooltip"
-                               data-placement="left"
-                               title=" Pass condition 'exitCode to be define for exit(0) and exit(1)'"
-                               value="{{ project_di| lookup:"exit_code" }}">
+                    <td>
+                        <div class="form-group">
+                            <input type="text"
+                                   name="task_name_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
+                                   class="form-control"
+                                   value="{{ project_di| lookup:"task_name" }}" required>
+                        </div>
                     </td>
                     <td>
-                        <input type="text"
-                               name="retry_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
-                               class="form-control"
-                               data-toggle="tooltip"
-                               data-placement="left"
-                               title="Retry count"
-                               value="{{ project_di| lookup:"retry_count" }}">
+                        <div class="form-group">
+                            <input type="text"
+                                   name="timeout_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
+                                   class="form-control"
+                                   data-toggle="tooltip"
+                                   data-placement="left"
+                                   title="Test case timeout value"
+                                   value="{{ project_di| lookup:"timeout" }}" required>
+                        </div>
                     </td>
                     <td>
-                        <input type="text"
-                               name="sleep_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
-                               class="form-control"
-                               data-toggle="tooltip"
-                               data-placement="left"
-                               title="Sleep time"
-                               value="{{ project_di| lookup:"sleep_time" }}">
+                        <div class="form-group">
+                            <input type="text"
+                                   name="exitcode_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
+                                   class="form-control"
+                                   data-toggle="tooltip"
+                                   data-placement="left"
+                                   title=" Pass condition 'exitCode to be define for exit(0) and exit(1)'"
+                                   value="{{ project_di| lookup:"exit_code" }}" required>
+                        </div>
                     </td>
                     <td>
-                        <input type="text"
-                               name="criteria_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
-                               class="form-control"
-                               data-toggle="tooltip"
-                               data-placement="left"
-                               title="Set test case criteria"
-                               value="{{ project_di| lookup:"criteria" }}">
+                        <div class="form-group">
+                            <input type="text"
+                                   name="retry_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
+                                   class="form-control"
+                                   data-toggle="tooltip"
+                                   data-placement="left"
+                                   title="Retry count"
+                                   value="{{ project_di| lookup:"retry_count" }}" required>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-group">
+                            <input type="text"
+                                   name="sleep_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
+                                   class="form-control"
+                                   data-toggle="tooltip"
+                                   data-placement="left"
+                                   title="Sleep time"
+                                   value="{{ project_di| lookup:"sleep_time" }}" required>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-group">
+                            <input type="text"
+                                   name="criteria_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
+                                   class="form-control"
+                                   data-toggle="tooltip"
+                                   data-placement="left"
+                                   title="Set test case criteria"
+                                   value="{{ project_di| lookup:"criteria" }}" required>
+                        </div>
                     </td>
 
                     <td>
+
                         <div class="text-center">
                             <button type="button"
                                     class=" btn btn-outline-danger btn-xs   btn-md center-block task-delete"><i
