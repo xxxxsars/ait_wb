@@ -438,6 +438,7 @@ def modify_script(request, project_name, part_number, station_name):
     # handle query station task query action
     if request.method == "GET":
         prj_task_li = get_station_tasks(project_name, part_number, station_name)
+        print(prj_task_li)
         return render(request, "argument.html", locals())
 
 
@@ -689,7 +690,7 @@ def get_project_infos(post):
             prj_id_reg = re.search(r"(.*)_%s$" % prj_id, k)
             if prj_id_reg:
                 prj_match = prj_id_reg.group(1)
-                prj_arg_reg = re.search(r'arg_(.+)', prj_match)
+                prj_arg_reg = re.search(r'arg_(\w+)', prj_match)
                 if prj_arg_reg:
                     tmp_arg_value_map[prj_arg_reg.group(1)] = v[0]
                 else:
