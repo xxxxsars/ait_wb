@@ -1,0 +1,248 @@
+import subprocess,platform,os,shutil,requests,json,time
+
+
+def find_fail(name):
+    print "[VariableMonitored]: Can not find %s" % name
+    print "%s: [Fail]" % name
+    exit(1)
+def output_null_fail(name):
+    print "[VariableMonitored]: %s is null" % name
+    print "%s: [Fail]" % name
+    exit(1)
+def parameter_fail(parameter_name):
+    print "[VariableMonitored]: %s parameter error" % parameter_name
+    print "%s : [Fail]" % parameter_name
+    exit(1)
+def file_not_exist_fail(file_name):
+    print "[VariableMonitored]: %s file not exist" % file_name
+    print "%s: [Fail]" % file_name
+    exit(1)
+def Success(test_item,test_result):
+    print '[VariableMonitored]:%s' % test_result
+    print "%s:[SUCCESS]" % test_item
+    exit(0)
+def Fail(test_item,test_result):
+    print "%s " % test_result
+    print "[VariableMonitored]:%s" % test_result
+    print "%s:[FAIL]" % test_item
+    exit(1)
+def get_disk_id(productName):
+    cmd = "TestScriptRes\\sg_scan.exe | find \"%s\"" % productName
+    print cmd
+    result = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, stderr=subprocess.PIPE)
+    output = result.stdout.read()
+    for i in range(1,10,1):
+        if output !="":
+            break
+        time.sleep(3)
+    if output == "":
+        return ""
+    output =output.split()
+
+    if "PD" in output[0]:
+        disk_id = output[0].replace("PD", "")
+        return disk_id
+    else:
+        return ""
+def get_disk_id_mac(productName,sn):
+    cmd = "system_profiler SPFireWireDataType SPThunderboltDataType"
+    result = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, stderr=subprocess.PIPE)
+    output = result.stdout.read()
+    if productName in output:
+        file_name = check_file("tbt",productName,None,sn)
+        cmd = "cat " + file_name
+        result = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, stderr=subprocess.PIPE)
+        output = result.stdout.readlines()
+        for i in output:
+            if "BSD" in i:
+                disk_id = i.split()[-1]
+                print disk_id
+                return disk_id
+        output_null_fail("disk id")
+    else:
+        cmd = "system_profiler SPUSBDataType"
+        result = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, stderr=subprocess.PIPE)
+        output = result.stdout.read()
+        if productName in output:
+            file_name = check_file("usb",productName,None,sn)
+            cmd = "cat " + file_name
+            result = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, stderr=subprocess.PIPE)
+            output = result.stdout.readlines()
+            for i in output:
+                if "BSD" in i:
+                    disk_id = i.split()[-1]
+                    print disk_id
+                    return disk_id
+            output_null_fail("disk id")
+def get_disk_letter(productName):
+    diskid = get_disk_id(productName)
+    if diskid == "":
+        output_null_fail("disk id")
+    cmd = "TestScriptRes\\sg_scan.exe | find \"PD%s\"" % diskid
+    result = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, stderr=subprocess.PIPE)
+    output = result.stdout.read().split()
+    if "[" in output[1]:
+        disk_letter = output[1].replace("[", "").replace("]","")
+        return disk_letter
+    return ""
+def get_disk_letter_volume(volume_name):
+    cmd = "wmic path Win32_LogicalDisk get DeviceID,VolumeName|find \"%s\"" % volume_name
+    result = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, stderr=subprocess.PIPE)
+    output = result.stdout.read()
+    if output == "":
+        return ""
+    volume_id = output.split(":")[0] + ":"
+    return volume_id
+
+def get_sn(snPath):
+    if platform.system() =="Windows":
+        with open('TestScriptRes\\%s' %snPath, 'r+') as the_file:
+            checkSN=the_file.read().strip()
+            return checkSN
+    elif platform.system() == "Darwin":
+        with open('TestScriptRes/%s' %snPath, 'r+') as the_file:
+            checkSN=the_file.read().strip()
+            return checkSN
+def check_copy_lacie_raid_file():
+    if not os.path.isfile("/usr/local/lib/libmv_api.dylib"):
+        cmd = "cp TestScriptRes/mvsetup_for_Mac/libmv_api.dylib /usr/local/lib/"
+        result = subprocess.Popen(cmd, shell=True)
+        result.wait()
+        if result.returncode != 0:
+            print("[VariableMonitored]:Copy libmv_api.dylib fail")
+            print 'Test Result:[FAIL]'
+            exit(1)
+def device_type_usb(cmd_result):
+    if "5" in cmd_result:
+        return "usb3.0"
+    elif "10" in cmd_result:
+        return "usb3.1"
+    elif "480" in cmd_result:
+        return "usb2.0"
+    else:
+        print "[VariableMonitored]:Can not get usb type"
+        print "Test Result:[FAIL]"
+        exit(1)
+def check_file(connet_type, product,hub_type,sn_file):
+    sn = get_sn(sn_file)
+    if not os.path.isdir("TestScriptRes/Temp"):
+        os.mkdir("TestScriptRes/Temp")
+    if connet_type == "usb":
+        file_name = "TestScriptRes/Temp/%s_USB_information.log" % sn
+    elif connet_type == "tbt":
+        file_name = "TestScriptRes/Temp/%s_ThunderBolt_information.log" % sn
+    elif connet_type == "pcie":
+        file_name = "TestScriptRes/Temp/%s_PCIE_information.log" % sn
+    if not os.path.isfile(file_name):
+        # get_information(connet_type, product,hub_type)
+        get_infotmation_usb(connet_type, product,hub_type,sn_file)
+    else:
+        cmd = "cat %s" % file_name
+        result = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, stderr=subprocess.PIPE)
+        USB_result = result.stdout.read()
+        if USB_result == "":
+            get_infotmation_usb(connet_type, product,hub_type,sn_file)
+    return file_name
+def write_file_clean_disk(product_name):
+    disk_id = get_disk_id(product_name)
+    if disk_id =="":
+        output_null_fail("disk id")
+    print "disk_number = "+disk_id
+    with open('TestScriptRes\\CleanDiskScript.txt', 'w+') as f:
+        f.write("select disk %s\n"% disk_id)
+        f.write("clean")
+def get_infotmation_usb(type, product,hub_type,sn_file):
+    sn = get_sn(sn_file)
+    if os.path.exists("TestScriptRes/Temp"):
+        shutil.rmtree("TestScriptRes/Temp")
+    os.mkdir("TestScriptRes/Temp")
+    if type == "pcie":
+        cmd = "system_profiler SPFireWireDataType SPPCIDataType"
+        f = open("TestScriptRes/Temp/%s_PCIE_information.log" % sn, "w+")
+    elif type == "tbt":
+        cmd = "system_profiler SPFireWireDataType SPThunderboltDataType"
+        f = open("TestScriptRes/Temp/%s_ThunderBolt_information.log" % sn, "w+")
+    elif type == "usb":
+        cmd = "system_profiler SPUSBDataType"
+        f = open("TestScriptRes/Temp/%s_USB_information.log" % sn, "w+")
+    result = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, stderr=subprocess.PIPE)
+    cmd_result = result.stdout.readlines()
+
+    if type == "usb":
+        count = 0
+        hub_start = 0
+        hub_end = 0
+        if hub_type =="3.0":
+            for i in cmd_result:
+                count += 1
+                if "3.0 Bus:" in i:
+                    hub_start = count -1
+                if "3.1 Bus:" in i:
+                    hub_end = count -2
+            del cmd_result[0:hub_start]
+            del cmd_result[hub_end:-1]
+        elif hub_type =="3.1":
+            for i in cmd_result:
+                count += 1
+                if "3.1 Bus:" in i:
+                    hub_start = count -1
+            del cmd_result[0:hub_start]
+        else:
+            print "hub type fail"
+            exit(1)
+    grep_string = ""
+    for i in cmd_result:
+        if product in i:
+            grep_string = i.strip()
+    # cut to product
+    count = 0
+    count = 0
+    check_tag = 0
+    start_index = 0
+    # del range 0 to Rugged the usb3.0 index
+    for i in cmd_result:
+        count += 1
+        # print grep_string
+        if grep_string in i:
+            start_index = count - 1
+            check_tag = 1
+            break
+    if check_tag == 0:
+        print "[VariableMonitored]:" + grep_string + " not in " + cmd
+        exit(1)
+    del cmd_result[0:start_index]
+    new_count = 0
+    count = 0
+    end_index = 0
+    # get end index
+    for i in cmd_result:
+        new_count += 1
+        if i == "\n":
+            count += 1
+        if type == "usb":
+            if count == 2:
+                end_index = new_count
+                # print "new =" + str(end_index)
+                break
+        if type == "tbt" or type == "pie":
+            if count == 1:
+                end_index = new_count
+                # print "new =" + str(end_index)
+                break
+
+    # write to file
+    if type == "pcie":
+        for i in range(0, end_index, 1):
+            with open("TestScriptRes/Temp/%s_PCIE_information.log" % sn, "a+")as f:
+                f.write(cmd_result[i])
+    elif type == "tbt":
+        for i in range(0, end_index, 1):
+            with open("TestScriptRes/Temp/%s_ThunderBolt_information.log" % sn, "a+")as f:
+                f.write(cmd_result[i])
+    elif type == "usb":
+        for i in range(0, end_index, 1):
+            with open("TestScriptRes/Temp/%s_USB_information.log" % sn, "a+")as f:
+                f.write(cmd_result[i])
+
+
+

@@ -231,3 +231,15 @@ def get_download_file(owner_user, project_name, part_number, station_name):
 
     return zip_files
 
+
+
+if __name__ =="__main__":
+    import shutil
+
+    path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'upload_folder')
+    for dirPath, dirNames, fileNames in os.walk(path):
+        for f in fileNames:
+            if f == "common.py":
+                print(os.path.join(dirPath, f))
+                os.remove(os.path.join(dirPath, f))
+                shutil.copyfile("common.txt",os.path.join(dirPath, f))
