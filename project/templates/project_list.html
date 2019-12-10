@@ -376,8 +376,6 @@
                 <tr class="{{ prj|lookup:"project_name" }} treegrid-{{ prj|lookup:"project_id" }} expanded">
                     <td class="project_name">{{ prj|lookup:"project_name" }}</td>
                     {% if request.user.is_staff %}
-                        {#                        <td>{{ prj|lookup:"owner_user" }}</td>#}
-
                         <td>
                             <div class="input-group input-group-sm">
                                 <select class=" selectpicker  show-tick owner-user "

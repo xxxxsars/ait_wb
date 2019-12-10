@@ -11,7 +11,7 @@ from django.http.response import JsonResponse
 from project.restful.serializer import *
 from project.models import *
 
-import os, platform, shutil,zipfile
+import os, platform, shutil,zipfile,re
 from io import StringIO,BytesIO
 
 from common.handler import handle_path,get_download_file
@@ -132,6 +132,77 @@ def GetScriptSorted(request):
         return JsonResponse(data)
 
 
+
+
+
+
+@api_view(["POST"])
+@authentication_classes((SessionAuthentication,BasicAuthentication))
+def valid_testSCript(request):
+    if request.method == "POST":
+
+        project_name = request.data.get("project_name")
+        part_number = request.data.get("part_number")
+        station_name = request.data.get("station_name")
+
+        if 'file' not in request.FILES:
+            return JsonResponse({"valid": False, "message": "Please select the log file."}, status=400)
+        file = request.FILES['file']
+
+        task_names = []
+        compare_task_name = []
+        station_instance = get_station_instacne(project_name,part_number,station_name)
+
+
+        lines = file.readlines()
+        valid_reg = re.compile(r"\[([\w|\s]+) -.+\]-+>\s(\w+).+$")
+        station_regex = re.compile("\*.+Station Name\s*\?*(\w+)")
+
+        station_match_count=0
+        for index,byte_line in enumerate(lines):
+            line = byte_line.decode("utf-8")
+
+            station_match = (station_regex.search(line))
+            if station_match:
+                station_match_count+=1
+                log_station = station_match.group(1)
+                # if log station not compare return false
+                if log_station != station_name:
+                    return JsonResponse({"valid": False,"message":"The log file station name not compared."},status=400)
+
+            matched = valid_reg.search(line)
+            if matched:
+                if matched.group(2) =="PASS":
+                    task_names.append((matched.group(1).strip()))
+                # if any test case not pass will return false
+                else:
+                    return JsonResponse({"valid": False,"message":"The testCase '%s' was failed."%matched.group(1).strip()},status=400)
+
+        if station_match_count <=0:
+            return JsonResponse({"valid": False, "message": "Can't find log station name."},status=400)
+
+        task_id_map = {p.id: p.task_name for p in Project_task.objects.filter(station_id=station_instance)}
+        sort_task_name_id = Project_TestScript_order.objects.get(station_name=station_instance).script_oder.split(" ")
+
+        for id in sort_task_name_id:
+            compare_task_name.append((task_id_map[int(id)]).strip())
+
+        # check log  pass task name and database task was compared
+
+
+        if task_names == compare_task_name:
+            return JsonResponse({"valid": True,"message":"The log file was passed."})
+        else:
+            return JsonResponse({"valid": False,"message":"Please re-download this testScript and test it aging."},status=400)
+
+
+
+
+
+
+
+
+
 @api_view(["GET"])
 @authentication_classes((SessionAuthentication,))
 def download(request,project_name,part_number,station_name):
@@ -199,6 +270,9 @@ def valid_projectt_name(request):
             return JsonResponse({"valid":False})
         else:
             return JsonResponse({"valid": True})
+
+
+
 
 
 

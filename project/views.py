@@ -23,6 +23,56 @@ from project.models import *
 from project.restful.views import delete_file
 from test_script.list.views import no_attach_tasks
 
+@login_required(login_url="/usr/login")
+def log_confirm(request,project_name):
+
+    project_structure = []
+
+    p = Project.objects.get(project_name=project_name)
+
+
+    project_dict = {"project_id": 'prj_%d' % 0, "project_name": p.project_name,
+                    "owner_user": p.owner_user.username, "date": p.time}
+    pn_list = []
+
+    pn_object = Project_PN.objects.filter(project_name=project_name)
+    if pn_object.exists():
+        for pn_id, pn in enumerate(pn_object):
+            pn_dict = model_to_dict(pn)
+            pn_dict["pn_id"] = "prj_%d_pn_%d" % (0, pn_id,)
+            pn_list.append(pn_dict)
+            st_list = []
+
+            st_object = Project_Station.objects.filter(project_pn_id=pn)
+            if st_object.exists():
+                for st_id, st in enumerate(st_object):
+                    st_dict = model_to_dict(st)
+
+                    # get station task list from order table and  project_task table
+                    task_order_instances = Project_TestScript_order.objects.filter(project_name=p, part_number=pn,
+                                                                                   station_name=st)
+                    if task_order_instances.exists():
+                        task_order_list = (task_order_instances[0].script_oder).split(" ")
+                        task_list = [str(p.id) for p in Project_task.objects.filter(station_id=st)]
+                        # check order and current project task list have any difference
+                        ini_not_saved = len(([i for i in task_list + task_order_list if
+                                              i not in task_list or i not in task_order_list])) > 0
+
+                        if ini_not_saved:
+                            st_dict["download"] = False
+                        else:
+                            st_dict["download"] = True
+                    else:
+                        st_dict["download"] = False
+
+                    st_list.append(st_dict)
+
+            pn_dict["st_list"] = st_list
+
+    project_dict["pn_list"] = pn_list
+    project_structure.append(project_dict)
+
+    return render(request, "log_confirm.html", locals())
 
 @login_required(login_url="/user/login/")
 def list_project(request):
@@ -80,6 +130,8 @@ def list_project(request):
 
         project_dict["pn_list"] = pn_list
         project_structure.append(project_dict)
+
+        print(project_structure)
     return render(request, "project_list.html", locals())
 
 
