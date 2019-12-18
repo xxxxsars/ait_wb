@@ -8,17 +8,90 @@ from rest_framework.permissions import IsAuthenticated
 
 from django.http import HttpResponse
 from django.http.response import JsonResponse
-from project.restful.serializer import *
-from project.models import *
+from django.http import StreamingHttpResponse
 
-import os, platform, shutil,zipfile,re
+import shutil,zipfile,os,subprocess,re,platform,string,random,time
 from io import StringIO,BytesIO
 
-from common.handler import handle_path,get_download_file
-from django.http import StreamingHttpResponse
+from FactoryWeb.settings import *
+from project.restful.serializer import *
 from project.models import *
+from common.handler import handle_path,get_download_file,path_combine
+
 
 # # Create your views here.
+
+
+@api_view(["POST"])
+@authentication_classes((SessionAuthentication,BasicAuthentication))
+def submit_project(request):
+    if request.method == "POST":
+        project_name = request.data.get("project_name")
+        try:
+            samba_mount()
+        except Exception as e:
+
+            return JsonResponse (  {"valid": False,"message":"Connection failed."},status=status.HTTP_408_REQUEST_TIMEOUT)
+
+
+        p = ""
+        if (platform.system() == "Darwin"):
+            p = OSX_MOUNT_PATH
+        elif platform.system() == "Windows":
+            p = WIN_MOUNT_PATH
+
+        project_instance = Project.objects.get(project_name=project_name)
+        owner_user = project_instance.owner_user.username
+
+        tmp_folder_name = "".join([ random.choice(string.ascii_letters+string.digits)  for _ in range(30)])
+        for pn in Project_PN.objects.filter(project_name=project_instance):
+            for st in Project_Station.objects.filter(project_pn_id=pn):
+                part_number = pn.part_number
+                station_name = st.station_name
+
+                file_list = get_download_file(owner_user,project_name,part_number,station_name)
+                for source_path,target in file_list:
+                    target_path = path_combine(p,tmp_folder_name,part_number,station_name)
+                    testResouce_path = path_combine(target_path,"TestScriptRes")
+                    if not os.path.exists(target_path):
+                        os.makedirs(target_path)
+
+                    if not os.path.exists(testResouce_path):
+                        os.makedirs(testResouce_path)
+
+                    target_full_path = os.path.join(target_path,target)
+
+                    shutil.copy2(source_path,target_full_path)
+
+
+
+        # remove old project folder and change tmp name
+        tmp_path = path_combine(p, tmp_folder_name)
+        project_path = path_combine(p, project_name+"_test")
+        if os.path.exists(project_path):
+            try:
+                shutil.rmtree(project_path)
+            except Exception as e:
+                print(tmp_path)
+                shutil.rmtree(tmp_path)
+                return JsonResponse({"valid": False, "message": re.search(r"\]([\s|\w]+):*",str(e)).group(1).strip()}, status=status.HTTP_417_EXPECTATION_FAILED)
+
+        try:
+            os.rename(tmp_path,project_path)
+        except Exception as e:
+            print(tmp_path)
+            shutil.rmtree(tmp_path)
+            return JsonResponse({"valid": False, "message":re.search(r"\]([\s|\w]+):*",str(e)).group(1).strip()}, status=status.HTTP_417_EXPECTATION_FAILED)
+
+    return  JsonResponse({"valid": True,"message":"Submit successfully!"},status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+
 
 
 @api_view(["POST"])
@@ -304,3 +377,41 @@ def get_station_instacne(project, part_number, station):
     pn_instance = Project_PN.objects.get(project_name=project_instance, part_number=part_number)
     station_instance = Project_Station.objects.get(project_pn_id=pn_instance, station_name=station)
     return station_instance
+
+
+def samba_mount():
+    samba_ip =SAMBA_IP
+    account =ACCOUNT
+    password = PASSWORD
+    share_folder= SAMBA_FOLDER
+
+    win_mount_path =WIN_MOUNT_PATH
+    osx_mount_path = OSX_MOUNT_PATH
+
+
+    mounted = False
+    cmd = ""
+    if (platform.system() =="Darwin"):
+        check_output=  (subprocess.check_output(["mount"])).decode("utf-8")
+        if (re.search(r"%s"%osx_mount_path,check_output)):
+            mounted = True
+    elif platform.system() == "Windows":
+        check_output = (subprocess.check_output("fsutil fsinfo drives".split(" "))).decode("utf-8")
+        if (re.search(r"%s"%win_mount_path,check_output)):
+            print("win mounted")
+            mounted = True
+
+    if mounted ==False :
+
+        if (platform.system() == "Darwin"):
+            cmd = "mount_smbfs //%s:%s@%s/%s %s"%(account,password,samba_ip,share_folder,osx_mount_path)
+
+        elif platform.system() == "Windows":
+            cmd = r"net use W: \\%s\%s %s /user:%s" % (samba_ip,share_folder,password,account)
+
+        # wait for 10 second ,if not response will return error
+        p = subprocess.check_call(cmd.split(" "),timeout=10)
+        if p != 0 :
+            raise ConnectionError("Connect samba failed.")
+
+

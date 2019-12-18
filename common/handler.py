@@ -7,6 +7,7 @@ import hashlib
 from common.limit import *
 import os
 import json
+import socket
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'FactoryWeb.settings')
 import django
@@ -17,6 +18,7 @@ from django.contrib.auth.models import User
 from rest_framework import authentication
 from rest_framework import exceptions
 
+from project.models import *
 
 def handle_path(root_path, *args):
     result_path = ""
@@ -28,10 +30,20 @@ def handle_path(root_path, *args):
         else:
             result_path = os.path.join(result_path, arg)
     if not os.path.exists(result_path):
+        print("handle_path create new folder",result_path)
         os.makedirs(result_path)
 
     return result_path
 
+
+def path_combine(root_path,*args):
+    result_path = ""
+    for arg in args:
+        if result_path == "":
+            result_path = os.path.join(root_path, arg)
+        else:
+            result_path = os.path.join(result_path, arg)
+    return result_path
 
 def md5(fname):
     hash_md5 = hashlib.md5()

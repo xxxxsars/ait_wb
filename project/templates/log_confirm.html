@@ -19,6 +19,10 @@
 
     <script src="{% static "bower_components/bootstrap-select/dist/js/bootstrap-select.min.js" %}"></script>
 
+    <link type="text/css" rel="stylesheet" href="{% static "bower_components/semantic/dist/semantic.min.css" %}">
+
+
+    <script src="{% static "bower_components/semantic/dist/semantic.min.js" %}"></script>
 
 
 {% endblock %}
@@ -224,6 +228,105 @@
             });
 
 
+            $("#submit_project").click(function () {
+                var error_count = 0;
+                $(".status").each(function () {
+                    if ($(this).hasClass('text-danger')) {
+                        error_count += 1;
+                    }
+                });
+
+                $(document).ajaxStart(function () {
+                    $("body").hide();
+
+                    $(".load_panel").each(function () {
+                        $(this).remove()
+                    });
+
+                    $("html").append(
+                        '<div class="ui segment load_panel" style="width: 100%; height: 100%;">' +
+                        '  <div class="ui active inverted dimmer">' +
+                        '    <div class="ui indeterminate text loader">Upload Project to AIT Server ...</div>' +
+                        '  </div>' +
+                        '</div>');
+
+                });
+
+
+                $(document).ajaxComplete(function () {
+                    $(".load_panel").each(function () {
+                        $(this).remove()
+                    });
+
+                    $("body").show()
+                });
+
+                if (error_count <= 0) {
+                    $.ajax({
+                        url: "{% url "submit_project" %}",
+                        type: 'POST',
+                        data: {
+                            csrfmiddlewaretoken: getCookie('csrftoken'),
+                            project_name: '{{ project_name }}'
+                        },
+
+                        success: function (json) {
+                            $("#message").empty();
+
+                            $("#message").append(
+                                '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                                '<strong>The project was uploaded successfully!</strong>' +
+                                '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                                '<span aria-hidden="true">&times;</span>' +
+                                '</button>' +
+                                '</div>')
+
+
+                            //auto close alert  after 4 seconds.
+                            $(".alert").delay(4000).slideUp(200, function () {
+                                $(this).alert('close');
+
+                            })
+                        },
+
+                        error: function (xhr, errmsg, err) {
+                            $("#message").empty();
+                            if (xhr.status == 500) {
+                                $("#message").append(
+                                    '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                                    '<strong>' + xhr.statusText + '</strong>' +
+                                    '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                                    '<span aria-hidden="true">&times;</span>' +
+                                    '</button>' +
+                                    '</div>');
+                            }
+                            else {
+                                var json = $.parseJSON(xhr.responseText);
+                                if (json.valid == false) {
+                                    var error_messages = json.message;
+                                    $("#message").append(
+                                        '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                                        '<strong>' + error_messages + '</strong>' +
+                                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                                        '<span aria-hidden="true">&times;</span>' +
+                                        '</button>' +
+                                        '</div>');
+                                }
+
+
+                            }
+
+
+                        }
+                    });
+
+                } else {
+                    alert("Your project task had some error.")
+                }
+
+            })
+
+
         });
     </script>
 {% endblock %}
@@ -300,4 +403,6 @@
             Submit Project
         </button>
     </div>
+
+
 {% endblock %}
