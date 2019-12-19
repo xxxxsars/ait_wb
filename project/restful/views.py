@@ -23,7 +23,7 @@ from common.handler import handle_path,get_download_file,path_combine
 
 
 @api_view(["POST"])
-@authentication_classes((SessionAuthentication,BasicAuthentication))
+@authentication_classes((SessionAuthentication,))
 def submit_project(request):
     if request.method == "POST":
         project_name = request.data.get("project_name")
@@ -32,6 +32,7 @@ def submit_project(request):
         except Exception as e:
 
             return JsonResponse (  {"valid": False,"message":"Connection failed."},status=status.HTTP_408_REQUEST_TIMEOUT)
+
 
 
         p = ""
