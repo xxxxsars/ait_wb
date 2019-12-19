@@ -86,14 +86,6 @@
 
         $(document).ready(function () {
 
-            jQuery.loadScript = function (url, callback) {
-                jQuery.ajax({
-                    url: url,
-                    dataType: 'script',
-                    success: callback,
-                    async: true
-                });
-            }
 
             $('.tree').treegrid({});
             {#$('.tree').treegrid('collapseAll');#}
@@ -246,12 +238,7 @@
                 $(document).ajaxStart(function () {
                     $("body").hide();
 
-                    $(".load_panel").each(function () {
-                        $(this).remove()
-                    });
-
-
-                    //dynamically loading css
+                                      //dynamically loading css
                     loadCSS = function (href) {
                         var cssLink = $("<link  id='load_css' rel='stylesheet' type='text/css' href='" + href + "'>");
                         $("head").append(cssLink);
@@ -261,8 +248,12 @@
                     loadCSS("{% static "bower_components/semantic/dist/semantic.min.css" %}");
 
 
+                    $(".load_panel").each(function () {
+                        $(this).remove()
+                    });
+
                     $("html").append(
-                        '<div class="ui segment load_panel" style="width: 100%; height: 100%;">' +
+                        '<div class="load_panel" style="width: 100%; height: 100%;">' +
                         '  <div class="ui active inverted dimmer">' +
                         '    <div class="ui indeterminate text loader">Please waiting , Project is uploading to AIT Server</div>' +
                         '  </div>' +
