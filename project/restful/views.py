@@ -60,7 +60,7 @@ def submit_project(request):
                     if not os.path.exists(testResouce_path):
                         os.makedirs(testResouce_path)
 
-                    target_full_path = os.path.join(target_path,target)
+                    target_full_path,_ = os.path.split(os.path.join(target_path,target))
 
                     shutil.copy2(source_path,target_full_path)
 
