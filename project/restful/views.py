@@ -83,6 +83,14 @@ def submit_project(request):
             shutil.rmtree(tmp_path)
             return JsonResponse({"valid": False, "message":re.search(r"\]([\s|\w]+):*",str(e)).group(1).strip()}, status=status.HTTP_417_EXPECTATION_FAILED)
 
+        # Add upload time
+        p = Project.objects.get(project_name=project_name)
+        time_obj,created=Project_Upload_time.objects.get_or_create(project_name=p)
+        if created==False:
+            time_obj.time = datetime.datetime.now()
+            time_obj.save()
+
+
     return  JsonResponse({"valid": True,"message":"Submit successfully!"},status=status.HTTP_200_OK)
 
 

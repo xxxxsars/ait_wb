@@ -8,7 +8,6 @@ class Project(models.Model):
     project_name = models.CharField(max_length=255, unique=True, primary_key=True)
     owner_user = models.ForeignKey(User, on_delete=models.CASCADE)
     time = models.DateTimeField(auto_now_add=True)
-
     class Meta:
         db_table = "project"
 
@@ -70,3 +69,13 @@ class Project_TestScript_order(models.Model):
         db_table = "project_script_order"
 
         unique_together = (('project_name', 'part_number',"station_name"),)
+
+
+
+
+class Project_Upload_time(models.Model):
+    project_name = models.ForeignKey(Project, on_delete=models.CASCADE)
+    time = models.DateTimeField(default=datetime.datetime.now, blank=True)
+
+    class Meta:
+        db_table = "project_upload_time"

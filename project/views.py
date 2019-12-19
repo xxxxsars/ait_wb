@@ -89,8 +89,15 @@ def list_project(request):
     project_structure = []
     for prj_id, p in enumerate(datas):
         project_name = p.project_name
+
+        upload_date = "Not Uploaded"
+        if Project_Upload_time.objects.filter(project_name=p).exists():
+            upload_date = Project_Upload_time.objects.get(project_name=p).time
+
         project_dict = {"project_id": 'prj_%d' % prj_id, "project_name": p.project_name,
-                        "owner_user": p.owner_user.username, "date": p.time}
+                        "owner_user": p.owner_user.username, "date": p.time,"upload_date":upload_date}
+
+
         pn_list = []
 
         pn_object = Project_PN.objects.filter(project_name=project_name)
@@ -131,7 +138,6 @@ def list_project(request):
         project_dict["pn_list"] = pn_list
         project_structure.append(project_dict)
 
-        print(project_structure)
     return render(request, "project_list.html", locals())
 
 

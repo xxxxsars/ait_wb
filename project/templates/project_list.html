@@ -156,7 +156,12 @@
 
                             location.href = "/project/modify_project/" + project_name
 
-                        } else if (action == "Delete") {
+                        }else if(action =="Upload"){
+                            location.href = "/project/log_confirm/" + project_name
+                        }
+
+
+                        else if (action == "Delete") {
                             if (confirm("Are you sure to delete this row?")) {
 
                                 projectName = dtRow.find("td.project_name").text();
@@ -353,8 +358,8 @@
             {% if request.user.is_staff %}
                 <th>Onwer User</th>
             {% endif %}
-            <th>Create Date</th>
             <th>Create Time</th>
+            <th>Last Upload Time</th>
             <th style="text-align: right">
                 <div style="padding-right: 10%"> Action</div>
             </th>
@@ -396,11 +401,16 @@
                         </td>
                     {% endif %}
                     <td>
-                        {{ prj|lookup:"date"|date:'Y-m-d' }}
+                        {{ prj|lookup:"date"|date:'Y-m-d h:i A' }}
                     </td>
 
                     <td>
-                        {{ prj|lookup:"date"|date:'h:i A' }}
+                        {% if prj|lookup:"upload_date" == "Not Uploaded" %}
+                              <div class="text-danger h5 status" style="padding-left: 30%"><i class="fas fa-times"></i></div>
+                        {% else %}
+                            {{ prj|lookup:"upload_date"|date:'Y-m-d h:i A' }}
+                        {% endif %}
+
                     </td>
                     <td>
                         <div class="dropdown text-right">
@@ -419,6 +429,7 @@
 
                                 <button class="dropdown-item" type="button">Delete</button>
 
+                                <button class="dropdown-item" type="button">Upload</button>
                             </div>
 
                         </div>
