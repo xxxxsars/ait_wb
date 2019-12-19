@@ -53,15 +53,13 @@ def submit_project(request):
                 file_list = get_download_file(owner_user,project_name,part_number,station_name)
                 for source_path,target in file_list:
                     target_path = path_combine(p,tmp_folder_name,part_number,station_name)
-                    testResouce_path = path_combine(target_path,"TestScriptRes")
+
                     if not os.path.exists(target_path):
                         os.makedirs(target_path)
 
-                    if not os.path.exists(testResouce_path):
-                        os.makedirs(testResouce_path)
-
                     target_full_path,_ = os.path.split(os.path.join(target_path,target))
-
+                    if not os.path.exists(target_full_path):
+                        os.makedirs(target_full_path)
                     shutil.copy2(source_path,target_full_path)
 
 
