@@ -55,6 +55,13 @@
             return cookieValue;
         }
 
+
+        $(document).ajaxError(function (event, xhr, settings, thrownError) {
+            if (xhr.responseJSON.detail == "Authentication credentials were not provided.") {
+                alert("Your login session has expired.Please login again.")
+                location.href = "{% url "login" %}"
+            }
+        });
     </script>
     <!--extend css -->
     {% block css %}
