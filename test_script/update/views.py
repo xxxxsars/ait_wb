@@ -3,6 +3,8 @@ from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication, RemoteUserAuthentication
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 
 import os
 import shutil
@@ -15,7 +17,8 @@ from common.limit import input_argument, valid_default_value
 from common.handler import handle_path, get_attach_name, get_modify_time
 from project.models import *
 
-
+@api_view(["POST"])
+@authentication_classes((SessionAuthentication,))
 def update_API(request):
     error_messages = []
     if request.POST:

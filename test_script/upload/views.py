@@ -1,6 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication, RemoteUserAuthentication
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+
 from test_script.upload.forms import *
 from test_script.upload.models import *
 import os, re
@@ -43,7 +46,8 @@ def upload_index(request):
 
 
 
-
+@api_view(["POST"])
+@authentication_classes((SessionAuthentication,))
 def upload_API(request):
     error_messages = []
     if request.POST:
