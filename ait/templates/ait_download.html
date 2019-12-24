@@ -14,7 +14,7 @@
         $(document).ready(function () {
 
             if ($('tbody').find('tr').length == 0) {
-                $("table").append('<td colspan="4" class="text-center"> Don\'t have any release version</td>')
+                $("table").append('<tr><td colspan="4" class="text-center"> Don\'t have any release AIT version</td></tr>')
             }
 
 
@@ -36,6 +36,7 @@
 
 
                 if (confirm("Are you sure to delete this version?")) {
+                    tr.remove();
 
 
                     $.ajax({
@@ -48,9 +49,9 @@
                         success: function (json) {
                             tr.remove();
 
-                            row_count = tr.closest('tbody').find('tr').length;
+                            row_count = $('tbody').find('tr').length;
                             if (row_count == 0) {
-                                $("table").append('<td colspan="4" class="text-center"> Don\'t have any release version</td>')
+                                $("table").append('<tr> <td colspan="4" class="text-center"> Don\'t have any release AIT version</td></tr>')
                             }
                         },
                         error: function (xhr, errmsg, err) {
