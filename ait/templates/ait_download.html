@@ -1,7 +1,13 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 
-
+{% block css %}
+    <style>
+        .table tbody tr td {
+            vertical-align: middle;
+        }
+    </style>
+{% endblock %}
 
 {% block js %}
     <script>
@@ -9,6 +15,13 @@
 
             $("#download_jar").click(function () {
                 location.href = "{% url "ait_download_file" %}"
+            });
+
+
+            $('.btn-edit').click(function () {
+                var tr = $(this).closest("tr");
+                version = tr.find('td.version').text();
+                location.href = "/ait/update/"+ version
             })
 
 
@@ -22,19 +35,22 @@
 {% block body %}
 
 
-    <table border="0" style="width: 100%; margin: 0 auto 2em auto;">
-        <tr>
+    <div class="row" style="margin-bottom: 2%">
+        <div class="col-sm">
 
-            <td><h3>Download</h3></td>
-            <td>
-                <div class="text-right">
-                    <button id="download_jar" type="button" class="btn btn-success"><i class="fas fa-download"></i>
-                        Download
-                    </button>
-                </div>
-            </td>
-        </tr>
-    </table>
+        </div>
+        <div class="col-sm text-center">
+            <h3> Download AIT Jar</h3>
+        </div>
+        <div class="col-sm">
+            <div class="text-right">
+                <button id="download_jar" type="button" class="btn btn-success"><i class="fas fa-download"></i>
+                    Download
+                </button>
+            </div>
+        </div>
+    </div>
+
 
 
 
@@ -48,14 +64,24 @@
                 Release data
             </td>
             <td>Release notes</td>
+            {% if request.user.is_staff %}
+                <td class="text-center">Action</td>
+            {% endif %}
+
         </tr>
         </thead>
         {% for data in datas %}
             <tr>
-                <td>{{ data.version }}</td>
+                <td class="version">{{ data.version }}</td>
                 <td>{{ data.time |date:'Y M d' }}</td>
-                <td><a href="{% url "release_note" data.version %}">Announcement</a></td>
-
+                <td><a href="/ait/release/{{ data.version }}" >Announcement</a></td>
+                {% if request.user.is_staff %}
+                    <td class="text-center">
+                        <button type="button" class="btn btn-outline-primary btn-edit">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                    </td>
+                {% endif %}
             </tr>
 
         {% endfor %}

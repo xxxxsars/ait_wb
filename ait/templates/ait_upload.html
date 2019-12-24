@@ -2,6 +2,22 @@
 {% load staticfiles %}
 
 
+
+
+{% block head %}
+
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/bootstrapvalidator/dist/css/bootstrapValidator.min.css" %}">
+
+    <script src="{% static "bower_components/jquery-ui/jquery-ui.min.js" %}"></script>
+    <script src="{% static "bower_components/blueimp-file-upload/js/jquery.fileupload.js" %}"></script>
+
+    <script src="{% static "bower_components/bootstrapvalidator/dist/js/bootstrapValidator.min.js" %}"></script>
+    <script src="{% static "bower_components/bootstrapvalidator/dist/js/language/en_US.js" %}"></script>
+
+{% endblock %}
+
+
 {% block css %}
     <style>
 
@@ -10,6 +26,43 @@
             text-align: center;
         }
 
+        .help-block {
+            color: #a94442;
+        }
+
+        .form-group.has-error.has-danger .form-control-label {
+            color: #a94442;
+        }
+
+        .form-group.has-error.has-danger .form-control {
+            border: 1px solid #a94442;
+            box-shadow: #a94442;
+        }
+
+        .has-success .form-control {
+            border-color: #3c763d;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+        }
+
+        .form-control-feedback {
+
+            top: 25px;
+            right: 0;
+            z-index: 2;
+            width: 34px;
+            height: 34px;
+            line-height: 34px;
+            text-align: center;
+        }
+
+        .has-error .form-control-feedback {
+            color: #a94442;
+        }
+
+        .has-success .form-control-feedback {
+            color: #3c763d;
+        }
     </style>
 {% endblock %}
 
@@ -20,57 +73,312 @@
 
         {#display the upload file name#}
         $(function () {
-            $('#inputGroupFile04').on('change', function () {
+            $('input[type="file"]').on('change', function () {
+                console.log("in", $(this).val(), $(this).next('.custom-file-label'))
                 //get the file name
                 var fileName = $(this).val();
                 //replace the "Choose a file" label
-                $(this).next('.custom-file-label').html(fileName);
+                $(this).closest('.custom-file').find('.custom-file-label').html(fileName);
             });
         });
+
+        $(document).ready(function () {
+
+            //auto close alert  after 4 seconds.
+            $(".alert").delay(4000).slideUp(200, function () {
+                $(this).alert('close');
+
+            });
+
+
+            {% if is_update %}
+                var version_input = $('input[name="version"]');
+                version_input.val("{{ ait.version|safe }}");
+
+                version_input.attr("readonly", true);
+                $('textarea[name="release_note"]').val("{{ ait.release_note|escapejs }}");
+
+
+                $('input[type="file"]').attr("required", false);
+
+            {% else %}
+                $('input[type="file"]').attr("required", true);
+            {% endif %}
+
+            $("#ait_form").bootstrapValidator({
+                message: 'This value is not valid',
+                feedbackIcons: {
+                    valid: 'fas fa-check',
+                    invalid: 'none',
+                    validating: 'fas fa-sync-alt'
+                },
+                fields: {
+                    version: {
+                        message: 'The version is not valid',
+                        validators: {
+                            notEmpty: {
+                                message: 'The version is required and cannot be empty.'
+                            },
+                            regexp: {
+                                regexp: /^(\d+\.{1}){2}\d+$/,
+                                message: 'The version is incorrect.'
+                            },
+                            remote: {
+                                message: 'Your version cannot be repeated.',
+                                url: '/ait/valid_version/',
+                                delay: 1000
+                            }
+                        }
+                    },
+
+                    release_note: {
+                        message: 'The release note is not valid',
+                        validators: {
+                            notEmpty: {
+                                message: 'The release note is required and cannot be empty.'
+                            },
+
+
+                        }
+                    },
+                    file: {
+                        validators: {
+
+                            {% if not is_update %}
+                                notEmpty: {
+                                    message: 'The AIT jar file is required and cannot be empty.'
+                                },
+                            {% endif %}
+
+                        }
+                    }
+
+                }
+            });
+
+            var m = $('#modal-progress');
+            var filesList = [],
+                paramNames = [],
+                elem = $("#ait_form");
+
+
+            file_upload = elem.fileupload({
+                dataType: 'json',
+                singleFileUploads: false,
+                autoUpload: false,
+                sequentialUploads: true,
+
+                start: function (e) {  /* 2. WHEN THE UPLOADING PROCESS STARTS, SHOW THE MODAL */
+                    m.modal('show')
+                },
+                stop: function (e) {
+                    //if small file will not close modal ,you should set the timeout
+                    setTimeout(function () {
+                        m.modal('hide')
+                    }, 1000)
+                }, success: function (e, data) {
+
+                    {% if is_update %}
+                        $("div.alert").alert("close");
+                        $("#message").empty();
+                        $("#message").append(
+                            '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                            '<strong>' + e.message + '</strong>' +
+                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                            '<span aria-hidden="true">&times;</span>' +
+                            '</button>' +
+                            '</div>');
+                        //auto close alert  after 4 seconds.
+                        $(".alert").delay(4000).slideUp(200, function () {
+                            $(this).alert('close');
+
+                        });
+
+                    {% else %}
+                        version = $('input[name="version"]').val();
+                        location.href = "/ait/update/" + version + "/" + e.message;
+
+                    {% endif %}
+                },
+                fail: function (e, data) {
+                    var json = $.parseJSON(data.jqXHR.responseText);
+
+
+                    if (json.is_valid == false) {
+                        $("#message").empty();
+                        $("#message").append(
+                            '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                            '<strong>' + json.message + '</strong>' +
+                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                            '<span aria-hidden="true">&times;</span>' +
+                            '</button>' +
+                            '</div>');
+
+                        //auto close alert  after 4 seconds.
+                        $(".alert").delay(4000).slideUp(200, function () {
+                            $(this).alert('close');
+
+                        });
+                    }
+
+                },
+                progressall: function (e, data) {
+                    var progress = parseInt(data.loaded / data.total * 100, 10);
+                    var strProgress = progress + "%";
+
+                    $(".progress-bar").css({"width": strProgress});
+                    $(".progress-bar").text(strProgress);
+
+                },
+            }).on("fileuploadadd", function (e, data) {
+                filesList.push(data.files[0]);
+                paramNames.push(e.delegatedEvent.target.name);
+            });
+
+
+            $("#btn_submit").click(function (e) {
+                e.preventDefault();
+
+
+                $('#ait_form').bootstrapValidator('validate');
+
+                console.log($("#ait_form").data('bootstrapValidator').isValid())
+
+                if ($("#ait_form").data('bootstrapValidator').isValid()) {
+                    if (filesList.length > 0) {
+                        file_upload.fileupload('send', {
+                            files: filesList,
+                            paramName: paramNames,
+
+                        });
+                        //else using ajax update
+                    } else {
+                        $.ajax({
+                            url: "{% if is_update %}{% url "update_api" %}{% else %}{%  url "upload_api" %}{% endif %}",
+                            type: 'POST',
+                            data: $("#ait_form").serialize(),
+
+                            success: function (json) {
+                                $("div.alert").alert("close");
+                                $("#message").empty();
+                                $("#message").append(
+                                    '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                                    '<strong>' + json.message + '</strong>' +
+                                    '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                                    '<span aria-hidden="true">&times;</span>' +
+                                    '</button>' +
+                                    '</div>');
+                                //auto close alert  after 4 seconds.
+                                $(".alert").delay(4000).slideUp(200, function () {
+                                    $(this).alert('close');
+
+                                });
+
+
+                            },
+                            error: function (xhr, errmsg, err) {
+                                $("div.alert").alert("close");
+                                var json = $.parseJSON(xhr.responseText);
+
+                                if (json.is_valid == false) {
+                                    $("#message").empty();
+
+
+                                    $("#message").append(
+                                        '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                                        '<strong>' + json.message + '</strong>' +
+                                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                                        '<span aria-hidden="true">&times;</span>' +
+                                        '</button>' +
+                                        '</div>');
+
+                                    //auto close alert  after 4 seconds.
+                                    $(".alert").delay(4000).slideUp(200, function () {
+                                        $(this).alert('close');
+
+                                    })
+                                    //disable download zip
+                                    $("#download_script").attr('disabled', 'disabled');
+                                }
+
+                            }
+                        });
+                    }
+                }
+            });
+
+
+        })
     </script>
 {% endblock %}
 
 
 {% block body %}
     <h3>Upload AIT</h3>
+    <div id="message"></div>
+    <br>
 
-
-
-    {% if u.errors %}
-        {% for field in u %}
-            {% for error in field.errors %}
-                <div class="alert alert-danger">
-                    <strong>{{ error|escape }}</strong>
+    <div class="modal fade" id="modal-progress" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="exampleModalLabel">Uploading...</h4>
                 </div>
-            {% endfor %}
-        {% endfor %}
-    {% endif %}
+
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="test">
+                    <span aria-hidden="true">&times;</span>
+                </button>
 
 
-    {% if susessful %}
-        <div class="alert alert-success">
-            <strong> {{ susessful }}</strong>
-        </div>
-    {% endif %}
-
-
-
-    <form enctype="multipart/form-data" method="post" action="">{% csrf_token %}
-
-        <label for="version">Version：</label>{{ u.version }}
-        <label for="realease_noet">Release Note：</label>{{ u.release_note }}
-
-
-        <label for="upload">Upload AIT file：</label>
-        <div class="input-group">
-            <div class="custom-file">
-                {{ u.file }}
-                <label class="custom-file-label" for="inputGroupFile04">Please Upload AIT File</label>
+                <div class="modal-body">
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: 0%;">0%</div>
+                    </div>
+                </div>
             </div>
         </div>
-        <br>
-        <button class="btn btn-primary" type="submit"><i class="fas fa-share-square"></i> Submit</button>
+    </div>
+
+
+    {% if message %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>{{ message }}</strong>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    {% endif %}
+
+
+
+    <form id="ait_form" enctype="multipart/form-data" method="post"
+          action="{% if is_update %}{% url "update_api" %}{% else %}{% url "upload_api" %}{% endif %}">{% csrf_token %}
+        <div class="col-md-12">
+            <label for="version">Version：</label>
+            <div class="form-group">{{ u.version }}</div>
+        </div>
+
+        <div class="col-md-12">
+            <label for="release_note">Release Note：</label>
+            <div class="form-group">{{ u.release_note }}</div>
+        </div>
+
+        <div class="col-md-12">
+            <div class="form-group">
+                <label style="padding-top: 1%" class="form-control-label">AIT Jar :&emsp;</label>
+                <div class="custom-file">
+                    {{ u.file }}
+                    <label class="custom-file-label">Please Upload AIT jar</label>
+                </div>
+            </div>
+        </div>
+
 
     </form>
-
+    <br>
+    <div class="text-center">
+        <button class="btn btn-outline-primary" type="button" id="btn_submit"><i class="fas fa-share"></i> Submit
+        </button>
+    </div>
 {% endblock %}
