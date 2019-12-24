@@ -13,6 +13,11 @@
     <script>
         $(document).ready(function () {
 
+            if ($('tbody').find('tr').length == 0) {
+                $("table").append('<td colspan="4" class="text-center"> Don\'t have any release version</td>')
+            }
+
+
             $("#download_jar").click(function () {
                 location.href = "{% url "ait_download_file" %}"
             });
@@ -21,9 +26,40 @@
             $('.btn-edit').click(function () {
                 var tr = $(this).closest("tr");
                 version = tr.find('td.version').text();
-                location.href = "/ait/update/"+ version
-            })
+                location.href = "/ait/update/" + version
+            });
 
+
+            $('.btn-delete').click(function () {
+                var tr = $(this).closest("tr");
+                version = tr.find('td.version').text();
+
+
+                if (confirm("Are you sure to delete this version?")) {
+
+
+                    $.ajax({
+                        url: "/ait/delete_version/", // the endpoint,commonly same url
+                        type: 'POST',
+                        data: {
+                            csrfmiddlewaretoken: getCookie("csrftoken"),
+                            "version": version,
+                        },
+                        success: function (json) {
+                            tr.remove();
+
+                            row_count = tr.closest('tbody').find('tr').length;
+                            if (row_count == 0) {
+                                $("table").append('<td colspan="4" class="text-center"> Don\'t have any release version</td>')
+                            }
+                        },
+                        error: function (xhr, errmsg, err) {
+                            console.log("part number not in database");
+                        }
+                    });
+                }
+
+            })
 
         })
 
@@ -70,23 +106,31 @@
 
         </tr>
         </thead>
+
+
+        <tbody>
         {% for data in datas %}
             <tr>
                 <td class="version">{{ data.version }}</td>
                 <td>{{ data.time |date:'Y M d' }}</td>
-                <td><a href="/ait/release/{{ data.version }}" >Announcement</a></td>
+                <td><a href="/ait/release/{{ data.version }}">Announcement</a></td>
                 {% if request.user.is_staff %}
                     <td class="text-center">
-                        <button type="button" class="btn btn-outline-primary btn-edit">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-outline-primary btn-edit">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+
+                            <button type="button" class="btn btn-outline-danger btn-delete">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
                     </td>
                 {% endif %}
             </tr>
 
         {% endfor %}
 
-        <tbody>
 
         </tbody>
 

@@ -13,6 +13,7 @@ urlpatterns = [
     url("^update/(?P<version>[\d|\.]+)/(?P<message>.+)/$", update_message, name="ait_update_message"),
     url("^update_api/$",update_API,name="update_api"),
 
-    url("^valid_version/$",valid_ait_version)
+    url("^valid_version/$",valid_ait_version),
+    url("^delete_version/$",delete_release_version)
 
 ]

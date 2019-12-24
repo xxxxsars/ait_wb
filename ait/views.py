@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect
 from django.http import StreamingHttpResponse, Http404,JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
+from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, RemoteUserAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 import os
@@ -21,6 +23,7 @@ def download_index(request):
 
 @login_required(login_url="/user/login/")
 def release_note(request, version):
+    is_ait = True
     content = AIT_release.objects.get(version=version)
     return render(request, "annoucement.html", locals())
 
@@ -30,6 +33,7 @@ def release_note(request, version):
 @staff_member_required
 @authentication_classes((SessionAuthentication,))
 def update(request,version):
+    is_ait = True
     ait = AIT_release.objects.get(version=version)
     is_update = True
     u = UploadAITForm()
@@ -40,6 +44,7 @@ def update(request,version):
 @staff_member_required
 @authentication_classes((SessionAuthentication,))
 def update_message(request,version,message):
+    is_ait = True
     ait = AIT_release.objects.get(version=version)
     is_update = True
     u = UploadAITForm()
@@ -51,6 +56,7 @@ def update_message(request,version,message):
 @staff_member_required
 @authentication_classes((SessionAuthentication,))
 def upload(request):
+    is_ait = True
     u = UploadAITForm()
     return render(request, "ait_upload.html", locals())
 
@@ -115,7 +121,7 @@ def upload_API(request):
 
     return JsonResponse( {'is_valid': False, "message": "Update AIT was failed."}, status=400)
 
-@api_view(["POST"])
+@api_view(["GET"])
 @authentication_classes((SessionAuthentication,))
 def valid_ait_version(request):
     if request.GET:
@@ -124,6 +130,22 @@ def valid_ait_version(request):
             return JsonResponse({"valid":False})
         else:
             return JsonResponse({"valid": True})
+
+
+
+@api_view(["POST"])
+@authentication_classes((SessionAuthentication,BasicAuthentication))
+def delete_release_version(request):
+    if request.method == "POST":
+        version = request.data.get("version")
+        if version == None:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        instance = AIT_release.objects.filter(version=version)
+
+        if instance.exists() == False:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        instance.first().delete()
+        return Response(status=status.HTTP_200_OK)
 
 
 def handle_uploaded_file(f):

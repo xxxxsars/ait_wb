@@ -123,11 +123,14 @@
                                 regexp: /^(\d+\.{1}){2}\d+$/,
                                 message: 'The version is incorrect.'
                             },
-                            remote: {
-                                message: 'Your version cannot be repeated.',
-                                url: '/ait/valid_version/',
-                                delay: 1000
-                            }
+
+                            {% if not is_update %}
+                                remote: {
+                                    message: 'Your version cannot be repeated.',
+                                    url: '/ait/valid_version/',
+                                    delay: 1000
+                                }
+                            {% endif %}
                         }
                     },
 
