@@ -20,22 +20,6 @@ def download_index(request):
 
 
 @login_required(login_url="/user/login/")
-def download(request):
-    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    if platform.system() == "Windows":
-        file_path = path + r'\ait_jar\\' + "AIT.jar"
-
-    else:
-        file_path = path + '/ait_jar/' + "AIT.jar"
-
-    file = open(file_path, 'rb')
-    response = StreamingHttpResponse(file)
-    response['Content-Type'] = 'application/octet-stream'
-    response['Content-Disposition'] = 'attachment;filename="AIT.jar"'
-    return response
-
-
-@login_required(login_url="/user/login/")
 def release_note(request, version):
     content = AIT_release.objects.get(version=version)
     return render(request, "annoucement.html", locals())
@@ -72,6 +56,23 @@ def upload(request):
 
 
 
+
+@api_view(["GET"])
+@authentication_classes((SessionAuthentication,))
+def download(request):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if platform.system() == "Windows":
+        file_path = path + r'\ait_jar\\' + "AIT.jar"
+
+    else:
+        file_path = path + '/ait_jar/' + "AIT.jar"
+
+    file = open(file_path, 'rb')
+    response = StreamingHttpResponse(file)
+    response['Content-Type'] = 'application/octet-stream'
+    response['Content-Disposition'] = 'attachment;filename="AIT.jar"'
+    return response
+
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
 def update_API(request):
@@ -83,8 +84,6 @@ def update_API(request):
         ait = AIT_release.objects.get(version=version)
         ait.version = version
         ait.release_note = release_note
-
-
 
         if 'file' in request.FILES:
             handle_uploaded_file(request.FILES['file'])
@@ -116,7 +115,8 @@ def upload_API(request):
 
     return JsonResponse( {'is_valid': False, "message": "Update AIT was failed."}, status=400)
 
-@login_required(login_url="/user/login/")
+@api_view(["POST"])
+@authentication_classes((SessionAuthentication,))
 def valid_ait_version(request):
     if request.GET:
         version = request.GET["version"]
@@ -124,8 +124,6 @@ def valid_ait_version(request):
             return JsonResponse({"valid":False})
         else:
             return JsonResponse({"valid": True})
-
-
 
 
 def handle_uploaded_file(f):

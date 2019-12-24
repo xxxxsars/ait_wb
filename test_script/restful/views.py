@@ -124,7 +124,8 @@ def remove_upload_file(task_id):
         pass
 
 
-@login_required(login_url="/user/login/")
+@api_view(["GET"])
+@authentication_classes((SessionAuthentication,))
 def attach_download(request,task_id):
     path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     file_root = handle_path(path,"upload_folder",task_id,"attachment")
@@ -142,7 +143,8 @@ def attach_download(request,task_id):
     return response
 
 
-@login_required(login_url="/user/login/")
+@api_view(["GET"])
+@authentication_classes((SessionAuthentication,))
 def valid_script_name(request):
     if request.GET:
         task_name = request.GET["task_name"]

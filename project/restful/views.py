@@ -217,7 +217,7 @@ def GetScriptSorted(request):
 
 
 @api_view(["POST"])
-@authentication_classes((SessionAuthentication,BasicAuthentication))
+@authentication_classes((SessionAuthentication,))
 def valid_testSCript(request):
     if request.method == "POST":
 
@@ -274,10 +274,6 @@ def valid_testSCript(request):
             return JsonResponse({"valid": True,"message":"The log file was passed."})
         else:
             return JsonResponse({"valid": False,"message":"Please re-download this testScript and test it aging."},status=400)
-
-
-
-
 
 
 
@@ -342,7 +338,8 @@ class DeleteProjectTaskView(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-
+@api_view(["GET"])
+@authentication_classes((SessionAuthentication,))
 def valid_projectt_name(request):
     if request.GET:
         project_name = request.GET["project_name"]

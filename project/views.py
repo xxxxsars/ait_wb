@@ -9,6 +9,8 @@ from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.contrib.auth.models import User
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication, RemoteUserAuthentication
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 import random
 import string
 import zipfile
@@ -583,7 +585,8 @@ def modify_script(request, project_name, part_number, station_name):
 
     return render(request, "argument.html", locals())
 
-@login_required(login_url="/user/login/")
+@api_view(["POST"])
+@authentication_classes((SessionAuthentication,))
 def save_ini(request,token):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if request.POST:
