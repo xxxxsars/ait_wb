@@ -11,6 +11,8 @@ import platform
 from ait.forms import *
 from ait.models import *
 
+from common.handler import path_combine
+
 
 # Create your views here.
 @login_required(login_url="/user/login/")
@@ -145,6 +147,14 @@ def delete_release_version(request):
         if instance.exists() == False:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         instance.first().delete()
+
+        # if ait_release table had emptied ,it will remove AIT.jar
+        if len(AIT_release.objects.all()) ==0:
+            path =path_combine(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),"ait_jar","AIT.jar")
+            os.remove(path)
+
+
+
         return Response(status=status.HTTP_200_OK)
 
 

@@ -15,6 +15,7 @@
 
             if ($('tbody').find('tr').length == 0) {
                 $("table").append('<tr><td colspan="4" class="text-center"> Don\'t have any release AIT version</td></tr>')
+                $("#download_jar").attr("disabled", true)
             }
 
 
@@ -52,6 +53,7 @@
                             row_count = $('tbody').find('tr').length;
                             if (row_count == 0) {
                                 $("table").append('<tr> <td colspan="4" class="text-center"> Don\'t have any release AIT version</td></tr>')
+                                $("#download_jar").attr("disabled", true)
                             }
                         },
                         error: function (xhr, errmsg, err) {
