@@ -396,14 +396,30 @@ def samba_mount():
     mounted = False
     cmd = ""
     if (platform.system() =="Darwin"):
+        # check had been mounted
         check_output=  (subprocess.check_output(["mount"])).decode("utf-8")
         if (re.search(r"%s"%osx_mount_path,check_output)):
-            mounted = True
+            # check samba status
+            p = subprocess.run( f"smbutil statshares -m {osx_mount_path}".split(" "), timeout=10)
+            if p.returncode != 0:
+                raise ConnectionError("Connect samba failed.")
+            else:
+                mounted = True
+
     elif platform.system() == "Windows":
+        # check had been mounted
         check_output = (subprocess.check_output("fsutil fsinfo drives".split(" "))).decode("utf-8")
         if (re.search(r"%s"%win_mount_path,check_output)):
-            print("win mounted")
-            mounted = True
+            # check samba status
+            p = subprocess.check_output("net use".split(" "), timeout=10)
+            result = p.decode("utf-8")
+            for i, line in enumerate(result.split("\n")):
+                if (re.search(f"{samba_ip}", line)):
+                    status = (line.rstrip().split())[0]
+                    if status == "OK":
+                        mounted = True
+                    else:
+                        raise ConnectionError("Connect samba failed.")
 
     if mounted ==False :
 
