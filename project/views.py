@@ -762,7 +762,7 @@ def get_project_infos(post):
     return project_infos
 
 
-def get_station_tasks(project_name, part_number, station_name):
+def get_station_tasks(project_name, part_number, station_name) :
     part_number_instance = Project_PN.objects.get(project_name=project_name, part_number=part_number)
     station_instance = Project_Station.objects.get(station_name=station_name, project_pn_id=part_number_instance)
     projetc_task_instances = Project_task.objects.filter(station_id=station_instance)
@@ -784,6 +784,9 @@ def get_station_tasks(project_name, part_number, station_name):
                                    'task_id': arg.task_id.task_id, "description": arg.argument.description})
 
             prj_task_di["args"] = prj_arg_li
+
+            task_instance = Upload_TestCase.objects.get(task_id=prj_task_di["task_id"])
+            prj_task_di["project_description"] ="Description:<br>"+task_instance.description +"<br>"*2 +"Sample:<br>"+task_instance.sample
             prj_task_li.append(prj_task_di)
 
     sorted_prj_task_ids = sorted([info["id"] for info in prj_task_li])
@@ -829,9 +832,9 @@ def save_add_tasks(add_task_ids, station_instance):
     for task_id in add_task_ids:
         task_instance = Upload_TestCase.objects.get(task_id=task_id)
         prj_task_instance = Project_task.objects.create(station_id=station_instance, task_id=task_instance,
-                                                        task_name=task_instance.task_name, timeout=30,
-                                                        exit_code="exitCode", retry_count=3, sleep_time=0,
-                                                        criteria="success")
+                                                        task_name=task_instance.task_name, timeout=10,
+                                                        exit_code="exitCode", retry_count=5, sleep_time=0,
+                                                        criteria="")
 
         for arg in Arguments.objects.filter(task_id=task_instance):
             Project_task_argument.objects.create(default_value=arg.default_value, argument=arg,

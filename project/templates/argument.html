@@ -34,9 +34,6 @@
             text-align: center;
         }
 
-        .tooltip-inner {
-            text-align: left;
-        }
 
         td.details-control {
             background: url('{% static "pic/plus.png" %}') no-repeat center center;
@@ -64,9 +61,27 @@
             width: 350px;
         }
 
-        .form-control {
-            border: 0;
+
+        input {
+            position: relative;
+            transform: translateY(20%);
         }
+
+
+        .container {
+            max-width: 80%;
+        }
+
+        .tooltip-inner {
+            padding: 5px;
+            line-height: 30px;
+            text-align: left;
+            background-color: rgba(0, 0, 0, 0.80);
+            max-width: 350px;
+
+
+        }
+
 
         .help-block {
             color: #a94442;
@@ -378,10 +393,6 @@
                                 notEmpty: {
                                     message: 'The criteria cannot be empty.'
                                 },
-                                regexp: {
-                                    regexp: /^success|failed$/,
-                                    message: 'The criteria is incorrect.'
-                                },
                             }
                         },
 
@@ -574,6 +585,7 @@
             });
 
             var table = $('#task_table').DataTable({
+                "autoWidth": true,
                 "scrollX": true,
                 "searching": false,
                 "bPaginate": false,
@@ -601,8 +613,7 @@
                     // This row is already open - close it
                     row.child.hide();
                     tr.removeClass('shown');
-                }
-                else {
+                } else {
 
                     var task_id, index;
                     $(this).parents('tr').find("td").each(function () {
@@ -682,7 +693,7 @@
 
     <form id="other_form" enctype="multipart/form-data" method="post" action="">{% csrf_token %}
 
-        <table id="task_table" class="row-border">
+        <table id="task_table" class="row-border" style="width:100%">
             <thead>
             <tr>
                 <th>Arguments</th>
@@ -699,7 +710,6 @@
             </thead>
             <tbody>
 
-            {#todo add for all input form-group#}
             {% for project_di in prj_task_li %}
                 <tr class="row_tr">
                     <td class="details-control"></td>
@@ -709,18 +719,21 @@
                         <div class="form-group">
                             <input type="text"
                                    name="task_name_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
-                                   class="form-control"
+                                   class="custom-tooltip form-control "
+                                   data-toggle="tooltip"
+                                   data-placement="left"
+                                   data-html="true"
+                                   title="{{ project_di|lookup:"project_description"|linebreaks }}"
                                    value="{{ project_di| lookup:"task_name" }}" required>
                         </div>
+
+
                     </td>
                     <td>
                         <div class="form-group">
                             <input type="text"
                                    name="timeout_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
                                    class="form-control"
-                                   data-toggle="tooltip"
-                                   data-placement="left"
-                                   title="Test case timeout value"
                                    value="{{ project_di| lookup:"timeout" }}" required>
                         </div>
                     </td>
@@ -729,9 +742,6 @@
                             <input type="text"
                                    name="exitcode_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
                                    class="form-control"
-                                   data-toggle="tooltip"
-                                   data-placement="left"
-                                   title=" Pass condition 'exitCode to be define for exit(0) and exit(1)'"
                                    value="{{ project_di| lookup:"exit_code" }}" required>
                         </div>
                     </td>
@@ -740,9 +750,6 @@
                             <input type="text"
                                    name="retry_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
                                    class="form-control"
-                                   data-toggle="tooltip"
-                                   data-placement="left"
-                                   title="Retry count"
                                    value="{{ project_di| lookup:"retry_count" }}" required>
                         </div>
                     </td>
@@ -751,9 +758,6 @@
                             <input type="text"
                                    name="sleep_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
                                    class="form-control"
-                                   data-toggle="tooltip"
-                                   data-placement="left"
-                                   title="Sleep time"
                                    value="{{ project_di| lookup:"sleep_time" }}" required>
                         </div>
                     </td>
@@ -762,10 +766,7 @@
                             <input type="text"
                                    name="criteria_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
                                    class="form-control"
-                                   data-toggle="tooltip"
-                                   data-placement="left"
-                                   title="Set test case criteria"
-                                   value="{{ project_di| lookup:"criteria" }}" required>
+                                   value="{{ project_di| lookup:"criteria" }}">
                         </div>
                     </td>
 

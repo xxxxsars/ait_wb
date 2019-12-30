@@ -34,11 +34,11 @@ class Project_task(models.Model):
     station_id = models.ForeignKey(Project_Station, on_delete=models.CASCADE)
     task_id = models.ForeignKey(Upload_TestCase, on_delete=models.CASCADE)
     task_name = models.CharField(max_length=255)
-    timeout = models.IntegerField(default=30)
+    timeout = models.IntegerField(default=10)
     exit_code = models.CharField(max_length=20, default="exitCode")
-    retry_count = models.IntegerField(default=3)
+    retry_count = models.IntegerField(default=5)
     sleep_time = models.IntegerField(default=0)
-    criteria = models.CharField(max_length=20, default="success")
+    criteria = models.CharField(max_length=20, default="")
 
     class Meta:
         db_table = "project_task"
