@@ -198,13 +198,6 @@
 
                 $("#myForm").on("submit", function (e) {
 
-                    if (rows_selected.length <= 0) {
-                        alert("You must select at least one test case.");
-                        e.preventDefault();
-                        return false;
-                    }
-
-
                     {% if is_modify %}
                         $(this).append('<input name="add_task_ids"  type="hidden" value=' + rows_selected + '>');
 
@@ -477,14 +470,15 @@
         <div class="col">
             <div class="text-right">
 
-                <button id="clean" type="button" class="btn btn-outline-success"><i class="fas fa-redo"></i> Clean
+                <button id="clean" type="button" class="btn btn-outline-primary"><i class="fas fa-redo"></i> Clean
                     Filter
                 </button>
 
                 {% if is_project %}
-                    <button id="submit" type="submit" class="btn btn-outline-primary" form="myForm">Next <i
-                            class="fas fa-share"></i>
+                    <button id="submit" type="submit" class="btn btn-outline-success" form="myForm">Add to Project <i class="fas fa-plus"></i>
                     </button>
+
+
                 {% endif %}
             </div>
         </div>

@@ -403,11 +403,12 @@ def select_script(request, project_name, part_number, station_name):
 
         # handle appende new task
         if "add_task_ids" in request.POST:
-            add_task_ids = (request.POST['add_task_ids']).split(",")
-            # if will save project_task and project_task_argument ,the data get from default value
-            save_add_tasks(add_task_ids, station_instance)
+            # if had new task_id must save to database
+            if request.POST['add_task_ids'] != "":
+                add_task_ids = (request.POST['add_task_ids']).split(",")
+                # if will save project_task and project_task_argument ,the data get from default value
+                save_add_tasks(add_task_ids, station_instance)
             prj_task_li = get_station_tasks(project_name, part_number, station_name)
-
             return render(request, "argument.html", locals())
 
         # handle the select new task action
@@ -498,18 +499,19 @@ def modify_script(request, project_name, part_number, station_name):
     # handle query station task query action
     if request.method == "GET":
         prj_task_li = get_station_tasks(project_name, part_number, station_name)
-        print(prj_task_li)
         return render(request, "argument.html", locals())
 
 
     elif request.method == "POST":
         token = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(30))
 
-        # handle appende new task
+        # handle append new task
         if "add_task_ids" in request.POST:
-            add_task_ids = (request.POST['add_task_ids']).split(",")
-            # if will save project_task and project_task_argument ,the data get from default value
-            save_add_tasks(add_task_ids, station_instance)
+            # if had new task_id must save to database
+            if request.POST['add_task_ids'] != "":
+                add_task_ids = (request.POST['add_task_ids']).split(",")
+                # if will save project_task and project_task_argument ,the data get from default value
+                save_add_tasks(add_task_ids, station_instance)
             prj_task_li = get_station_tasks(project_name, part_number, station_name)
             return render(request, "argument.html", locals())
 
@@ -775,19 +777,31 @@ def get_station_tasks(project_name, part_number, station_name) :
 
     prj_task_li = []
 
+    existed_task_id = {}
     for id in task_ids:
         for prj_task in projetc_task_instances.filter(task_id=id):
-            prj_task_di = model_to_dict(prj_task)
+            task_map = model_to_dict(prj_task)
             prj_arg_li = []
+
+            # if had same task name will add serial number
+            task_id = task_map["task_id"]
+            project_task_name = task_map["task_name"]
+
+            # if the task name had be repeated and not append serial number will add serial number
+            if task_id in list(existed_task_id.values()) and project_task_name in list(existed_task_id.keys()):
+                task_map["task_name"] = task_map["task_name"] + "_%d"%list(existed_task_id.values()).count(task_id)
+            existed_task_id[task_map["task_name"]] = task_id
+
             for arg in Project_task_argument.objects.filter(project_task_id=prj_task):
                 prj_arg_li.append({'id': arg.id, 'default_value': arg.default_value, 'argument': arg.argument.argument,
                                    'task_id': arg.task_id.task_id, "description": arg.argument.description})
 
-            prj_task_di["args"] = prj_arg_li
+            task_map["args"] = prj_arg_li
 
-            task_instance = Upload_TestCase.objects.get(task_id=prj_task_di["task_id"])
-            prj_task_di["project_description"] ="Description:<br>"+task_instance.description +"<br>"*2 +"Sample:<br>"+task_instance.sample
-            prj_task_li.append(prj_task_di)
+            task_instance = Upload_TestCase.objects.get(task_id=task_map["task_id"])
+            task_map["project_description"] ="Description:<br>"+task_instance.description +"<br>"*2 +"Sample:<br>"+task_instance.sample
+            prj_task_li.append(task_map)
+
 
     sorted_prj_task_ids = sorted([info["id"] for info in prj_task_li])
 

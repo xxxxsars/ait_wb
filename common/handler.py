@@ -246,12 +246,18 @@ def get_download_file(owner_user, project_name, part_number, station_name):
 
 
 if __name__ =="__main__":
-    import shutil
+    # import shutil
+    #
+    # path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'upload_folder')
+    # for dirPath, dirNames, fileNames in os.walk(path):
+    #     for f in fileNames:
+    #         if f == "common.py":
+    #             print(os.path.join(dirPath, f))
+    #             os.remove(os.path.join(dirPath, f))
+    #             shutil.copyfile("common.txt",os.path.join(dirPath, f))
 
-    path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'upload_folder')
-    for dirPath, dirNames, fileNames in os.walk(path):
-        for f in fileNames:
-            if f == "common.py":
-                print(os.path.join(dirPath, f))
-                os.remove(os.path.join(dirPath, f))
-                shutil.copyfile("common.txt",os.path.join(dirPath, f))
+    li = [{'id': 85, 'station_id': 18, 'task_id': '060001', 'task_name': 'Check project name', 'timeout': 10, 'exit_code': 'exitCode', 'retry_count': 5, 'sleep_time': 0, 'criteria': '', 'args': [{'id': 327, 'default_value': '"HP Elite USB-C Multi Port Hub"', 'argument': 'Project_Name', 'task_id': '060001', 'description': 'The project caption'}], 'project_description': 'Description:<br>[1]Product connection Host \r\n[2]Compare caption names for consistency<br><br>Sample:<br>Check_project_caption.py "HP Elite USB-C Multi Port Hub"'}, {'id': 87, 'station_id': 18, 'task_id': '000000', 'task_name': 'CHECK BRIDGE FW', 'timeout': 10, 'exit_code': 'exitCode', 'retry_count': 5, 'sleep_time': 0, 'criteria': '', 'args': [{'id': 329, 'default_value': 'pcba', 'argument': 'function_name', 'task_id': '000000', 'description': 'pcba/bridge'}], 'project_description': 'Description:<br>check bridge firmware<br><br>Sample:<br>TestScriptRes\\CHECK_BRIDGE_FW.py -f pcba'}, {'id': 88, 'station_id': 18, 'task_id': '000001', 'task_name': 'EDA9015 VOLTAGE TEST', 'timeout': 10, 'exit_code': 'exitCode', 'retry_count': 5, 'sleep_time': 0, 'criteria': '', 'args': [{'id': 330, 'default_value': 'COM6', 'argument': 'COM_PORT', 'task_id': '000001', 'description': 'Check com port on device management'}], 'project_description': 'Description:<br>[1]Check com port on device management\r\n[2]Modify the spec of test point that provided by hardware \r\n[3]Check voltage of testing point with EDA9015<br><br>Sample:<br>TestScriptRes\\EDA9015_VOLTAGE_TEST.py COM6'}, {'id': 89, 'station_id': 18, 'task_id': '000000', 'task_name': 'CHECK BRIDGE FW', 'timeout': 10, 'exit_code': 'exitCode', 'retry_count': 5, 'sleep_time': 0, 'criteria': '', 'args': [{'id': 331, 'default_value': 'pcba', 'argument': 'function_name', 'task_id': '000000', 'description': 'pcba/bridge'}], 'project_description': 'Description:<br>check bridge firmware<br><br>Sample:<br>TestScriptRes\\CHECK_BRIDGE_FW.py -f pcba'}]
+
+    for i in li:
+        for k ,v  in (i.items()):
+            print(k,":",v)
