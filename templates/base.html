@@ -57,12 +57,12 @@
 
 
         $(document).ajaxError(function (event, xhr, settings, thrownError) {
-           if (xhr.status == 403){
-               if (xhr.responseJSON.detail == "Authentication credentials were not provided.") {
-                   alert("Your login session has expired.Please login again.")
-                   location.href = "{% url "login" %}"
-               }
-           }
+            if (xhr.status == 403) {
+                if (xhr.responseJSON.detail == "Authentication credentials were not provided.") {
+                    alert("Your login session has expired.Please login again.")
+                    location.href = "{% url "login" %}"
+                }
+            }
 
         });
     </script>
@@ -126,8 +126,21 @@
 
 
                 <ul class="nav navbar-nav navbar-right">
+                    {% if is_script %}
+                        <li><a class="nav-link" href="{% url "list_script" %}"><i class="fas fa-arrow-left"></i> Back to List</a>
+                        </li>
+                    {% elif is_project %}
+                        <li><a class="nav-link" href="{% url "list_project" %}"><i class="fas fa-arrow-left"></i> Back to List</a>
+                        </li>
+                    {% elif is_ait %}
+                        <li><a class="nav-link" href="{% url "ait_download" %}"><i class="fas fa-arrow-left"></i> Back to List</a>
+                        </li>
+                    {% endif %}
+
+
                     <li><a class="nav-link" href="{% url "login" %}"><i class="fas fa-sign-in-alt"></i> Log in</a></li>
-                    <li><a class="nav-link" href="{% url "logout" %}">Log out</a></li>
+                    <li><a class="nav-link" href="{% url "logout" %}"><i class="fas fa-sign-out-alt"></i>Log out</a>
+                    </li>
                     <li class="navbar-text"><i class="fas fa-user"></i> {{ request.user.username }}</li>
                 </ul>
             </div>

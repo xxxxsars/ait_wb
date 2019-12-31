@@ -429,7 +429,11 @@
 
                                 <button class="dropdown-item" type="button">Delete</button>
 
+                                {% if project_upload %}
                                 <button class="dropdown-item" type="button">Upload</button>
+                                {% else %}
+                                    <button class="dropdown-item" type="button" disabled>Upload</button>
+                                {% endif %}
                             </div>
 
                         </div>

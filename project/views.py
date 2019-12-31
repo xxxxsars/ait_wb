@@ -79,6 +79,9 @@ def log_confirm(request,project_name):
 @login_required(login_url="/user/login/")
 def list_project(request):
     is_project = True
+    # if project station can't be download ,it means the project can't be upload
+    project_upload = True
+
     username = request.user.username
     user_list =  [u.username for u in User.objects.all()]
     if request.user.is_staff:
@@ -127,11 +130,12 @@ def list_project(request):
 
                             if ini_not_saved:
                                 st_dict["download"] = False
+                                project_upload = False
                             else:
                                 st_dict["download"] = True
                         else:
                             st_dict["download"] = False
-
+                            project_upload = False
 
                         st_list.append(st_dict)
 
@@ -139,6 +143,7 @@ def list_project(request):
 
         project_dict["pn_list"] = pn_list
         project_structure.append(project_dict)
+
 
     return render(request, "project_list.html", locals())
 
