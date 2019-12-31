@@ -11,6 +11,10 @@ class Upload_TestCase(models.Model):
     script_name = models.CharField(max_length=255)
     time = models.DateTimeField(default=datetime.datetime.now,blank=True)
     existed_attachment = models.BooleanField(default=False)
+    modify_user =  models.CharField(max_length=50,default="")
+    create_user =  models.CharField(max_length=50,default="")
+    version =  models.CharField(max_length=50,default="0.01")
+
     class Meta:
         db_table = "test_case"
 

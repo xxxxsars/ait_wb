@@ -33,9 +33,13 @@
             text-align: center;
         }
 
-        {#hide the search colume#}
-        .dataTables_filter, .dataTables_info {
+
+        #task-table_filter {
             display: none;
+        }
+
+        #task-table_length {
+            margin-top: 10px;
         }
 
         .condition-lable {
@@ -44,6 +48,14 @@
 
         .container {
             max-width: 90%;
+        }
+
+        .tooltip-inner {
+            padding: 5px;
+            line-height: 20px;
+            text-align: left;
+            background-color: rgba(0, 0, 0, 0.80);
+            max-width: 500px;
         }
 
 
@@ -191,7 +203,6 @@
         $(document).ready(function () {
 
 
-
                 //global array ,it save selected task id
                 var rows_selected = [];
 
@@ -215,6 +226,7 @@
                     "autoWidth": true,
                     "scrollX": true,
 
+
                     {% if datas.count <= 10 %}
                         "bPaginate": false,
                     {% endif %}
@@ -236,10 +248,6 @@
                             "targets": 3,
                         },
 
-                        {
-                            "width": "15%",
-                            "targets": 5,
-                        },
 
                         {
                             "width": "10%",
@@ -475,7 +483,8 @@
                 </button>
 
                 {% if is_project %}
-                    <button id="submit" type="submit" class="btn btn-outline-success" form="myForm">Add to Project <i class="fas fa-plus"></i>
+                    <button id="submit" type="submit" class="btn btn-outline-success" form="myForm">Add to Project <i
+                            class="fas fa-plus"></i>
                     </button>
 
 
@@ -498,7 +507,8 @@
                 <th>ID</th>
                 <th>Task Case Name</th>
                 <th>Description</th>
-                <th>Modify Time</th>
+                <th>Version</th>
+                <th>Create User</th>
                 {% if is_script %}
                     <th style="text-align: center">Action</th>
                 {% else %}
@@ -515,8 +525,18 @@
                     <td class="platform" style="min-width:90px"></td>
                     <td>{{ data.task_id }}</td>
                     <td>{{ data.task_name }}</td>
-                    <td>{{ data.description |linebreaks }}</td>
-                    <td>{{ data.time|date:'Y-m-d h:i A' }}</td>
+                    <td
+                            data-toggle="tooltip"
+                            data-placement="left"
+                            data-html="true"
+                            title="{{ data.useage |linebreaks}}">{{ data.description |linebreaks }}</td>
+
+                    <td class="text-center">{{ data.version }}</td>
+                    {% if data.create_user != "" %}
+                        <td class="text-center">{{ data.create_user }}</td>
+                    {% else %}
+                        <td class="text-center">-</td>
+                    {% endif %}
                     {% if is_script %}
                         <td>
                             {% if request.user.is_staff %}

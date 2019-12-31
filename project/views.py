@@ -387,7 +387,7 @@ def select_script(request, project_name, part_number, station_name):
     testScript_path = [project_name, part_number, station_name]
     station_instance = get_station_instacne(project_name, part_number, station_name)
 
-    datas = Upload_TestCase.objects.all()
+    datas = get_script_list()
     no_att_tasks = no_attach_tasks()
 
     # if project name not existed ,will show bad requests
@@ -418,7 +418,7 @@ def select_script(request, project_name, part_number, station_name):
 
         # handle the select new task action
         if "add_task" in request.POST:
-            datas = Upload_TestCase.objects.all()
+            datas = get_script_list()
             posted_ids = (request.POST["add_task"]).split(",")
             save_modify_tasks(request.POST, station_instance, posted_ids)
 
@@ -522,7 +522,7 @@ def modify_script(request, project_name, part_number, station_name):
 
         # handle the select new task action
         if "add_task" in request.POST:
-            datas = Upload_TestCase.objects.all()
+            datas = get_script_list()
             posted_ids = (request.POST["add_task"]).split(",")
 
             # if the original argument page paramter had been change will be modify it.

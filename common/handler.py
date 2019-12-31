@@ -8,6 +8,7 @@ from common.limit import *
 import os
 import json
 import socket
+from django.forms.models import model_to_dict
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'FactoryWeb.settings')
 import django
@@ -244,6 +245,29 @@ def get_download_file(owner_user, project_name, part_number, station_name):
     return zip_files
 
 
+
+def get_script_list():
+    task_instances = Upload_TestCase.objects.all()
+    datas = []
+    for instance in task_instances:
+        task_map = model_to_dict(instance)
+        modify_user = ""
+        if instance.modify_user =="":
+            modify_user = "-"
+        else:
+            modify_user = instance.modify_user
+        task_map["version"] = "%s [ %s ]"%(instance.version,modify_user)
+
+        arg_instances = Arguments.objects.filter(task_id=instance)
+
+        usage_content  = ""
+        for arg in arg_instances:
+            if re.search("^-\w{1}",arg.default_value) ==None:
+                usage_content += "-%s\n&nbsp;&nbsp;&nbsp;&nbsp;%s\n"%(arg.argument,arg.description)
+
+        task_map["useage"] = "Sample:\n%s\n\nUsage:\n%s"%(instance.sample,usage_content)
+        datas.append(task_map)
+    return datas
 
 if __name__ =="__main__":
     # import shutil

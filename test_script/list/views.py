@@ -3,17 +3,21 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from test_script.upload.models import *
 
-import json
-import os
+import json,os,re
+from datetime import datetime
 
-from common.handler import handle_path
+from common.handler import handle_path,get_script_list
 
 @login_required(login_url="/user/login/")
 def list_task(request):
     is_script = True
-    datas = Upload_TestCase.objects.all()
+
+    task_instances = Upload_TestCase.objects.all()
+    # datas = Upload_TestCase.objects.all()
     no_att_tasks = no_attach_tasks()
 
+
+    datas = get_script_list()
     return render(request, "script_list.html", locals())
 
 
