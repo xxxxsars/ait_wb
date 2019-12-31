@@ -262,7 +262,8 @@
                                 var table_row = $("#task_table tbody").find("tr").length;
                                 if (table_row == 0) {
                                     $("#task_table tbody").append('<tr class="odd"><td valign="top" colspan="9" class="dataTables_empty">No data available in table</td></tr>')
-                                    $("#allsubmit").hide()
+                                    $("#allsubmit").hide();
+                                     $("#btn-save").attr('disabled',true);
                                 }
 
 
@@ -322,6 +323,8 @@
 
 
         $(document).ready(function () {
+
+
 
 
             $("#task_table").bootstrapValidator({
@@ -426,6 +429,7 @@
             //if not data hide the next button
             if (($("#task_table tbody tr")).length == 0) {
                 $("#allsubmit").hide()
+                 $("#btn-save").attr('disabled',true);
             }
 
             //if not click save button hide the next button

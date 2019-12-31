@@ -394,9 +394,9 @@ def select_script(request, project_name, part_number, station_name):
 
         # render the set_argument page ,it data get from list page
         if "task_ids" in request.POST:
-            task_ids = (request.POST['task_ids']).split(",")
-
-            save_add_tasks(task_ids, station_instance)
+            if request.POST['task_ids'] != "":
+                task_ids = (request.POST['task_ids']).split(",")
+                save_add_tasks(task_ids, station_instance)
             prj_task_li = get_station_tasks(project_name, part_number, station_name)
 
             return render(request, "argument.html", locals())
