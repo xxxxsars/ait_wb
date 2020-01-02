@@ -16,7 +16,7 @@ class UpdateFileForm(forms.Form):
                                   widget=forms.TextInput(attrs={'class': 'form-control'}))
 
 
-    task_description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'form-control', "rows": "10"}))
+    description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'form-control', "rows": "10"}))
     script_name = forms.CharField(max_length=255, required=True,
                                   widget=forms.TextInput(attrs={'class': 'form-control'}),
                                   error_messages={'required': 'Script Name is empty!',

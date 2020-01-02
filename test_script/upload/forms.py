@@ -34,7 +34,7 @@ class UploadFileForm(forms.Form):
     sample = forms.CharField(max_length=255, required=False,
                                   widget=forms.TextInput(attrs={'class': 'form-control'}))
 
-    task_description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'form-control', "rows": "10"}))
+    description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'form-control', "rows": "10"}))
     script_name = forms.CharField(max_length=255, required=True,
                                   widget=forms.TextInput(attrs={'class': 'form-control'}),
                                   error_messages={'required': 'Script Name is empty!',
@@ -97,7 +97,7 @@ class UploadFileForm(forms.Form):
 
 class ArgumentForm(forms.Form):
     argument = forms.CharField(max_length=255, required=True,widget=forms.TextInput(attrs={'class': 'form-control'}))
-    description = forms.CharField(max_length=255, required=True,widget=forms.TextInput(attrs={'class': 'form-control'}))
+    arg_description = forms.CharField(max_length=255, required=True,widget=forms.TextInput(attrs={'class': 'form-control'}))
 
     default_value = forms.CharField(max_length=255, required=True,
                                     widget=forms.TextInput(attrs={'class': 'form-control'}),

@@ -3,6 +3,7 @@ from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.forms.models import model_to_dict
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, RemoteUserAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 
@@ -10,6 +11,7 @@ import os
 import shutil
 import platform
 import collections
+import re
 
 from test_script.update.forms import *
 from test_script.upload.forms import *
@@ -22,9 +24,11 @@ from project.models import *
 def update_API(request):
     error_messages = []
     if request.POST:
+
+
         task_id = request.POST["task_id"]
         task_name = request.POST["task_name"]
-        task_descript = request.POST["task_description"]
+        task_descript = request.POST["description"]
         script_name = request.POST["script_name"]
         sample = request.POST["sample"]
 
@@ -35,6 +39,17 @@ def update_API(request):
                 error_messages.append("Upload file is no valid zip file.")
 
         task_info = Upload_TestCase.objects.get(task_id=task_id)
+        is_modify = had_modify(request)
+
+
+        if (is_modify):
+            task_info.modify_user = request.user.username
+            try:
+                new_version = update_version(task_info.version)
+            except ValueError as e:
+                err = [str(e)]
+                return JsonResponse({'is_valid': False, "error": err}, status=417)
+            task_info.version = new_version
 
         if 'attachment' in request.FILES:
             handle_update_attachment(request.FILES['attachment'], task_id)
@@ -51,7 +66,7 @@ def update_API(request):
 
         db_args = [a.argument for a in Arguments.objects.filter(task_id=task_info)]
 
-        descripts = request.POST.getlist("description")
+        arg_descripts = request.POST.getlist("arg_description")
         arguments = request.POST.getlist("argument")
         values = request.POST.getlist("default_value")
 
@@ -63,7 +78,7 @@ def update_API(request):
 
             for i,arg in  enumerate(new_args):
                 argument = arguments[index+i]
-                description = descripts[index+i]
+                description = arg_descripts[index+i]
                 value = values[index+i]
                 a = Arguments.objects.create(argument=argument, description=description, default_value=value,
                                              task_id=task_info)
@@ -81,7 +96,7 @@ def update_API(request):
             if arg in db_args or arg != new_db_args[i]:
                 arg_info = Arguments.objects.get(task_id=task_info, argument=new_db_args[i])
                 arg_info.argument = arguments[i]
-                arg_info.description = descripts[i]
+                arg_info.description = arg_descripts[i]
                 arg_info.default_value = values[i]
                 arg_info.save()
 
@@ -116,6 +131,64 @@ def modify_index(request, task_id, message=None):
     modify_time = get_modify_time(task_id)
 
     return render(request, "script_modify.html", locals())
+
+
+def update_version(version:str) ->str:
+    regex = re.compile(r"^(\d){1}\.(\d{2})$")
+
+    matched = regex.search(version)
+    if matched:
+        first_number = int(matched.group(1))
+        second_number = int(matched.group(2))
+
+        if second_number+1 >=99:
+            first_number +=1
+            second_number = 1
+
+            if first_number >9:
+                raise ValueError("Limit number of edits has been exceeded")
+
+        else:
+            second_number +=1
+
+        return "%d.%02d"%(first_number,second_number)
+    else:
+        raise ValueError("Version content is not match")
+
+
+
+def had_modify(request) ->bool:
+    # check testCase.zip had been modified
+    if "file" in request.FILES:
+        return True
+
+    # check testCase object had been modified
+    testCase_instance = Upload_TestCase.objects.get(task_id = request.POST["task_id"])
+    origin=  model_to_dict(testCase_instance)
+
+    for key,value in dict(request.POST).items():
+        if key in origin:
+            if value[0] !=origin[key]:
+                return True
+    # check post data is more than db data.
+    db_args = [a.argument for a in Arguments.objects.filter(task_id=testCase_instance)]
+    arguments = request.POST.getlist("argument")
+    if len(arguments) > len(db_args):
+        return True
+
+    #check arguments had been modified
+    arg_descripts = request.POST.getlist("arg_description")
+    values = request.POST.getlist("default_value")
+
+    db_args = Arguments.objects.filter(task_id=testCase_instance)
+    for i, arg in enumerate(arguments):
+        if arguments[i] != db_args[i].argument:
+            return True
+        if arg_descripts[i] != db_args[i].description:
+            return True
+        if values[i] != db_args[i].default_value:
+            return True
+    return False
 
 
 def handle_update_attachment(f, task_id):

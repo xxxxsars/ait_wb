@@ -354,7 +354,7 @@
             {% if render_value %}
                 $("input[name='task_id']").val('{{ task_info.task_id }}').attr("readonly", "readonly");
                 $("input[name='task_name']").val('{{ task_info.task_name }}');
-                $("textarea[name='task_description']").val('{{ task_info.description |escapejs }}');
+                $("textarea[name='description']").val('{{ task_info.description |escapejs }}');
                 $("input[name='script_name']").val('{{ task_info.script_name }}');
                 $("input[name='sample']").val('{{ task_info.sample |escapejs}}');
             {% else %}
@@ -366,7 +366,7 @@
             var new_row = '<tr>' +
                 '<td><div class="form-group"> <input type="text" name="argument" class="form-control" maxlength="255" required="" id="id_argument"></div></td>' +
                 '<td><div class="form-group"><input type="text" name="default_value" class="form-control" maxlength="255" required="" id="id_default_value"></div></td>' +
-                '<td><div class="form-group"><input type="text" name="description" class="form-control" maxlength="255" required="" id="id_description"></div></td>' +
+                '<td><div class="form-group"><input type="text" name="arg_description" class="form-control" maxlength="255" required="" id="id_description"></div></td>' +
                 '<td style="text-align: center">' +
                 '<button type="button" class="btn btn-outline-secondary dt-delete" disabled><i class="fas fa-times" disabled></i>' +
                 '</button></td> </tr>';
@@ -620,7 +620,7 @@
 
         <div class="form-group">
             <div class="col">
-                <label for="descript" class="form-control-label">TestCase Description</label>{{ u.task_description }}
+                <label for="descript" class="form-control-label">TestCase Description</label>{{ u.description }}
             </div>
 
         </div>
@@ -707,7 +707,7 @@
                     </td>
                     <td>
                         <div class="form-group">
-                            <input name="description" type="text" class="form-control"
+                            <input name="arg_description" type="text" class="form-control"
                                    value="{{ arg.description }}" required>
                         </div>
                     </td>

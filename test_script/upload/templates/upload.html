@@ -311,7 +311,7 @@
             var new_row = '<tr>' +
                 '<td> <div class="form-group"><input type="text" name="argument" class="form-control" maxlength="255" required="" id="id_argument"><div class="help-block with-errors"></div></div></td>' +
                 '<td> <div class="form-group"><input type="text" name="default_value" class="form-control" maxlength="255" required="" id="id_default_value"><div class="help-block with-errors"></div></div></td>' +
-                '<td> <div class="form-group"><input type="text" name="description" class="form-control" maxlength="255" required="" id="id_description"><div class="help-block with-errors"></div></div></td>' +
+                '<td> <div class="form-group"><input type="text" name="arg_description" class="form-control" maxlength="255" required="" id="id_description"><div class="help-block with-errors"></div></div></td>' +
                 '</tr>';
 
             var max_fields = 19;
@@ -452,7 +452,7 @@
 
         <div class="form-group">
             <div class="col">
-                <label for="descript" class="form-control-label">TestCase Description</label>{{ u.task_description }}
+                <label for="descript" class="form-control-label">TestCase Description</label>{{ u.description }}
             </div>
 
         </div>
@@ -522,7 +522,7 @@
                     </div>
                 </td>
                 <td>
-                    <div class="form-group">{{ a.description }}
+                    <div class="form-group">{{ a.arg_description }}
 
                     </div>
                 </td>

@@ -50,21 +50,20 @@ def upload_index(request):
 @authentication_classes((SessionAuthentication,))
 def upload_API(request):
     error_messages = []
+    user_name = request.user.username
     if request.POST:
         print(request.POST,request.FILES)
         id = request.POST["task_id"]
         task_name = request.POST["task_name"]
-        task_descript = request.POST["task_description"]
+        task_descript = request.POST["description"]
         script_name = request.POST["script_name"]
         sample = request.POST["sample"]
         zip_file =request.FILES['file']
 
-        descripts = request.POST.getlist("description")
+        arg_descripts = request.POST.getlist("arg_description")
         arguments = request.POST.getlist("argument")
         values = request.POST.getlist("default_value")
 
-
-        print(arguments)
 
         err = valid_zip_file(zip_file)
         if len(err)>0:
@@ -82,11 +81,11 @@ def upload_API(request):
             task_id = id + serial_number
 
             up = Upload_TestCase.objects.create(task_id=task_id, task_name=task_name, description=task_descript,
-                                                script_name=script_name, sample=sample)
+                                                script_name=script_name, sample=sample,modify_user=user_name,create_user=user_name)
 
             for i, e in enumerate(arguments):
                 argument = arguments[i]
-                description = descripts[i]
+                description = arg_descripts[i]
                 value = values[i]
                 Arguments.objects.create(argument=argument, description=description, default_value=value, task_id=up)
 
