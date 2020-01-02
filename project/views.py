@@ -600,10 +600,17 @@ def save_ini(request,token):
         # if testScript not been resorted will only provide file download service
         if 'save_ini' in request.POST:
 
-
             # save new testScript.ini
             with open(os.path.join(handle_path(path, "download_folder"), "%s.ini" % token), "w") as f:
-                f.write(request.POST["ini_content"])
+                # add space line for every testCase
+                new_content= ""
+                for line in (request.POST["ini_content"].split("\n")):
+                    if re.search(r"criteria=.*", line):
+                        new_content += line + "\n\n"
+                    else:
+                        new_content += line + '\n'
+
+                f.write(new_content)
 
             # # save those file to owner user folder
             username = request.user.username
@@ -828,7 +835,7 @@ def gen_ini_contents(project_infos):
         script_path = r'cmd=TestScriptRes\\%s' % prj_info["script_name"]
         arg_str = " ".join([arg for arg in prj_info["args"]])
 
-        content = "%s %s;%s;%s;%s;%s\ncriteria=%s" % (
+        content = "%s %s;%s;%s;%s;%s\ncriteria=%s\n" % (
             script_path, arg_str, prj_info["timeout"], prj_info["exitcode"], prj_info["retry"], prj_info["sleep"],
             prj_info["criteria"])
         ini_map[project_task_id] = title + content
@@ -842,6 +849,8 @@ def save_ini_contents(ini_map, ini_order_list, token):
 
     for id in ini_order_list:
         ini_content += ini_map[id] + "\n"
+
+    print("123",ini_content)
     # save ini
     with open(os.path.join(handle_path(path, "download_folder"), "%s.ini" % token), "w") as f:
         f.write(ini_content)
