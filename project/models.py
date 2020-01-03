@@ -38,7 +38,10 @@ class Project_task(models.Model):
     exit_code = models.CharField(max_length=20, default="exitCode")
     retry_count = models.IntegerField(default=5)
     sleep_time = models.IntegerField(default=0)
-    criteria = models.CharField(max_length=20, default="")
+    criteria = models.CharField(max_length=20, default="PASS")
+    interactive = models.CharField(max_length=20, default="auto")
+    rule = models.CharField(max_length=255, default="")
+    priority = models.CharField(max_length=255, default="")
 
     class Meta:
         db_table = "project_task"

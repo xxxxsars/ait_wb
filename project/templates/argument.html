@@ -69,7 +69,7 @@
 
 
         .container {
-            max-width: 85%;
+            max-width: 95%;
         }
 
         .tooltip-inner {
@@ -263,7 +263,7 @@
                                 if (table_row == 0) {
                                     $("#task_table tbody").append('<tr class="odd"><td valign="top" colspan="9" class="dataTables_empty">No data available in table</td></tr>')
                                     $("#allsubmit").hide();
-                                     $("#btn-save").attr('disabled',true);
+                                    $("#btn-save").attr('disabled', true);
                                 }
 
 
@@ -323,8 +323,6 @@
 
 
         $(document).ready(function () {
-
-
 
 
             $("#task_table").bootstrapValidator({
@@ -429,7 +427,7 @@
             //if not data hide the next button
             if (($("#task_table tbody tr")).length == 0) {
                 $("#allsubmit").hide()
-                 $("#btn-save").attr('disabled',true);
+                $("#btn-save").attr('disabled', true);
             }
 
             //if not click save button hide the next button
@@ -605,6 +603,22 @@
                     {
                         "width": "25%",
                         "targets": 2
+                    },
+                    {
+                        "width": 100,
+                        "targets": 4
+                    },
+                    {
+                        "width": 130,
+                        "targets": 8
+                    },
+                    {
+                        "width": 250,
+                        "targets": 9
+                    },
+                    {
+                        "width": 100,
+                        "targets": 10
                     }
                 ]
 
@@ -678,8 +692,74 @@
                     })
                 }
             });
-        })
-        ;
+
+            //set interactive and rule priority value
+            {% for project_di in prj_task_li %}
+                var interactive_value = '{{ project_di| lookup:"interactive" |escapejs }}';
+
+                var interactive_input = $('select[name="interactive_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"]');
+
+                var tr = interactive_input.closest('tr');
+                var interactive_select = tr.find('td:eq(8)').find('select');
+                var rule_input = tr.find('td:eq(9)').find('input');
+                var prority_select = tr.find('td:eq(10)').find('select');
+
+                if (interactive_value == "auto") {
+                    rule_input.attr('disabled', true);
+                    prority_select.attr('disabled', true);
+
+                } else {
+                    var priority_value = '{{ project_di| lookup:"priority" |escapejs }}';
+                    interactive_select.val(interactive_value);
+                    prority_select.val(priority_value);
+
+                }
+
+            {% endfor %}
+
+            $(".interactive-group").each(function () {
+
+
+                $(this).change(function () {
+                    var selected = $(this).val();
+                    var tr = $(this).closest('tr');
+                    var rule_input = tr.find('td:eq(9)').find('input');
+                    var prority_select = tr.find('td:eq(10)').find('select');
+
+
+                    if (selected != "auto") {
+                        rule_input.removeAttr('disabled');
+                        prority_select.removeAttr('disabled');
+
+                        if (selected == "image") {
+                            rule_input.val("title;text;OK;image1.png")
+                        } else if (selected == "dialog") {
+                            rule_input.val("title;text;OK")
+                        } else if (selected == "input") {
+                            rule_input.val("title;text;OK")
+                        } else if (selected == "inputarea") {
+                            rule_input.val("title;text;3")
+                        } else if (selected == "cmddialog") {
+                            rule_input.val("title;text;cmd;image1.png")
+                        } else if (selected == "conditiondialog") {
+                            rule_input.val("title;text;OK;N")
+                        }
+                    } else {
+                        if (rule_input.is(':disabled') == false) {
+                            prority_select.val("interactive");
+                            rule_input.val("");
+                            rule_input.attr('disabled', true);
+                        }
+                        if (prority_select.is(':disabled') == false) {
+                            prority_select.attr('disabled', true);
+                        }
+
+                    }
+                })
+            });
+
+
+        });
     </script>
 {% endblock %}
 
@@ -697,7 +777,7 @@
 
     <form id="other_form" enctype="multipart/form-data" method="post" action="">{% csrf_token %}
 
-        <table id="task_table" class="row-border" style="width:100%">
+        <table id="task_table" class="row-border" style="width:100%;min-width: 1730px;">
             <thead>
             <tr>
                 <th>Arguments</th>
@@ -705,9 +785,12 @@
                 <th>Name</th>
                 <th>TimeOut</th>
                 <th>ExitCode</th>
-                <th>Retry Count</th>
-                <th>Sleep Time</th>
+                <th>Retry_Count</th>
+                <th>Sleep_Time</th>
                 <th>Criteria</th>
+                <th>Interactive</th>
+                <th>Rule</th>
+                <th>Priority</th>
                 <th style="text-align: center">Action</th>
 
             </tr>
@@ -774,6 +857,40 @@
                         </div>
                     </td>
 
+                    <td>
+                        <select class="form-control interactive-group" style=" width: 100%;"
+                                name="interactive_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}">
+
+
+                            <option value="auto">Auto</option>
+                            <option value="image">Image</option>
+                            <option value="dialog">Dialog</option>
+                            <option value="input">Input</option>
+                            <option value="inputarea">InputArea</option>
+                            <option value="cmddialog">CmdDialog</option>
+                            <option value="conditiondialog">ConditionDialog</option>
+                        </select>
+
+                    </td>
+
+
+                    <td>
+                        <div class="form-group" style="min-width: 200px">
+                            <input type="text"
+                                   name="rule_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
+                                   class="form-control"
+                                   value="{{ project_di| lookup:"rule" }}">
+                        </div>
+                    </td>
+
+
+                    <td>
+                        <select class="form-control interactive-group" style=" width: 100%;"
+                                name="priority_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}">
+                            <option value="interactive" selected="selected">Interactive</option>
+                            <option value="command">Command</option>
+                        </select>
+                    </td>
                     <td>
 
                         <div class="text-center">
