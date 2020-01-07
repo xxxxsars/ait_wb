@@ -128,6 +128,7 @@
                 singleFileUploads: false,
                 autoUpload: false,
                 sequentialUploads: true,
+                url:"{% url "testCase_update" %}",
 
 
                 start: function (e) {
@@ -572,7 +573,7 @@
     {% endif %}
 
 
-    <form enctype="multipart/form-data" method="post" action="{% url "testCase_update" %}"
+    <form enctype="multipart/form-data" method="post"
           id="update-form">{% csrf_token %}
 
         <div class="row">

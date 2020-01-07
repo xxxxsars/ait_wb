@@ -105,6 +105,7 @@
                 singleFileUploads: false,
                 autoUpload: false,
                 sequentialUploads: true,
+                url:"{% url "testCase_upload" %}",
                 {#formData: $("#upload-form").serializeArray(),#}
 
                 {% comment %}               add: function (e, data) {
@@ -404,7 +405,7 @@
     </div>
 
 
-    <form enctype="multipart/form-data" method="post" action="{% url "testCase_upload" %}"
+    <form enctype="multipart/form-data" method="post"
           id="upload-form">{% csrf_token %}
         <div class="row">
             <div class="col-md-5">
