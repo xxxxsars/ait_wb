@@ -2,24 +2,74 @@
 {% load staticfiles %}
 {% load filter %}
 
+{% block head %}
+    <link rel="stylesheet" href="{% static "bower_components/jquery-ui/themes/ui-lightness/jquery-ui.min.css" %}">
+    <link rel="stylesheet" href="{% static "bower_components/jquery-ui/themes/ui-lightness/theme.css" %}">
+    <script src="{% static "bower_components/jquery-ui/jquery-ui.min.js" %}"></script>
+    <link type="text/css" rel="stylesheet" href="{% static  "bower_components/highlightjs/styles/github-gist.css" %}">
+    <script src="{% static "bower_components/highlightjs/highlight.pack.min.js" %}"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+{% endblock %}
+
 
 {% block css %}
     <style>
         h3 {
             text-align: center;
+            padding-bottom: 2%;
         }
 
-        .task {
-            border: 1px #ccc dashed;
-            padding: 10px;
-        }
+        {% if not is_modify %}
+            .container {
+                max-width: 90%;
+            }
+        {% endif %}
 
-        ul li {
+        {% if is_modify %}
+
+
+            .task {
+                border: 1px #ccc dashed;
+                padding: 10px;
+
+            }
+
+
+        {% else %}
+
+            .task {
+                padding: 10px;
+                margin: 2%;
+                background: #e8e8e8;
+
+            }
+            #sort-task {
+                min-width: 50%;
+            }
+        {% endif %}
+
+        ul {
             list-style-type: none;
+            padding-left: 0;
+
+        }
+
+        .droptrue {
+            border: 1px #ccc dashed;
+        }
+
+        #task {
+            min-width: 50%;
+        }
+
+
+        code p {
+            margin: 0;
         }
 
     </style>
 {% endblock %}
+
 
 
 
@@ -29,7 +79,6 @@
             $("#sort-task").sortable();
             $("#sort-task").disableSelection();
         });
-
 
         function getCookie(name) {
             var cookieValue = null;
@@ -47,85 +96,189 @@
             return cookieValue;
         }
 
-
         $(document).ready(function () {
 
-
-
-
-            //if on modify page ,it item had been move will create new testScript.ini
-            $('#sort-task').sortable({
-                start: function (event, ui) {
-                    ui.item.data('start_pos', ui.item.index());
-                },
-                stop: function (event, ui) {
-                    var start_pos = ui.item.data('start_pos');
-                    if (start_pos != ui.item.index()) {
-                        // the item got moved
-                        $("#item_moved").val("True");
-
-                        var path = {{ testScript_path |safe }};
-                        var project_name = path[0];
-                        var part_number = path[1];
-                        var station_name = path[2];
-
-                        var db_sorted_list;
-                        $.ajax({
-                            url: '/project/get_stored/', // the endpoint,commonly same url
-                            type: 'POST',
-                            data: {
-                                "csrfmiddlewaretoken": getCookie('csrftoken'),
-                                "project_name": project_name,
-                                "part_number": part_number,
-                                "station_name": station_name
-                            },
-
-                            success: function (json) {
-                                //if successful will show the download button.
-                                db_sorted_list = json.script_oder;
-
-                                var project_sroted_list = [];
-
-
-                                $("ul#sort-task").find("li.ui-sortable-handle").each(function () {
-                                    project_sroted_list.push($(this).attr("id"))
-                                });
-
-                                var not_compare_count = 0;
-                                $.each(project_sroted_list, function (i, value) {
-                                    if (value != db_sorted_list[i]) {
-                                        not_compare_count += 1;
-                                    }
-                                });
-
-
-                                if (not_compare_count > 0) {
-                                    console.log(not_compare_count, project_sroted_list, db_sorted_list);
-                                    $("#download-group").hide();
-                                    $('#btn-save').show()
-
-
-                                } else {
-                                    $("#download-group").show();
-                                    $('#btn-save').hide()
-                                }
-
-                            },
-
-
-                            error: function (xhr, errmsg, err) {
-                                alert("get script sorted was failed.");
-                            }
-                        });
-
-
-                    } else {
-                        // the item was returned to the same position
-                        $("#item_moved").val("False")
-                    }
-                },
+            $("code").each(function () {
+                $(this).find('br').last().remove();
             });
 
+            //if on modify page ,it item had been move will create new testScript.ini
+            {% if  is_modify %}
+                $('#sort-task').sortable({
+                    start: function (event, ui) {
+                        ui.item.data('start_pos', ui.item.index());
+                    },
+                    stop: function (event, ui) {
+                        var start_pos = ui.item.data('start_pos');
+                        if (start_pos != ui.item.index()) {
+                            // the item got moved
+                            $("#item_moved").val("True");
+
+                            var path = {{ testScript_path |safe }};
+                            var project_name = path[0];
+                            var part_number = path[1];
+                            var station_name = path[2];
+
+                            var db_sorted_list;
+                            $.ajax({
+                                url: '/project/get_stored/', // the endpoint,commonly same url
+                                type: 'POST',
+                                data: {
+                                    "csrfmiddlewaretoken": getCookie('csrftoken'),
+                                    "project_name": project_name,
+                                    "part_number": part_number,
+                                    "station_name": station_name
+                                },
+
+                                success: function (json) {
+                                    //if successful will show the download button.
+                                    db_sorted_list = json.script_oder;
+
+                                    var project_sroted_list = [];
+
+
+                                    $("ul#sort-task").find("li.ui-sortable-handle").each(function () {
+                                        project_sroted_list.push($(this).attr("id"))
+                                    });
+
+                                    var not_compare_count = 0;
+                                    $.each(project_sroted_list, function (i, value) {
+                                        if (value != db_sorted_list[i]) {
+                                            not_compare_count += 1;
+                                        }
+                                    });
+
+
+                                    if (not_compare_count > 0) {
+                                        console.log(not_compare_count, project_sroted_list, db_sorted_list);
+                                        $("#download-group").hide();
+                                        $('#btn-save').show()
+
+
+                                    } else {
+                                        $("#download-group").show();
+                                        $('#btn-save').hide()
+                                    }
+
+                                },
+
+
+                                error: function (xhr, errmsg, err) {
+                                    alert("get script sorted was failed.");
+                                }
+                            });
+
+
+                        } else {
+                            // the item was returned to the same position
+                            $("#item_moved").val("False")
+                        }
+                    },
+                });
+            {% else %}
+
+                if ($("#task").find("li").length != 0) {
+                    //disalbe download button
+                    $("#btn-download").attr('disabled', true);
+                }
+
+                $("ul.droptrue").sortable({
+                    connectWith: "ul",
+
+                    start: function (event, ui) {
+                        ui.item.data("start_ul", ui.item.parent().attr('id'));
+                        ui.item.data('start_pos', ui.item.index());
+                    },
+                    stop: function (event, ui) {
+
+                        var start_ul = ui.item.data('start_ul');
+                        var end_ul = ui.item.parent().attr("id");
+
+
+                        if ($("#task").find("li").length != 0) {
+                            //disalbe download button
+                            $("#btn-download").attr('disabled', true);
+                            $("#download-group").show();
+                            $('#btn-save').hide()
+                        }
+
+                        if (start_ul == "task" && end_ul == "sort-task") {
+                            //if TestCase ul had any testCase will hide save btn and disabled download button
+                            if ($("#task").find("li").length == 0) {
+                                $("#download-group").hide();
+                                $('#btn-save').show()
+                            }
+                        }
+
+
+                        //if on sort-task move ordering will use this function
+                        if (start_ul == "sort-task" && end_ul == "sort-task") {
+                            var start_pos = ui.item.data('start_pos');
+                            if (start_pos != ui.item.index()) {
+                                var path = {{ testScript_path |safe }};
+                                var project_name = path[0];
+                                var part_number = path[1];
+                                var station_name = path[2];
+
+                                var db_sorted_list;
+                                $.ajax({
+                                    url: '/project/get_stored/', // the endpoint,commonly same url
+                                    type: 'POST',
+                                    data: {
+                                        "csrfmiddlewaretoken": getCookie('csrftoken'),
+                                        "project_name": project_name,
+                                        "part_number": part_number,
+                                        "station_name": station_name
+                                    },
+
+                                    success: function (json) {
+                                        //if successful will show the download button.
+                                        db_sorted_list = json.script_oder;
+
+                                        var project_sroted_list = [];
+
+
+                                        $("ul#sort-task").find("li.ui-sortable-handle").each(function () {
+                                            project_sroted_list.push($(this).attr("id"))
+                                        });
+
+                                        var not_compare_count = 0;
+                                        $.each(project_sroted_list, function (i, value) {
+                                            if (value != db_sorted_list[i]) {
+                                                not_compare_count += 1;
+                                            }
+                                        });
+
+
+                                        if (not_compare_count > 0) {
+                                            console.log(not_compare_count, project_sroted_list, db_sorted_list);
+                                            $("#download-group").hide();
+                                            $('#btn-save').show()
+
+
+                                        } else {
+                                            $("#download-group").show();
+                                            $('#btn-save').hide()
+                                        }
+
+                                    },
+
+
+                                    error: function (xhr, errmsg, err) {
+                                        alert("get script sorted was failed.");
+                                    }
+                                });
+                            }
+                        }
+
+
+                    }
+                });
+
+                $("#task, #sort-task").disableSelection();
+
+
+            {% endif %}
 
             $("#btn-download").click(function () {
                 //remove save_ini tag ,it will not save file only download
@@ -139,23 +292,21 @@
 
             });
 
-
             $("#btn-select").click(function () {
-                                var info = {{ testScript_path |safe }};
+                var info = {{ testScript_path |safe }};
                 project_name = info[0];
                 part_number = info[1];
                 station_name = info[2];
                 location.href = "/project/modify_station/" + project_name + "/" + part_number;
-            })
-
+            });
 
             //default is hiding when the task order had been move will show the button.
             $("#btn-save").hide();
-
             $("#btn-save").click(function (e) {
                 e.preventDefault();
                 var task_list = {{ not_dedup_task_ids|safe }};
                 var path = {{ testScript_path |safe }};
+
                 var ini_content = "";
                 $("#sort-task li p").each(function () {
                     lines = ($(this).html().split('<br>'));
@@ -188,7 +339,8 @@
                     success: function (json) {
                         //if successful will show the download button.
                         $("#download-group").show();
-                        $('#btn-save').hide()
+                        $('#btn-save').hide();
+                        $("#btn-download").attr('disabled', false);
                     },
 
 
@@ -242,21 +394,18 @@
 
 
 
-{% block head %}
-    <link rel="stylesheet" href="{% static "bower_components/jquery-ui/themes/ui-lightness/jquery-ui.min.css" %}">
-    <link rel="stylesheet" href="{% static "bower_components/jquery-ui/themes/ui-lightness/theme.css" %}">
-    <script src="{% static "bower_components/jquery-ui/jquery-ui.min.js" %}"></script>
-    <link type="text/css" rel="stylesheet" href="{% static  "bower_components/highlightjs/styles/github-gist.css" %}">
-    <script src="{% static "bower_components/highlightjs/highlight.pack.min.js" %}"></script>
-    <script>hljs.initHighlightingOnLoad();</script>
-{% endblock %}
+
 
 
 
 {% block body %}
 
     {% if err_message is None %}
-        <h3>TestScript.ini Content</h3>
+        {% if is_modify %}
+              <h3>TestScript.ini Content</h3>
+            {% else %}
+        <h3>TestScript.ini Creation</h3>
+            {% endif %}
     {% endif %}
 
 
@@ -280,23 +429,15 @@
                 <tbody>
                 {% for k,tasks in cf_tasks.items %}
                     <tr>
-
-
                         <td><label class="tasks-lable" style="text-align: left">{{ k|escape }} </label></td>
-
                         <td>
                             <select class="form-control" name="{{ k |escape }}">
                                 {% for task in tasks %}
                                     <option value="{{ task }}">{{ task }}</option>
                                 {% endfor %}
                             </select>
-
                         </td>
-
-
                     </tr>
-
-
                 {% endfor %}
 
                 </tbody>
@@ -311,17 +452,55 @@
     {% endif %}
 
 
-
-
     {% if err_message is None %}
-        <ul id="sort-task">
-            {% for order_id in testScript_order_list %}
+        {% if is_modify %}
+            <ul id="sort-task">
+                {% for order_id in testScript_order_list %}
 
-                <li class="task" id="{{ order_id }}"><code class="javascript"
-                                                           style="color:#333333;">{{ ini_content_map|lookup:order_id |linebreaks }}</code>
-                </li>
-            {% endfor %}
-        </ul>
+                    <li class="task" id="{{ order_id }}"><code class="javascript"
+                                                               style="color:#333333;">{{ ini_content_map|lookup:order_id |linebreaks }}</code>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="text-center"><h5>TestCase</h5></div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-center"><h5>TestScript.ini </h5></div>
+                </div>
+            </div>
+
+
+            <div class="d-flex justify-content-center" style="padding-bottom: 1%">
+
+                <ul id="task" class="droptrue">
+                    {% for order_id in testScript_order_list %}
+
+                        <li class="task" id="{{ order_id }}"><code class="javascript"
+                                                                   style="color:#333333;">{{ ini_content_map|lookup:order_id |linebreaks }}</code>
+                        </li>
+                    {% endfor %}
+                </ul>
+
+
+                <ul class="droptrue" id="sort-task">
+                </ul>
+
+            </div>
+
+        {% endif %}
+
+
+
+
+
+
+
+
         <form id="export_form"
               method="post">{% csrf_token %}
 
