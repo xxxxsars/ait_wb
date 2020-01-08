@@ -460,8 +460,8 @@ def select_script(request, project_name, part_number, station_name):
                 set([re.search(r"(\w+)_\d+", prj_id).group(1) for prj_id in (post_data["all_task"][0]).split(",")]))
 
             # if on "confirm page" will save testScript ordering and return order list
-            sorted_list = [info["project_task_id"] for info in project_infos]
-            testScript_order_list = save_testScript_order(project_name, part_number, station_name, sorted_list, False)
+            testScript_order_list = [info["project_task_id"] for info in project_infos]
+            save_testScript_order(project_name, part_number, station_name, [], False)
 
             ini_content_map = gen_ini_contents(project_infos)
 
@@ -678,7 +678,7 @@ def task_files(task_list):
 
     return task_files
 
-
+# todo handle this slow issue
 def conflict_files(task_list):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     file_map = task_files(task_list)
