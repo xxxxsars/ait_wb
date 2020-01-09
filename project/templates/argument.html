@@ -132,6 +132,48 @@
         });
 
 
+        function confilct_ajax_loading() {
+                $(document).ajaxStart(function () {
+                     //dynamically loading css
+                    loadCSS = function (href) {
+                        var cssLink = $("<link  id='load_css' rel='stylesheet' type='text/css' href='" + href + "'>");
+                        $("head").append(cssLink);
+                    };
+
+
+                    loadCSS("{% static "bower_components/semantic/dist/semantic.min.css" %}");
+
+                    $("body").hide();
+
+
+
+
+                    $(".load_panel").each(function () {
+                        $(this).remove()
+                    });
+
+                    $("html").append(
+                        '<div class="load_panel" style="width: 100%; height: 100%;">' +
+                        '  <div class="ui active inverted dimmer">' +
+                        '    <div class="ui text loader">Please waiting , Checking files for conflicts...</div>' +
+                        '  </div>' +
+                        '</div>');
+
+
+                });
+
+
+                $(document).ajaxComplete(function () {
+                    $(".load_panel").each(function () {
+                        $(this).remove()
+                    });
+
+                    // remove load.css
+                    $("#load_css").remove();
+                    $("body").show()
+                });
+        }
+
         function getCookie(name) {
             var cookieValue = null;
             if (document.cookie && document.cookie != '') {
@@ -472,9 +514,9 @@
                 $("#arg_append").append('<input type="text" name="ajax_saved"  type="hidden">');
 
 
-                data = $("#other_form").serialize();
+                data = $("#other_form").serialize() +"&conflict_token="+"{{ conflict_token|escapejs }}";
 
-
+                 confilct_ajax_loading()
                 $.ajax({
                     type: "POST",
                     url: window.location.href,
@@ -553,6 +595,9 @@
                 });
 
                 $("#arg_append").append('<input type="text" name="all_task"  type="hidden" value="' + all_sorted_tasks_id + '">');
+
+                 $("#arg_append").append('<input type="text" name="conflict_token"  type="hidden" value="{{ conflict_token|escapejs }}">');
+
 
                 $("#other_form").submit();
 

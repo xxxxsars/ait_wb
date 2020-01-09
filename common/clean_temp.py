@@ -12,10 +12,11 @@ def clean_tmp_download():
     yesterday_time = datetime.datetime.now() + datetime.timedelta(days=-1)
 
     for f in os.listdir(source_path):
-        if re.search("^.+\.zip$", f):
+
+        if re.search("^.+\.json|ini|zip$", f):
+
             file = os.path.join(source_path, f)
             create_time = datetime.datetime.fromtimestamp(os.path.getmtime(file))
-
             if create_time < yesterday_time:
                 os.remove(file)
 

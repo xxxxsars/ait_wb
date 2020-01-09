@@ -17,6 +17,8 @@ import zipfile
 import json
 import shutil
 import collections
+import multiprocessing
+from multiprocessing import Pool
 from datetime import datetime
 from common.handler import *
 from common.limit import set_parameter_arg, set_parameter_other, task_id_reg
@@ -468,22 +470,41 @@ def select_script(request, project_name, part_number, station_name):
             # if  will save and change to confirm page (not matter file confilicted )
             save_modify_tasks(request.POST, station_instance, not_dedup_task_ids)
 
-            # check conflict files
-            cf = conflict_files(not_dedup_task_ids)
-            if len(cf.keys()) != 0:
-                if 'ajax_saved' in request.POST:
+            # if ajax call will check conflict file
+            if 'ajax_saved' in request.POST:
+                # check conflict files
+                cf = conflict_files(not_dedup_task_ids)
+
+                if len(cf.keys()) != 0:
+                    conflict_tmp_path = path_combine(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                                     "download_folder", "cf_%s.json" % request.POST["conflict_token"])
+                    with open(conflict_tmp_path, 'w') as f:
+                        json.dump(cf, f)
                     return HttpResponseBadRequest(
                         content='You have some conflicting files. Please click "Next" to proceed.')
-                cf_tasks = get_conflict_tasks(cf)
-                err_message = "You have some conflicting files.Please select the file to be compressed into TestCase zip."
-                return render(request, "confirm.html", locals())
-            # if not conflicted will save ,it had conflicted will save on conflicted page
+
+
+            # if submit only check confilct json had existed.
             else:
-                # the testScript ini will be save and used the db order save it.
+                conflict_token = request.POST["conflict_token"]
+                conflict_tmp_path = path_combine(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                                 "download_folder", "cf_%s.json" % conflict_token)
+
+                if os.path.exists(conflict_tmp_path):
+                    f = open(conflict_tmp_path, 'r')
+                    cf = json.loads(f.read())
+                    cf_tasks = get_conflict_tasks(cf)
+                    err_message = "You have some conflicting files.Please select the file to be compressed into TestCase zip."
+                    f.close()
+                    # remove tmp file
+                    os.remove(conflict_tmp_path)
+                    return render(request, "confirm.html", locals())
+
+                # if not conflicted will save ,it had conflicted will change the page to the conflicted page
                 save_ini_contents(ini_content_map, testScript_order_list, token)
                 save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids)
 
-            return render(request, "confirm.html", locals())
+                return render(request, "confirm.html", locals())
 
     return render(request, "script_list.html", locals())
 
@@ -500,6 +521,7 @@ def modify_script(request, project_name, part_number, station_name):
 
     # handle query station task query action
     if request.method == "GET":
+        conflict_token = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(30))
         prj_task_li = get_station_tasks(project_name, part_number, station_name)
         return render(request, "argument.html", locals())
 
@@ -568,23 +590,42 @@ def modify_script(request, project_name, part_number, station_name):
             testScript_order_list = save_testScript_order(project_name, part_number, station_name, sorted_list,False)
 
 
-            # the testScript ini will be save and used the db order save it.
 
-            # check conflict files
-            cf = conflict_files(not_dedup_task_ids)
-            if len(cf.keys()) != 0:
-                if 'ajax_saved' in request.POST:
+            # if ajax call will check conflict file
+            if 'ajax_saved' in request.POST:
+                # check conflict files
+                cf = conflict_files(not_dedup_task_ids)
+
+
+                if len(cf.keys()) != 0:
+                    conflict_tmp_path = path_combine(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                                     "download_folder", "cf_%s.json" % request.POST["conflict_token"])
+                    with open(conflict_tmp_path, 'w') as f:
+                        json.dump(cf, f)
                     return  HttpResponseBadRequest(content= 'You have some conflicting files. Please click "Next" to proceed.')
 
-                cf_tasks = get_conflict_tasks(cf)
-                err_message = "You have some conflicting files.Please select the file to be compressed into TestCase zip."
-                return render(request, "confirm.html", locals())
-            # if not conflicted will save ,it had conflicted will change the page to the  conflicted page
+
+            # if submit only check confilct json had existed.
             else:
+                conflict_token = request.POST["conflict_token"]
+                conflict_tmp_path = path_combine(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                                 "download_folder", "cf_%s.json" % conflict_token)
+
+                if os.path.exists(conflict_tmp_path):
+                    f = open(conflict_tmp_path, 'r')
+                    cf = json.loads(f.read())
+                    cf_tasks = get_conflict_tasks(cf)
+                    err_message = "You have some conflicting files.Please select the file to be compressed into TestCase zip."
+                    f.close()
+                    # remove tmp file
+                    os.remove(conflict_tmp_path)
+                    return render(request, "confirm.html", locals())
+
+                # if not conflicted will save ,it had conflicted will change the page to the conflicted page
                 save_ini_contents(ini_content_map, testScript_order_list, token)
                 save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids)
 
-            return render(request, "confirm.html", locals())
+                return render(request, "confirm.html", locals())
 
     return render(request, "argument.html", locals())
 
@@ -678,26 +719,47 @@ def task_files(task_list):
 
     return task_files
 
-# todo handle this slow issue
+def get_md5_map(file, result_map):
+    result_map[file] = md5(file)
+    return result_map
+
+
 def conflict_files(task_list):
+    root_path = handle_path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'upload_folder')
+    dedup = []
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     file_map = task_files(task_list)
-    new_files = {}
 
-    root_path = handle_path(path, 'upload_folder')
+    pool =  Pool()
+    result = []
+    md5_map = {}
 
-    dedup = []
     for k, fs in file_map.items():
-
-        file_path = os.path.join(root_path, k)
-
         for f in fs:
-            if f in new_files.keys():
+            if re.search("attachment.*", f) == None:
+                file_path = path_combine(path, 'upload_folder', k, f)
+                tmp_map = {}
+                result.append(pool.apply_async(get_md5_map, args=(file_path, tmp_map,)))
+
+    pool.close()
+    pool.join()
+
+    for i in result:
+        for f, md5 in i.get().items():
+            md5_map[f] = md5
+
+    new_files = {}
+    for path, md5 in md5_map.items():
+        match = re.search(r'%s' % (path_combine(root_path, "(\w{6})", "(.+)")), path)
+        if match:
+            file = match.group(2)
+
+            if file in new_files.keys():
                 # check md5 ,if  same will append to the deduplicate list
-                if md5(os.path.join(file_path, f)) != new_files[f]:
-                    dedup.append(f)
+                if md5 != new_files[file]:
+                    dedup.append(file)
             else:
-                new_files[f] = md5(os.path.join(file_path, f))
+                new_files[file] = md5
 
     dedup_map = {}
     for k, fs in file_map.items():
@@ -709,7 +771,6 @@ def conflict_files(task_list):
             dedup_map[k] = file_list
 
     return dedup_map
-
 
 def get_conflict_tasks(conflict_dict):
     # get conflict file
