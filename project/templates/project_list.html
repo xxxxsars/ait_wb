@@ -38,9 +38,6 @@
             display: none;
         }
 
-        h3 {
-            text-align: center;
-        }
 
         tbody tr:last-child {
             border-bottom: 1px solid #dee2e6;
@@ -59,26 +56,6 @@
 
 
     <script>
-
-        $(function () {
-            $('[data-toggle="tooltip"]').tooltip()
-        });
-
-        function getCookie(name) {
-            var cookieValue = null;
-            if (document.cookie && document.cookie != '') {
-                var cookies = document.cookie.split(';');
-                for (var i = 0; i < cookies.length; i++) {
-                    var cookie = jQuery.trim(cookies[i]);
-                    // Does this cookie string begin with the name we want?
-                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
 
 
         $(function () {
@@ -156,12 +133,9 @@
 
                             location.href = "/project/modify_project/" + project_name
 
-                        }else if(action =="Upload"){
+                        } else if (action == "Upload") {
                             location.href = "/project/log_confirm/" + project_name
-                        }
-
-
-                        else if (action == "Delete") {
+                        } else if (action == "Delete") {
                             if (confirm("Are you sure to delete this row?")) {
 
                                 projectName = dtRow.find("td.project_name").text();
@@ -323,7 +297,9 @@
                             }
 
                         } else if (action == "Download") {
-                            location.href = "/project/download_script/" + project_name + "/" + part_number + "/" + station_name;
+                            ajax_loading("Please waiting , Compressed all script to zip file...");
+                            ajax_download( "/project/download_script/" + project_name + "/" + part_number + "/" + station_name);
+
                         }
                     })
                 })
@@ -406,7 +382,8 @@
 
                     <td>
                         {% if prj|lookup:"upload_date" == "Not Uploaded" %}
-                              <div class="text-danger h5 status" style="padding-left: 30%"><i class="fas fa-times"></i></div>
+                            <div class="text-danger h5 status" style="padding-left: 30%"><i class="fas fa-times"></i>
+                            </div>
                         {% else %}
                             {{ prj|lookup:"upload_date"|date:'Y-m-d h:i A' }}
                         {% endif %}
@@ -430,7 +407,7 @@
                                 <button class="dropdown-item" type="button">Delete</button>
 
                                 {% if project_upload %}
-                                <button class="dropdown-item" type="button">Upload</button>
+                                    <button class="dropdown-item" type="button">Upload</button>
                                 {% else %}
                                     <button class="dropdown-item" type="button" disabled>Upload</button>
                                 {% endif %}

@@ -30,10 +30,6 @@
 
 {% block css %}
     <style>
-        h3 {
-            text-align: center;
-        }
-
 
         td.details-control {
             background: url('{% static "pic/plus.png" %}') no-repeat center center;
@@ -82,103 +78,12 @@
 
         }
 
-
-        .help-block {
-            color: #a94442;
-        }
-
-        .form-group.has-error.has-danger .form-control-label {
-            color: #a94442;
-        }
-
-        .form-group.has-error.has-danger .form-control {
-            border: 1px solid #a94442;
-            box-shadow: #a94442;
-        }
-
-        .has-success .form-control {
-            border-color: #3c763d;
-            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
-            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
-        }
-
-        .form-control-feedback {
-
-            top: 25px;
-            right: 0;
-            z-index: 2;
-            width: 34px;
-            height: 34px;
-            line-height: 34px;
-            text-align: center;
-        }
-
-        .has-error .form-control-feedback {
-            color: #a94442;
-        }
-
-        .has-success .form-control-feedback {
-            color: #3c763d;
-        }
     </style>
 {% endblock %}
 
 
 {% block js %}
     <script>
-
-        $(function () {
-            $('[data-toggle="tooltip"]').tooltip()
-        });
-
-
-        function confilct_ajax_loading() {
-                $(document).ajaxStart(function () {
-
-                    $("body").hide();
-
-
-                    $(".load_panel").each(function () {
-                        $(this).remove()
-                    });
-
-                    $("html").append(
-                        '<div class="load_panel" style="width: 100%; height: 100%;">' +
-                        '  <div class="ui active inverted dimmer">' +
-                        '    <div class="ui text loader">Please waiting , Checking files for conflicts...</div>' +
-                        '  </div>' +
-                        '</div>');
-
-
-                });
-
-
-                $(document).ajaxComplete(function () {
-                    $(".load_panel").each(function () {
-                        $(this).remove()
-                    });
-
-                    // remove load.css
-                    $("#load_css").remove();
-                    $("body").show()
-                });
-        }
-
-        function getCookie(name) {
-            var cookieValue = null;
-            if (document.cookie && document.cookie != '') {
-                var cookies = document.cookie.split(';');
-                for (var i = 0; i < cookies.length; i++) {
-                    var cookie = jQuery.trim(cookies[i]);
-                    // Does this cookie string begin with the name we want?
-                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
 
         //global parameter
         task_infos = {{ prj_task_li|safe }};
@@ -506,7 +411,7 @@
 
                 data = $("#other_form").serialize() +"&conflict_token="+"{{ conflict_token|escapejs }}";
 
-                 confilct_ajax_loading()
+                ajax_loading("Please waiting , Checking files for conflicts...");
                 $.ajax({
                     type: "POST",
                     url: window.location.href,

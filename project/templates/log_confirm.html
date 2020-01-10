@@ -32,10 +32,6 @@
             display: none;
         }
 
-        h3 {
-            text-align: center;
-        }
-
         tbody tr:last-child {
             border-bottom: 1px solid #dee2e6;
         }
@@ -68,21 +64,6 @@
             }
         }
 
-        function getCookie(name) {
-            var cookieValue = null;
-            if (document.cookie && document.cookie != '') {
-                var cookies = document.cookie.split(';');
-                for (var i = 0; i < cookies.length; i++) {
-                    var cookie = jQuery.trim(cookies[i]);
-                    // Does this cookie string begin with the name we want?
-                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
 
         $(document).ready(function () {
 
@@ -177,7 +158,7 @@
                         status_field.append("<div class=\"text-center text-success h5 status\"><i class=\"fas fa-check-circle\"></i></div>");
 
                         //if all task passed will unlock submit button
-                        check_all_task()
+                        check_all_task();
 
 
                         //auto close alert  after 4 seconds.
@@ -235,34 +216,7 @@
                     }
                 });
 
-                $(document).ajaxStart(function () {
-
-                    $("body").hide();
-
-                    $(".load_panel").each(function () {
-                        $(this).remove()
-                    });
-
-                    $("html").append(
-                        '<div class="load_panel" style="width: 100%; height: 100%;">' +
-                        '  <div class="ui active inverted dimmer">' +
-                        '    <div class="ui indeterminate text loader">Please waiting , Project is uploading to AIT Server</div>' +
-                        '  </div>' +
-                        '</div>');
-
-
-                });
-
-
-                $(document).ajaxComplete(function () {
-                    $(".load_panel").each(function () {
-                        $(this).remove()
-                    });
-
-                    // remove load.css
-                    $("#load_css").remove();
-                    $("body").show()
-                });
+                ajax_loading("Please waiting , Project is uploading to AIT Server..");
 
                 if (error_count <= 0) {
                     $.ajax({
