@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import StreamingHttpResponse, Http404,JsonResponse
+from django.http import StreamingHttpResponse, Http404, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from rest_framework.response import Response
@@ -7,11 +7,14 @@ from rest_framework import status
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, RemoteUserAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 import os
+import multiprocessing
+
 import platform
 from ait.forms import *
 from ait.models import *
 
-from common.handler import path_combine
+from FactoryWeb.settings import *
+from common.handler import path_combine, samba_mount
 
 
 # Create your views here.
@@ -30,11 +33,10 @@ def release_note(request, version):
     return render(request, "annoucement.html", locals())
 
 
-
 @login_required(login_url="/user/login/")
 @staff_member_required
 @authentication_classes((SessionAuthentication,))
-def update(request,version):
+def update(request, version):
     is_ait = True
     ait = AIT_release.objects.get(version=version)
     is_update = True
@@ -45,7 +47,7 @@ def update(request,version):
 @login_required(login_url="/user/login/")
 @staff_member_required
 @authentication_classes((SessionAuthentication,))
-def update_message(request,version,message):
+def update_message(request, version, message):
     is_ait = True
     ait = AIT_release.objects.get(version=version)
     is_update = True
@@ -61,8 +63,6 @@ def upload(request):
     is_ait = True
     u = UploadAITForm()
     return render(request, "ait_upload.html", locals())
-
-
 
 
 @api_view(["GET"])
@@ -81,6 +81,7 @@ def download(request):
     response['Content-Disposition'] = 'attachment;filename="AIT.jar"'
     return response
 
+
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
 def update_API(request):
@@ -94,34 +95,54 @@ def update_API(request):
         ait.release_note = release_note
 
         if 'file' in request.FILES:
+            # mount samba folder
+            try:
+                samba_mount()
+            except Exception as e:
+
+                return JsonResponse({"valid": False, "message": "Connection failed."},
+                                    status=status.HTTP_408_REQUEST_TIMEOUT)
+
             handle_uploaded_file(request.FILES['file'])
+
         ait.save()
 
-        return JsonResponse( {'is_valid': True, "message": "Update AIT was successfully!!"}, status=200)
+        return JsonResponse({'is_valid': True, "message": "Update AIT was successfully!!"}, status=200)
 
-    return JsonResponse( {'is_valid': False, "message": "Update AIT was failed."}, status=400)
+    return JsonResponse({'is_valid': False, "message": "Update AIT was failed."}, status=400)
+
 
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
 def upload_API(request):
-
     if request.POST:
-        print(request.POST)
+
         u = UploadAITForm(request.POST, request.FILES)
 
         if u.is_valid():
 
             version = request.POST['version']
             release_note = request.POST['release_note']
-            if version != "" and release_note != "" and  'file' in request.FILES:
+            if version != "" and release_note != "" and 'file' in request.FILES:
                 AIT_release.objects.create(version=version, release_note=release_note)
+
+                # mount samba folder
+                try:
+                    samba_mount()
+                except Exception as e:
+
+                    return JsonResponse({"valid": False, "message": "Connection failed."},
+                                        status=status.HTTP_408_REQUEST_TIMEOUT)
+
+
                 handle_uploaded_file(request.FILES['file'])
                 return JsonResponse({'is_valid': True, "message": "Update AIT was successfully!!"}, status=200)
             else:
-                return JsonResponse({'is_valid': False, "message": "Your must be provided file and version."}, status=400)
+                return JsonResponse({'is_valid': False, "message": "Your must be provided file and version."},
+                                    status=400)
 
+    return JsonResponse({'is_valid': False, "message": "Update AIT was failed."}, status=400)
 
-    return JsonResponse( {'is_valid': False, "message": "Update AIT was failed."}, status=400)
 
 @api_view(["GET"])
 @authentication_classes((SessionAuthentication,))
@@ -129,14 +150,13 @@ def valid_ait_version(request):
     if request.GET:
         version = request.GET["version"]
         if AIT_release.objects.filter(version=version).count():
-            return JsonResponse({"valid":False})
+            return JsonResponse({"valid": False})
         else:
             return JsonResponse({"valid": True})
 
 
-
 @api_view(["POST"])
-@authentication_classes((SessionAuthentication,BasicAuthentication))
+@authentication_classes((SessionAuthentication, BasicAuthentication))
 def delete_release_version(request):
     if request.method == "POST":
         version = request.data.get("version")
@@ -149,24 +169,46 @@ def delete_release_version(request):
         instance.first().delete()
 
         # if ait_release table had emptied ,it will remove AIT.jar
-        if len(AIT_release.objects.all()) ==0:
-            path =path_combine(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),"ait_jar","AIT.jar")
+        if len(AIT_release.objects.all()) == 0:
+            path = path_combine(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ait_jar", "AIT.jar")
             os.remove(path)
-
-
 
         return Response(status=status.HTTP_200_OK)
 
+def write_task(f,path):
+    with open(os.path.join(path), 'wb+') as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
 
 def handle_uploaded_file(f):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     if platform.system() == "Windows":
-        save_path = path + r'\ait_jar\\' + "AIT.jar"
-
+        samba_path =  path_combine(WIN_MOUNT_PATH,"AIT.jar")
     else:
-        save_path = path + '/ait_jar/' + "AIT.jar"
+        samba_path = path_combine(OSX_MOUNT_PATH,"AIT.jar")
 
-    with open(save_path, 'wb+') as destination:
-        for chunk in f.chunks():
-            destination.write(chunk)
+    save_path = path_combine(path, 'ait_jar', "AIT.jar")
+
+    p = multiprocessing.Process(target=write_task, args=(f, save_path,))
+    p.start()
+    p.join()
+
+    # not wait it upload on background
+    p = multiprocessing.Process(target=write_task, args=(f, samba_path,))
+    p.start()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -8,6 +8,7 @@ from common.limit import *
 import os
 import json
 import socket
+import subprocess
 from django.forms.models import model_to_dict
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'FactoryWeb.settings')
@@ -18,7 +19,7 @@ django.setup()
 from django.contrib.auth.models import User
 from rest_framework import authentication
 from rest_framework import exceptions
-
+from FactoryWeb.settings import *
 from project.models import *
 
 def handle_path(root_path, *args):
@@ -292,6 +293,56 @@ def update_version(version:str) ->str:
     else:
         raise ValueError("Version content is not match")
 
+def samba_mount():
+    samba_ip =SAMBA_IP
+    account =ACCOUNT
+    password = PASSWORD
+    share_folder= SAMBA_FOLDER
+
+    win_mount_path =WIN_MOUNT_PATH
+    osx_mount_path = OSX_MOUNT_PATH
+
+
+    mounted = False
+    cmd = ""
+    if (platform.system() =="Darwin"):
+        # check had been mounted
+        check_output=  (subprocess.check_output(["mount"])).decode("utf-8")
+        if (re.search(r"%s"%osx_mount_path,check_output)):
+            # check samba status
+            p = subprocess.run( f"smbutil statshares -m {osx_mount_path}".split(" "), timeout=10)
+            if p.returncode != 0:
+                raise ConnectionError("Connect samba failed.")
+            else:
+                mounted = True
+
+    elif platform.system() == "Windows":
+        # check had been mounted
+        check_output = (subprocess.check_output("fsutil fsinfo drives".split(" "))).decode("utf-8")
+        if (re.search(r"%s"%win_mount_path,check_output)):
+            # check samba status
+            p = subprocess.check_output("net use".split(" "), timeout=10)
+            result = p.decode("utf-8")
+            for i, line in enumerate(result.split("\n")):
+                if (re.search(f"{samba_ip}", line)):
+                    status = (line.rstrip().split())[0]
+                    if status == "OK":
+                        mounted = True
+                    else:
+                        raise ConnectionError("Connect samba failed.")
+
+    if mounted ==False :
+
+        if (platform.system() == "Darwin"):
+            cmd = "mount_smbfs //%s:%s@%s/%s %s"%(account,password,samba_ip,share_folder,osx_mount_path)
+
+        elif platform.system() == "Windows":
+            cmd = r"net use W: \\%s\%s %s /user:%s" % (samba_ip,share_folder,password,account)
+
+        # wait for 10 second ,if not response will return error
+        p = subprocess.check_call(cmd.split(" "),timeout=10)
+        if p != 0 :
+            raise ConnectionError("Connect samba failed.")
 if __name__ =="__main__":
     # import shutil
     #

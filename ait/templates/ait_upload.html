@@ -23,7 +23,6 @@
         {#display the upload file name#}
         $(function () {
             $('input[type="file"]').on('change', function () {
-                console.log("in", $(this).val(), $(this).next('.custom-file-label'))
                 //get the file name
                 var fileName = $(this).val();
                 //replace the "Choose a file" label
@@ -170,7 +169,6 @@
                 progressall: function (e, data) {
                     var progress = parseInt(data.loaded / data.total * 100, 10);
                     var strProgress = progress + "%";
-
                     $(".progress-bar").css({"width": strProgress});
                     $(".progress-bar").text(strProgress);
 
@@ -183,12 +181,7 @@
 
             $("#btn_submit").click(function (e) {
                 e.preventDefault();
-
-
                 $('#ait_form').bootstrapValidator('validate');
-
-                console.log($("#ait_form").data('bootstrapValidator').isValid())
-
                 if ($("#ait_form").data('bootstrapValidator').isValid()) {
                     if (filesList.length > 0) {
                         file_upload.fileupload('send', {

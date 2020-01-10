@@ -16,7 +16,7 @@ from io import StringIO,BytesIO
 from FactoryWeb.settings import *
 from project.restful.serializer import *
 from project.models import *
-from common.handler import handle_path,get_download_file,path_combine
+from common.handler import handle_path,get_download_file,path_combine,samba_mount
 
 
 # # Create your views here.
@@ -383,55 +383,6 @@ def get_station_instacne(project, part_number, station):
     return station_instance
 
 
-def samba_mount():
-    samba_ip =SAMBA_IP
-    account =ACCOUNT
-    password = PASSWORD
-    share_folder= SAMBA_FOLDER
 
-    win_mount_path =WIN_MOUNT_PATH
-    osx_mount_path = OSX_MOUNT_PATH
-
-
-    mounted = False
-    cmd = ""
-    if (platform.system() =="Darwin"):
-        # check had been mounted
-        check_output=  (subprocess.check_output(["mount"])).decode("utf-8")
-        if (re.search(r"%s"%osx_mount_path,check_output)):
-            # check samba status
-            p = subprocess.run( f"smbutil statshares -m {osx_mount_path}".split(" "), timeout=10)
-            if p.returncode != 0:
-                raise ConnectionError("Connect samba failed.")
-            else:
-                mounted = True
-
-    elif platform.system() == "Windows":
-        # check had been mounted
-        check_output = (subprocess.check_output("fsutil fsinfo drives".split(" "))).decode("utf-8")
-        if (re.search(r"%s"%win_mount_path,check_output)):
-            # check samba status
-            p = subprocess.check_output("net use".split(" "), timeout=10)
-            result = p.decode("utf-8")
-            for i, line in enumerate(result.split("\n")):
-                if (re.search(f"{samba_ip}", line)):
-                    status = (line.rstrip().split())[0]
-                    if status == "OK":
-                        mounted = True
-                    else:
-                        raise ConnectionError("Connect samba failed.")
-
-    if mounted ==False :
-
-        if (platform.system() == "Darwin"):
-            cmd = "mount_smbfs //%s:%s@%s/%s %s"%(account,password,samba_ip,share_folder,osx_mount_path)
-
-        elif platform.system() == "Windows":
-            cmd = r"net use W: \\%s\%s %s /user:%s" % (samba_ip,share_folder,password,account)
-
-        # wait for 10 second ,if not response will return error
-        p = subprocess.check_call(cmd.split(" "),timeout=10)
-        if p != 0 :
-            raise ConnectionError("Connect samba failed.")
 
 
