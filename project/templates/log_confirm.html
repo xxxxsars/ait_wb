@@ -236,19 +236,8 @@
                 });
 
                 $(document).ajaxStart(function () {
-                     //dynamically loading css
-                    loadCSS = function (href) {
-                        var cssLink = $("<link  id='load_css' rel='stylesheet' type='text/css' href='" + href + "'>");
-                        $("head").append(cssLink);
-                    };
-
-
-                    loadCSS("{% static "bower_components/semantic/dist/semantic.min.css" %}");
 
                     $("body").hide();
-
-
-
 
                     $(".load_panel").each(function () {
                         $(this).remove()
