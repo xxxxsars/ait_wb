@@ -1,7 +1,7 @@
 *.sqlite3
 .idea
-upload_folder/*
-download_folder/*
+upload_files/*
+user_project/*
 ait_jar/*
 
 
