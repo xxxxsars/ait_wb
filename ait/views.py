@@ -11,7 +11,11 @@ import multiprocessing
 import shutil
 import logging
 
-import platform
+import platform,os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'FactoryWeb.settings')
+import django
+django.setup()
+
 from ait.forms import *
 from ait.models import *
 

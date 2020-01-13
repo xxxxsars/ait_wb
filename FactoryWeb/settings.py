@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'test_script.update',
     'test_script.list',
     'project',
-    'ait'
+    'ait',
 
 ]
 
