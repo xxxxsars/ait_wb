@@ -871,7 +871,16 @@ def get_station_tasks(project_name, part_number, station_name) :
             task_map["args"] = prj_arg_li
 
             task_instance = Upload_TestCase.objects.get(task_id=task_map["task_id"])
-            task_map["project_description"] ="Description:<br>"+task_instance.description +"<br>"*2 +"Sample:<br>"+task_instance.sample
+
+            arg_instances = Arguments.objects.filter(task_id=task_map["task_id"])
+
+            usage_content = ""
+            for arg in arg_instances:
+                if re.search("^-\w{1}", arg.default_value) == None:
+                    usage_content += "-%s\n&nbsp;&nbsp;&nbsp;&nbsp;%s\n" % (arg.argument, arg.description)
+
+            task_map["project_description"] = "Sample:\n%s\n\nUsage:\n%s" % (task_instance.sample, usage_content)
+
             prj_task_li.append(task_map)
 
 
