@@ -97,3 +97,4 @@ celerybeat-schedule
 ipns_tmp
 # vim
 *.swp
+log

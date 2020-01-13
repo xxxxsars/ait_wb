@@ -6,8 +6,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, RemoteUserAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
-import os
+import datetime
 import multiprocessing
+import shutil
+import logging
 
 import platform
 from ait.forms import *
@@ -175,10 +177,32 @@ def delete_release_version(request):
 
         return Response(status=status.HTTP_200_OK)
 
-def write_task(f,path):
-    with open(os.path.join(path), 'wb+') as destination:
-        for chunk in f.chunks():
-            destination.write(chunk)
+
+def copy_to_samba(source,target):
+    try:
+        shutil.copy(source, target)
+    except Exception as e:
+
+
+        path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),"log")
+        if os.path.exists(path) == False:
+            os.mkdir(path)
+        log_filename = datetime.datetime.now().strftime( os.path.join(path,"AIT-%Y-%m-%d.log"))
+        logging.basicConfig(level=logging.DEBUG,
+                            format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                            datefmt='%Y-%m-%d %H:%M:%S',
+                            filename=log_filename)
+
+        console = logging.StreamHandler()
+        console.setLevel(logging.INFO)
+
+        formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+
+        console.setFormatter(formatter)
+
+        logging.getLogger('').addHandler(console)
+        logging.info(e)
+
 
 def handle_uploaded_file(f):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -190,14 +214,13 @@ def handle_uploaded_file(f):
 
     save_path = path_combine(path, 'ait_jar', "AIT.jar")
 
-    p = multiprocessing.Process(target=write_task, args=(f, save_path,))
-    p.start()
-    p.join()
+    with open(os.path.join(save_path), 'wb+') as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
 
-    # not wait it upload on background
-    p = multiprocessing.Process(target=write_task, args=(f, samba_path,))
+    # copy AIT.jar to samba in background
+    p = multiprocessing.Process(target=copy_to_samba, args=(save_path, samba_path,))
     p.start()
-
 
 
 
