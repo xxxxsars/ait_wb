@@ -193,7 +193,7 @@ def had_modify(request) ->bool:
 
 def handle_update_attachment(f, task_id):
     path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    save_path = handle_path(path, "upload_folder", task_id, "attachment")
+    save_path = handle_path(path, "upload_files", task_id, "attachment")
 
     try:
         shutil.rmtree(save_path)
@@ -214,8 +214,8 @@ def handle_update_file(f, task_id):
         raise Exception("Upload file is no valid zip file.")
 
     path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    source_zip = os.path.join(handle_path(path, "upload_folder"), f.name)
-    unzip_path = os.path.join(handle_path(path, "upload_folder"), task_id)
+    source_zip = os.path.join(handle_path(path, "upload_files"), f.name)
+    unzip_path = os.path.join(handle_path(path, "upload_files"), task_id)
 
     with open(source_zip, 'wb+') as destination:
         for chunk in f.chunks():

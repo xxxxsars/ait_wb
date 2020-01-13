@@ -70,12 +70,8 @@ def upload(request):
 @api_view(["GET"])
 @authentication_classes((SessionAuthentication,))
 def download(request):
-    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    if platform.system() == "Windows":
-        file_path = path + r'\ait_jar\\' + "AIT.jar"
-
-    else:
-        file_path = path + '/ait_jar/' + "AIT.jar"
+    path = os.path.dirname(os.path.abspath(__file__))
+    file_path = path_combine(path,'ait_jar',"AIT.jar")
 
     file = open(file_path, 'rb')
     response = StreamingHttpResponse(file)
@@ -205,7 +201,7 @@ def copy_to_samba(source,target):
 
 
 def handle_uploaded_file(f):
-    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    path = os.path.dirname(os.path.abspath(__file__))
 
     if platform.system() == "Windows":
         samba_path =  path_combine(WIN_MOUNT_PATH,"AIT.jar")

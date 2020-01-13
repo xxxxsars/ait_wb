@@ -2,7 +2,7 @@
 .idea
 upload_files/*
 user_project/*
-ait_jar/*
+ait/ait_jar/*
 
 
 # Created by https://www.gitignore.io

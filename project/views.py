@@ -475,7 +475,7 @@ def select_script(request, project_name, part_number, station_name):
 
                 if len(cf.keys()) != 0:
                     conflict_tmp_path = path_combine(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                                                     "download_folder", "cf_%s.json" % request.POST["conflict_token"])
+                                                     "user_project", "cf_%s.json" % request.POST["conflict_token"])
                     with open(conflict_tmp_path, 'w') as f:
                         json.dump(cf, f)
                     return HttpResponseBadRequest(
@@ -486,7 +486,7 @@ def select_script(request, project_name, part_number, station_name):
             else:
                 conflict_token = request.POST["conflict_token"]
                 conflict_tmp_path = path_combine(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                                                 "download_folder", "cf_%s.json" % conflict_token)
+                                                 "user_project", "cf_%s.json" % conflict_token)
 
                 if os.path.exists(conflict_tmp_path):
                     f = open(conflict_tmp_path, 'r')
@@ -597,7 +597,7 @@ def modify_script(request, project_name, part_number, station_name):
 
                 if len(cf.keys()) != 0:
                     conflict_tmp_path = path_combine(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                                                     "download_folder", "cf_%s.json" % request.POST["conflict_token"])
+                                                     "user_project", "cf_%s.json" % request.POST["conflict_token"])
                     with open(conflict_tmp_path, 'w') as f:
                         json.dump(cf, f)
                     return  HttpResponseBadRequest(content= 'You have some conflicting files. Please click "Next" to proceed.')
@@ -607,7 +607,7 @@ def modify_script(request, project_name, part_number, station_name):
             else:
                 conflict_token = request.POST["conflict_token"]
                 conflict_tmp_path = path_combine(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                                                 "download_folder", "cf_%s.json" % conflict_token)
+                                                 "user_project", "cf_%s.json" % conflict_token)
 
                 if os.path.exists(conflict_tmp_path):
                     f = open(conflict_tmp_path, 'r')
@@ -636,7 +636,7 @@ def save_ini(request,token):
         if 'save_ini' in request.POST:
 
             # save new testScript.ini
-            with open(os.path.join(handle_path(path, "download_folder"), "%s.ini" % token), "w") as f:
+            with open(os.path.join(handle_path(path, "user_project"), "%s.ini" % token), "w") as f:
                 # add space line for every testCase
                 new_content = ""
                 for line in (request.POST["ini_content"].split("\n")):
@@ -667,8 +667,8 @@ def save_ini(request,token):
 
 def save_token_ini(token ,username, project_name, part_number, station_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    dest_path = handle_path(path, "download_folder", username, project_name, part_number, station_name)
-    ini_path = os.path.join(handle_path(path, "download_folder"), "%s.ini" % token)
+    dest_path = handle_path(path, "user_project", username, project_name, part_number, station_name)
+    ini_path = os.path.join(handle_path(path, "user_project"), "%s.ini" % token)
     shutil.copy2(ini_path, os.path.join(dest_path,"testScript.ini"))
     os.remove(ini_path)
 
@@ -676,7 +676,7 @@ def save_task_files(token ,username, project_name, part_number, station_name,tas
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     config_path = handle_path(path, "ait_config")
     script_path = "TestScriptRes"
-    dest_path = handle_path(path,"download_folder",username, project_name, part_number, station_name)
+    dest_path = handle_path(path,"user_project",username, project_name, part_number, station_name)
     shutil.rmtree(dest_path)
 
     if not os.path.exists(dest_path):
@@ -685,7 +685,7 @@ def save_task_files(token ,username, project_name, part_number, station_name,tas
     chose_files_path = []
     if chose_files != None:
         for file, task_id in chose_files.items():
-            chose_files_path.append(os.path.join(handle_path(path, "upload_folder", task_id), file))
+            chose_files_path.append(os.path.join(handle_path(path, "upload_files", task_id), file))
 
     # create task files information json file
     json_data = {}
@@ -701,7 +701,7 @@ def save_task_files(token ,username, project_name, part_number, station_name,tas
 def task_files(task_list):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    root_path = handle_path(path, "upload_folder")
+    root_path = handle_path(path, "upload_files")
 
     task_files = {}
     for task_id in task_list:
@@ -723,7 +723,7 @@ def get_md5_map(file, result_map):
 
 
 def conflict_files(task_list):
-    root_path = handle_path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'upload_folder')
+    root_path = handle_path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'upload_files')
     dedup = []
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     file_map = task_files(task_list)
@@ -735,7 +735,7 @@ def conflict_files(task_list):
     for k, fs in file_map.items():
         for f in fs:
             if re.search("attachment.*", f) == None:
-                file_path = path_combine(path, 'upload_folder', k, f)
+                file_path = path_combine(path, 'upload_files', k, f)
                 tmp_map = {}
                 result.append(pool.apply_async(get_md5_map, args=(file_path, tmp_map,)))
 
@@ -750,9 +750,9 @@ def conflict_files(task_list):
     for path, md5 in md5_map.items():
 
         if platform.system() == "Windows":
-            match = re.search(r'upload_folder\\(\w+)\\(.+)',path)
+            match = re.search(r'upload_files\\(\w+)\\(.+)',path)
         else:
-            match = re.search(r'upload_folder/(\w+)/(.+)',path)
+            match = re.search(r'upload_files/(\w+)/(.+)',path)
 
         if match:
             file = match.group(2)
@@ -928,7 +928,7 @@ def save_ini_contents(ini_map, ini_order_list, token):
         ini_content += ini_map[id] + "\n"
 
     # save ini
-    with open(os.path.join(handle_path(path, "download_folder"), "%s.ini" % token), "w") as f:
+    with open(os.path.join(handle_path(path, "user_project"), "%s.ini" % token), "w") as f:
         f.write(ini_content)
 
 

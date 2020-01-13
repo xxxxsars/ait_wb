@@ -69,11 +69,11 @@ def modify_task_id(old_id, new_id):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     if platform.system() == "Windows":
-        source_path = path + r'\upload_folder\\'
+        source_path = path + r'\upload_files\\'
 
 
     else:
-        source_path = path + '/upload_folder/'
+        source_path = path + '/upload_files/'
 
     os.rename(os.path.join(source_path, old_id), os.path.join(source_path, id))
 

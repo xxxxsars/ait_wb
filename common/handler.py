@@ -58,7 +58,7 @@ def md5(fname):
 def create_project_folder(username, project_name, part_numbers):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    root_path = handle_path(path, "download_folder", username, project_name)
+    root_path = handle_path(path, "user_project", username, project_name)
     if not os.path.exists(root_path):
         os.makedirs(root_path)
 
@@ -71,7 +71,7 @@ def create_project_folder(username, project_name, part_numbers):
 def create_pn_folder(username, project_name, part_number):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    root_path = handle_path(path, "download_folder", username, project_name)
+    root_path = handle_path(path, "user_project", username, project_name)
 
     if not os.path.exists(root_path):
         os.makedirs(root_path)
@@ -84,7 +84,7 @@ def create_pn_folder(username, project_name, part_number):
 def create_stations_folder(username, project_name, part_number, stations):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    root_path = handle_path(path, "download_folder", username, project_name, part_number)
+    root_path = handle_path(path, "user_project", username, project_name, part_number)
     if not os.path.exists(root_path):
         os.makedirs(root_path)
 
@@ -97,7 +97,7 @@ def create_stations_folder(username, project_name, part_number, stations):
 def create_single_station_folder(username, project_name, part_number, station_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    root_path = handle_path(path, "download_folder", username, project_name, part_number)
+    root_path = handle_path(path, "user_project", username, project_name, part_number)
 
     if not os.path.exists(root_path):
         os.makedirs(root_path)
@@ -110,7 +110,7 @@ def create_single_station_folder(username, project_name, part_number, station_na
 def modify_project_folder(username, new_name, old_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    root_path = handle_path(path, "download_folder", username)
+    root_path = handle_path(path, "user_project", username)
 
     old_path = os.path.join(root_path, old_name)
     new_path = os.path.join(root_path, new_name)
@@ -126,7 +126,7 @@ def modify_project_folder(username, new_name, old_name):
 def modify_station_folder(username, project_name, part_number, old_name, new_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    root_path = handle_path(path, "download_folder", username, project_name, part_number)
+    root_path = handle_path(path, "user_project", username, project_name, part_number)
 
     if not os.path.exists(root_path):
         os.makedirs(root_path)
@@ -145,7 +145,7 @@ def modify_station_folder(username, project_name, part_number, old_name, new_nam
 def modify_pn_folder(username, project_name, old_name, new_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    root_path = handle_path(path, "download_folder", username, project_name)
+    root_path = handle_path(path, "user_project", username, project_name)
 
     if not os.path.exists(root_path):
         os.makedirs(root_path)
@@ -163,7 +163,7 @@ def modify_pn_folder(username, project_name, old_name, new_name):
 
 def get_attach_name(task_id):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    attach_path = os.path.join(handle_path(path, "upload_folder", task_id), "attachment")
+    attach_path = os.path.join(handle_path(path, "upload_files", task_id), "attachment")
 
     if os.path.exists(attach_path):
         return os.listdir(attach_path)[0]
@@ -172,7 +172,7 @@ def get_attach_name(task_id):
 
 def get_modify_time(task_id):
     path = (os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    root_path = handle_path(path, "upload_folder", task_id)
+    root_path = handle_path(path, "upload_files", task_id)
     updata_file_path = ""
     for file in os.listdir(root_path):
         if file != "attachment" and re.search("^\.", file) == None:
@@ -186,7 +186,7 @@ def get_modify_time(task_id):
 def get_download_file(owner_user, project_name, part_number, station_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     config_path = handle_path(path, "ait_config")
-    project_path = handle_path(path, "download_folder", owner_user, project_name, part_number, station_name)
+    project_path = handle_path(path, "user_project", owner_user, project_name, part_number, station_name)
     json_file = os.path.join(project_path, "file_info.json")
     script_path = "TestScriptRes"
 
@@ -199,14 +199,14 @@ def get_download_file(owner_user, project_name, part_number, station_name):
     chose_files_path = []
     if chose_files != None:
         for file, task_id in chose_files.items():
-            chose_files_path.append(os.path.join(handle_path(path, "upload_folder", task_id), file))
+            chose_files_path.append(os.path.join(handle_path(path, "upload_files", task_id), file))
 
     compressed_file = []
 
     zip_files = []
 
     for task_id in task_list:
-        file_path = handle_path(path, "upload_folder", task_id)
+        file_path = handle_path(path, "upload_files", task_id)
         attach_path = handle_path(file_path, "attachment")
         for root, folders, files in os.walk(file_path):
             for f in files:

@@ -5,9 +5,9 @@ def clean_tmp_download():
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     if platform.system() == "Windows":
-        source_path = path + r'\download_folder\\'
+        source_path = path + r'\user_project\\'
     else:
-        source_path = path + '/download_folder/'
+        source_path = path + '/user_project/'
 
     yesterday_time = datetime.datetime.now() + datetime.timedelta(days=-1)
 

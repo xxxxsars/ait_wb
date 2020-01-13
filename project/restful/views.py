@@ -354,7 +354,7 @@ def valid_projectt_name(request):
 
 
 def change_project(project_name,old_username, new_username):
-    path = handle_path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "download_folder")
+    path = handle_path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "user_project")
 
     old_path = handle_path(path, old_username, project_name)
     new_path = handle_path(path, new_username)
@@ -372,7 +372,7 @@ def change_project(project_name,old_username, new_username):
 
 def delete_file(username, *args):
     path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    rm_path = handle_path(path, "download_folder", username, *args)
+    rm_path = handle_path(path, "user_project", username, *args)
     shutil.rmtree(os.path.join(path, rm_path))
 
 

@@ -36,7 +36,7 @@ def delete_attachment(request):
         task_instance.existed_attachment = False
 
         path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        remove_path = handle_path(path, "upload_folder",task_id,"attachment")
+        remove_path = handle_path(path, "upload_files",task_id,"attachment")
         shutil.rmtree(remove_path)
 
         task_instance.save()
@@ -48,7 +48,7 @@ def delete_attachment(request):
 def script_download(request,task_id):
     if request.method == "GET":
         path = handle_path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-                           "upload_folder", task_id)
+                           "upload_files", task_id)
 
         attach_path = os.path.join(path,'attachment')
         s = BytesIO()
@@ -115,7 +115,7 @@ class DeleteTestCaseView(viewsets.ModelViewSet):
 def remove_upload_file(task_id):
     path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-    source_folder = os.path.join(handle_path(path, "upload_folder"), task_id)
+    source_folder = os.path.join(handle_path(path, "upload_files"), task_id)
 
     # remove  script file
     try:
@@ -128,7 +128,7 @@ def remove_upload_file(task_id):
 @authentication_classes((SessionAuthentication,))
 def attach_download(request,task_id):
     path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    file_root = handle_path(path,"upload_folder",task_id,"attachment")
+    file_root = handle_path(path,"upload_files",task_id,"attachment")
 
 
     files =[f for f in os.listdir(file_root) if os.path.isfile(os.path.join(file_root,f))]

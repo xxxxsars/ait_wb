@@ -110,7 +110,7 @@ def upload_API(request):
 
 def handle_attachment(f, task_id):
     path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    save_path = handle_path(path, "upload_folder", task_id, "attachment")
+    save_path = handle_path(path, "upload_files", task_id, "attachment")
 
     with open(os.path.join(save_path, f.name), 'wb+') as destination:
         for chunk in f.chunks():
@@ -119,8 +119,8 @@ def handle_attachment(f, task_id):
 
 def handle_uploaded_file(f, task_id):
     path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    source_zip = os.path.join(handle_path(path, "upload_folder"), f.name)
-    unzip_path = os.path.join(handle_path(path, "upload_folder"), task_id)
+    source_zip = os.path.join(handle_path(path, "upload_files"), f.name)
+    unzip_path = os.path.join(handle_path(path, "upload_files"), task_id)
 
     with open(source_zip, 'wb+') as destination:
         for chunk in f.chunks():
