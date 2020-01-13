@@ -278,7 +278,7 @@ def valid_testSCript(request):
 
 
 
-
+# todo multiprocess inhance compress performance
 @api_view(["GET"])
 @authentication_classes((SessionAuthentication,))
 def download(request,project_name,part_number,station_name):

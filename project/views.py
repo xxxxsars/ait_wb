@@ -1,14 +1,12 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import StreamingHttpResponse, Http404, HttpResponseBadRequest
-from django.contrib.auth.models import User
 from django.core.exceptions import SuspiciousOperation
 from django.http import HttpResponse
 from django.forms.models import model_to_dict
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.http import HttpResponse
-from django.contrib.auth.models import User
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, RemoteUserAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 import random
@@ -750,7 +748,12 @@ def conflict_files(task_list):
 
     new_files = {}
     for path, md5 in md5_map.items():
-        match = re.search(r'%s' % (path_combine(root_path, "(\w{6})", "(.+)")), path)
+
+        if platform.system() == "Windows":
+            match = re.search(r'upload_folder\\(\w+)\\(.+)',path)
+        else:
+            match = re.search(r'upload_folder/(\w+)/(.+)',path)
+
         if match:
             file = match.group(2)
 
