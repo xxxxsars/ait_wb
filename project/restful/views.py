@@ -10,6 +10,7 @@ from django.http import HttpResponse
 from django.http.response import JsonResponse
 from django.http import StreamingHttpResponse
 
+import threading
 import shutil,zipfile,os,subprocess,re,platform,string,random,time
 from io import StringIO,BytesIO
 
@@ -278,7 +279,7 @@ def valid_testSCript(request):
 
 
 
-# todo multiprocess inhance compress performance
+
 @api_view(["GET"])
 @authentication_classes((SessionAuthentication,))
 def download(request,project_name,part_number,station_name):
@@ -287,13 +288,15 @@ def download(request,project_name,part_number,station_name):
         owner_user =station_instance.project_pn_id.project_name.owner_user.username
 
         s = BytesIO()
-        zf = zipfile.ZipFile(s, "w",compression=zipfile.ZIP_DEFLATED)
+        zf = zipfile.ZipFile(s, "w", compression=zipfile.ZIP_DEFLATED)
+
         files = get_download_file(owner_user,project_name, part_number, station_name)
         # the array inner dict key is source file path ,value is target file path
         for f in files:
-            zf.write(f[0], f[1])
+            thread = threading.Thread(target=lambda zf,f: zf.write(f[0], f[1]), args=(zf, f))
+            thread.start()
+            thread.join()
 
-        zf.close()
         response = HttpResponse(s.getvalue(), content_type='application/x-zip-compressed')
         response['Content-Disposition'] = 'attachment; filename="%s.zip"' % datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
         response['Content-Length'] = s.tell()
