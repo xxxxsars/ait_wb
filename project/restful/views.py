@@ -230,50 +230,77 @@ def valid_testSCript(request):
             return JsonResponse({"valid": False, "message": "Please select the log file."}, status=400)
         file = request.FILES['file']
 
+        task_id_line_inedx = []
         task_names = []
+        task_ids = []
         compare_task_name = []
+
         station_instance = get_station_instacne(project_name,part_number,station_name)
 
 
         lines = file.readlines()
         valid_reg = re.compile(r"\[([\w|\s]+) -.+\]-+>\s(\w+).+$")
         station_regex = re.compile("\*.+Station Name\s*\?*(\w+)")
+        test_id_regex = re.compile('Test case Id:\s*\[(\d{6})\]')
 
         station_match_count=0
         for index,byte_line in enumerate(lines):
             line = byte_line.decode("utf-8")
-
+            # check station name
             station_match = (station_regex.search(line))
             if station_match:
                 station_match_count+=1
                 log_station = station_match.group(1)
-                # if log station not compare return false
                 if log_station != station_name:
                     return JsonResponse({"valid": False,"message":"The log file station name not compared."},status=400)
 
+
+
+            # check log the all task was passed
             matched = valid_reg.search(line)
             if matched:
                 if matched.group(2) =="PASS":
+                    # add pass task name to list
                     task_names.append((matched.group(1).strip()))
-                # if any test case not pass will return false
+                    task_id_line_inedx.append(index+1)
+
                 else:
                     return JsonResponse({"valid": False,"message":"The testCase '%s' was failed."%matched.group(1).strip()},status=400)
+
+            if index in task_id_line_inedx:
+                # add pass task id to list
+                test_id_match = test_id_regex.search(line)
+                if test_id_match:
+                        task_ids.append(test_id_match.group(1))
 
         if station_match_count <=0:
             return JsonResponse({"valid": False, "message": "Can't find log station name."},status=400)
 
+
+        # check testScript order
         task_id_map = {p.id: p.task_name for p in Project_task.objects.filter(station_id=station_instance)}
         sort_task_name_id = Project_TestScript_order.objects.get(station_name=station_instance).script_oder.split(" ")
 
         for id in sort_task_name_id:
             compare_task_name.append((task_id_map[int(id)]).strip())
 
-        # check log  pass task name and database task was compared
+        # check testCase id
+        compare_task_id = [instance.task_id.task_id  for instance in
+                           Project_task.objects.filter(station_id=station_instance)]
 
+        # check task name
+        if task_names == compare_task_name :
 
-        if task_names == compare_task_name:
-            return JsonResponse({"valid": True,"message":"The log file was passed."})
+            #check task id
+            sort_compare_task_id = [int(i) for i in compare_task_id]
+            sort_task_ids = [int(i) for i in task_ids]
+
+            sort_compare_task_id.sort()
+            sort_task_ids.sort()
+            if sort_compare_task_id == sort_task_ids:
+                return JsonResponse({"valid": True,"message":"The log file was passed."})
         else:
+
             return JsonResponse({"valid": False,"message":"Please re-download this testScript and test it aging."},status=400)
 
 
