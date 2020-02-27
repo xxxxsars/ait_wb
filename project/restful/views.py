@@ -27,7 +27,19 @@ from common.handler import handle_path,get_download_file,path_combine,samba_moun
 @authentication_classes((SessionAuthentication,))
 def submit_project(request):
     if request.method == "POST":
+
         project_name = request.data.get("project_name")
+        token = request.data.get("token")
+
+
+        # check last project_upload_time the upload_message was True
+        allow_upload = Project_Upload_time.objects.get(project_name=project_name,token=token).allow_upload
+        print(allow_upload)
+
+        if allow_upload == False:
+            return JsonResponse({"valid": False, "message": "The project have been modified,please upload new test log."},
+                                status=status.HTTP_400_BAD_REQUEST)
+
         try:
             samba_mount()
         except Exception as e:
@@ -84,8 +96,11 @@ def submit_project(request):
             return JsonResponse({"valid": False, "message":re.search(r"\]([\s|\w]+):*",str(e)).group(1).strip()}, status=status.HTTP_417_EXPECTATION_FAILED)
 
         # Add upload time
-        p = Project.objects.get(project_name=project_name)
-        Project_Upload_time.objects.create(project_name=p,time=datetime.datetime.now())
+        instance,created = Project_Upload_time.objects.get_or_create(project_name=project_name,token=token)
+
+        if created ==False:
+            instance.time = datetime.datetime.now()
+            instance.save()
 
 
     return  JsonResponse({"valid": True,"message":"Submit successfully!"},status=status.HTTP_200_OK)
@@ -222,6 +237,8 @@ def valid_testSCript(request):
         project_name = request.data.get("project_name")
         part_number = request.data.get("part_number")
         station_name = request.data.get("station_name")
+        token = request.data.get("token")
+
 
         if 'file' not in request.FILES:
             return JsonResponse({"valid": False, "message": "Please select the log file."}, status=400)
@@ -295,6 +312,12 @@ def valid_testSCript(request):
             sort_compare_task_id.sort()
             sort_task_ids.sort()
             if sort_compare_task_id == sort_task_ids:
+
+                # create log pass message to project_upload_time and set "allow_upload" to the "True"
+                p = Project.objects.get(project_name=project_name)
+                Project_Upload_time.objects.create(project_name=p, allow_upload=True,token=token)
+
+
                 return JsonResponse({"valid": True,"message":"The log file was passed."})
         else:
 

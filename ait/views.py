@@ -83,7 +83,7 @@ def download(request):
     response['Content-Disposition'] = 'attachment;filename="AIT.jar"'
     return response
 
-
+# update AIT file
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
 def update_API(request):
@@ -114,6 +114,7 @@ def update_API(request):
     return JsonResponse({'is_valid': False, "message": "Update AIT was failed."}, status=400)
 
 
+# upload AIT file
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
 def upload_API(request):

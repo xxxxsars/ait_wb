@@ -77,8 +77,10 @@ class Project_TestScript_order(models.Model):
 
 
 class Project_Upload_time(models.Model):
+    token = models.CharField(max_length=30,primary_key=True,default="null")
     project_name = models.ForeignKey(Project, on_delete=models.CASCADE)
     time = models.DateTimeField(default=datetime.datetime.now, blank=True)
+    allow_upload = models.BooleanField(max_length=255, default=False)
 
     class Meta:
         db_table = "project_upload_time"

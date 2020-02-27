@@ -128,6 +128,7 @@
                 form_data.append('project_name', project_name);
                 form_data.append('part_number', part_number);
                 form_data.append('station_name', station_name);
+                form_data.append("token",'{{ token|escapejs }}');
                 form_data.append('csrfmiddlewaretoken', getCookie('csrftoken'));
 
 
@@ -224,7 +225,8 @@
                         type: 'POST',
                         data: {
                             csrfmiddlewaretoken: getCookie('csrftoken'),
-                            project_name: '{{ project_name }}'
+                            project_name: '{{ project_name }}',
+                            token: '{{ token |escapejs }}'
                         },
 
                         success: function (json) {

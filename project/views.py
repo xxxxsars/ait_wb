@@ -29,6 +29,9 @@ from test_script.list.views import no_attach_tasks
 @login_required(login_url="/usr/login")
 def log_confirm(request, project_name):
     is_project = True
+
+    token = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(30))
+
     project_structure = []
 
     p = Project.objects.get(project_name=project_name)
