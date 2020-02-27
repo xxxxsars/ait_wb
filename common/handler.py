@@ -343,6 +343,15 @@ def samba_mount():
         p = subprocess.check_call(cmd.split(" "),timeout=10)
         if p != 0 :
             raise ConnectionError("Connect samba failed.")
+
+def disable_upload_project(project_name):
+    # have modify will disable upload project to AIT server
+    up_instances = Project_Upload_time.objects.filter(project_name=project_name)
+    if up_instances.exists():
+        last_instance = up_instances.latest('time')
+        last_instance.allow_upload = False
+        last_instance.save()
+
 if __name__ =="__main__":
     # import shutil
     #

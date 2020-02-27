@@ -17,7 +17,7 @@ from io import StringIO,BytesIO
 from FactoryWeb.settings import *
 from project.restful.serializer import *
 from project.models import *
-from common.handler import handle_path,get_download_file,path_combine,samba_mount
+from common.handler import handle_path,get_download_file,path_combine,samba_mount,disable_upload_project
 
 
 # # Create your views here.
@@ -34,7 +34,7 @@ def submit_project(request):
 
         # check last project_upload_time the upload_message was True
         allow_upload = Project_Upload_time.objects.get(project_name=project_name,token=token).allow_upload
-        print(allow_upload)
+
 
         if allow_upload == False:
             return JsonResponse({"valid": False, "message": "The project have been modified,please upload new test log."},
@@ -106,14 +106,6 @@ def submit_project(request):
     return  JsonResponse({"valid": True,"message":"Submit successfully!"},status=status.HTTP_200_OK)
 
 
-
-
-
-
-
-
-
-
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
 def DeleteProjectStationView(request):
@@ -131,6 +123,7 @@ def DeleteProjectStationView(request):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         station_instance.delete()
+        disable_upload_project(project_name)
 
         delete_file(owner_user, project_name, part_number, station_name)
         #
@@ -155,6 +148,7 @@ def DeleteProjectPNView(request):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         pn_instance.delete()
+        disable_upload_project(project_name)
 
         delete_file(owner_user, project_name, part_number)
         return Response(status=status.HTTP_200_OK)
@@ -312,7 +306,6 @@ def valid_testSCript(request):
             sort_compare_task_id.sort()
             sort_task_ids.sort()
             if sort_compare_task_id == sort_task_ids:
-
                 # create log pass message to project_upload_time and set "allow_upload" to the "True"
                 p = Project.objects.get(project_name=project_name)
                 Project_Upload_time.objects.create(project_name=p, allow_upload=True,token=token)
@@ -385,6 +378,7 @@ class DeleteProjectTaskView(viewsets.ModelViewSet):
             project_order_instance.save()
 
         self.perform_destroy(instance)
+        disable_upload_project(project_name)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
