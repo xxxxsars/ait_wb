@@ -85,10 +85,7 @@ def submit_project(request):
 
         # Add upload time
         p = Project.objects.get(project_name=project_name)
-        time_obj,created=Project_Upload_time.objects.get_or_create(project_name=p)
-        if created==False:
-            time_obj.time = datetime.datetime.now()
-            time_obj.save()
+        Project_Upload_time.objects.create(project_name=p,time=datetime.datetime.now())
 
 
     return  JsonResponse({"valid": True,"message":"Submit successfully!"},status=status.HTTP_200_OK)

@@ -98,7 +98,7 @@ def list_project(request):
 
         upload_date = "Not Uploaded"
         if Project_Upload_time.objects.filter(project_name=p).exists():
-            upload_date = Project_Upload_time.objects.get(project_name=p).time
+            upload_date = Project_Upload_time.objects.filter(project_name=p).last().time
 
         project_dict = {"project_id": 'prj_%d' % prj_id, "project_name": p.project_name,
                         "owner_user": p.owner_user.username, "date": p.time, "upload_date": upload_date}
