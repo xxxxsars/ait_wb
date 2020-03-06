@@ -17,7 +17,7 @@ from io import StringIO,BytesIO
 from FactoryWeb.settings import *
 from project.restful.serializer import *
 from project.models import *
-from common.handler import handle_path,get_download_file,path_combine,samba_mount,disable_upload_project
+from common.handler import handle_path,get_download_file,path_combine,samba_mount,disable_upload_project,token_disable_upload_project
 
 
 # # Create your views here.
@@ -33,7 +33,8 @@ def submit_project(request):
 
 
         # check last project_upload_time the upload_message was True
-        allow_upload = Project_Upload_time.objects.get(project_name=project_name,token=token).allow_upload
+        instance =  Project_Upload_time.objects.get(project_name=project_name,token=token)
+        allow_upload =instance.allow_upload
 
 
         if allow_upload == False:
@@ -43,7 +44,9 @@ def submit_project(request):
         try:
             samba_mount()
         except Exception as e:
-
+            # set had_upload to false
+            instance.had_upload =False
+            instance.save()
             return JsonResponse (  {"valid": False,"message":"Connection failed."},status=status.HTTP_408_REQUEST_TIMEOUT)
 
 
@@ -95,11 +98,12 @@ def submit_project(request):
             shutil.rmtree(tmp_path)
             return JsonResponse({"valid": False, "message":re.search(r"\]([\s|\w]+):*",str(e)).group(1).strip()}, status=status.HTTP_417_EXPECTATION_FAILED)
 
-        # Add upload time
-        instance,created = Project_Upload_time.objects.get_or_create(project_name=project_name,token=token)
+        # update upload time
+        instance,created = Project_Upload_time.objects.get_or_create(token=token)
 
         if created ==False:
             instance.time = datetime.datetime.now()
+            instance.had_upload = True
             instance.save()
 
 
@@ -260,6 +264,7 @@ def valid_testSCript(request):
                 station_match_count+=1
                 log_station = station_match.group(1)
                 if log_station != station_name:
+                    token_disable_upload_project(token)
                     return JsonResponse({"valid": False,"message":"The log file station name not compared."},status=400)
 
 
@@ -273,6 +278,7 @@ def valid_testSCript(request):
                     task_id_line_inedx.append(index+1)
 
                 else:
+                    token_disable_upload_project(token)
                     return JsonResponse({"valid": False,"message":"The testCase '%s' was failed."%matched.group(1).strip()},status=400)
 
             if index in task_id_line_inedx:
@@ -282,6 +288,7 @@ def valid_testSCript(request):
                         task_ids.append(test_id_match.group(1))
 
         if station_match_count <=0:
+            token_disable_upload_project(token)
             return JsonResponse({"valid": False, "message": "Can't find log station name."},status=400)
 
 
@@ -307,13 +314,15 @@ def valid_testSCript(request):
             sort_task_ids.sort()
             if sort_compare_task_id == sort_task_ids:
                 # create log pass message to project_upload_time and set "allow_upload" to the "True"
-                p = Project.objects.get(project_name=project_name)
-                Project_Upload_time.objects.create(project_name=p, allow_upload=True,token=token)
-
+                # only all upload but not had been uploaded to samba so the username was "none"
+                instance,created = Project_Upload_time.objects.get_or_create(token=token,project_name =Project.objects.get(project_name=project_name))
+                instance.allow_upload = True
+                instance.save()
 
                 return JsonResponse({"valid": True,"message":"The log file was passed."})
         else:
 
+            token_disable_upload_project(token)
             return JsonResponse({"valid": False,"message":"Please re-download this testScript and test it aging."},status=400)
 
 

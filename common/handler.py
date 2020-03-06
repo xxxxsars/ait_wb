@@ -334,8 +334,8 @@ def samba_mount():
     if mounted ==False :
 
         if (platform.system() == "Darwin"):
-            cmd = "mount_smbfs //%s:%s@%s/%s %s"%(account,password,samba_ip,share_folder,osx_mount_path)
 
+            cmd = "mount_smbfs //%s:%s@%s/%s %s"%(account,password,samba_ip,share_folder,osx_mount_path)
         elif platform.system() == "Windows":
             cmd = r"net use W: \\%s\%s %s /user:%s" % (samba_ip,share_folder,password,account)
 
@@ -351,6 +351,13 @@ def disable_upload_project(project_name):
         last_instance = up_instances.latest('time')
         last_instance.allow_upload = False
         last_instance.save()
+
+def token_disable_upload_project(token):
+    existed = Project_Upload_time.objects.filter(token=token).exists()
+    if existed:
+        instance = Project_Upload_time.objects.get(token=token)
+        instance.allow_upload = False
+        instance.save()
 
 if __name__ =="__main__":
     # import shutil

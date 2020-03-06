@@ -81,6 +81,7 @@ class Project_Upload_time(models.Model):
     project_name = models.ForeignKey(Project, on_delete=models.CASCADE)
     time = models.DateTimeField(default=datetime.datetime.now, blank=True)
     allow_upload = models.BooleanField(max_length=255, default=False)
-
+    upload_user = models.ForeignKey(User, on_delete=models.CASCADE ,default=User.objects.get(username="none").id)
+    had_upload = models.BooleanField(max_length=255, default=False)
     class Meta:
         db_table = "project_upload_time"
