@@ -346,6 +346,7 @@ def download(request,project_name,part_number,station_name):
             thread.start()
             thread.join()
 
+        zf.close()
         response = HttpResponse(s.getvalue(), content_type='application/x-zip-compressed')
         response['Content-Disposition'] = 'attachment; filename="%s.zip"' % datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
         response['Content-Length'] = s.tell()
