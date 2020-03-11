@@ -298,7 +298,9 @@
                 $("#sort-task li p").each(function () {
                     lines = ($(this).html().split('<br>'));
                     for (var i = 0; i < lines.length; ++i) {
-                        ini_content += lines[i] + "\n"
+                        new_line = lines[i].replace(/&amp;/g, "&");
+
+                        ini_content += new_line + "\n"
                     }
                 });
 
