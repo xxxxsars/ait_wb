@@ -83,8 +83,7 @@ def log_confirm(request, project_name):
 @login_required(login_url="/user/login/")
 def list_project(request):
     is_project = True
-    # if project station can't be download ,it means the project can't be upload
-    project_upload = True
+
 
     username = request.user.username
     user_list = [u.username for u in User.objects.all()]
@@ -98,7 +97,7 @@ def list_project(request):
     project_structure = []
     for prj_id, p in enumerate(datas):
         project_name = p.project_name
-
+        allow_upload = False
         upload_date = "Not Uploaded"
 
         filter_instances = [ instance  for instance in  Project_Upload_time.objects.filter(project_name=p)  if instance.had_upload ]
@@ -135,18 +134,20 @@ def list_project(request):
 
                             if ini_not_saved:
                                 st_dict["download"] = False
-                                project_upload = False
+                                allow_upload = False
                             else:
                                 st_dict["download"] = True
+                                allow_upload = True
                         else:
                             st_dict["download"] = False
-                            project_upload = False
+                            allow_upload = False
 
                         st_list.append(st_dict)
 
                 pn_dict["st_list"] = st_list
 
         project_dict["pn_list"] = pn_list
+        project_dict["allow_upload"] = allow_upload
         project_structure.append(project_dict)
 
     return render(request, "project_list.html", locals())
@@ -651,6 +652,8 @@ def save_ini(request,token):
             with open(os.path.join(handle_path(path, "user_project"), "%s.ini" % token), "w") as f:
                 # add space line for every testCase
                 new_content = ""
+
+                print("save ini",request.POST["ini_content"])
                 for line in (request.POST["ini_content"].split("\n")):
                     if re.search(r"criteria=.*", line):
                         new_content += line + "\n\n"

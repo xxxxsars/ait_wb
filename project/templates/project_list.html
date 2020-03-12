@@ -385,7 +385,9 @@
                             <div class="text-danger h5 status" style="padding-left: 30%"><i class="fas fa-times"></i>
                             </div>
                         {% else %}
-                            {{ prj|lookup:"upload_date"|date:'Y-m-d h:i A' }}
+                           {{ prj|lookup:"upload_date"|date:'Y-m-d h:i A' }}
+                           <a href="/project/upload_log/{{ project_name }}"> [log]</a>
+
                         {% endif %}
 
                     </td>
@@ -406,7 +408,7 @@
 
                                 <button class="dropdown-item" type="button">Delete</button>
 
-                                {% if project_upload %}
+                                {% if  prj|lookup:"allow_upload" %}
                                     <button class="dropdown-item" type="button">Upload</button>
                                 {% else %}
                                     <button class="dropdown-item" type="button" disabled>Upload</button>
