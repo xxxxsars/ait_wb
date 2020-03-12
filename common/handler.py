@@ -205,36 +205,36 @@ def get_download_file(owner_user, project_name, part_number, station_name):
 
     zip_files = []
 
+
+
     for task_id in task_list:
         file_path = handle_path(path, "upload_files", task_id)
         attach_path = handle_path(file_path, "attachment")
-        for root, folders, files in os.walk(file_path):
-            for f in files:
-                # ignore attachment path
-                if root != attach_path:
-                    if f not in compressed_file:
-                        full_file_path = os.path.join(root, f)
-                        # remove unless path  prefix
-                        dest_copy_file = os.path.relpath(full_file_path, file_path)
-                        dest = os.path.join(script_path, os.path.dirname(dest_copy_file))
 
-                        # if had conflicted files will only copy chose files.
-                        if chose_files != None:
-                            if dest_copy_file in list(chose_files.keys()):
-                                if full_file_path in chose_files_path:
-                                    zip_files.append(
-                                        (full_file_path, os.path.join(dest, (os.path.basename(dest_copy_file)))))
-                            elif f not in compressed_file:
-                                zip_files.append(
-                                    (full_file_path, os.path.join(dest, (os.path.basename(dest_copy_file)))))
-                                compressed_file.append(f)
 
-                        # if did not have conflict_files will coop all task file to user folder
-                        else:
-                            # create the dest file path
-                            zip_files.append(
-                                (full_file_path, os.path.join(dest, (os.path.basename(dest_copy_file)))))
-                            compressed_file.append(f)
+        for dirpath, _, filenames in os.walk(file_path):
+            for f in filenames:
+
+                full_file_path = os.path.abspath(os.path.join(dirpath, f))
+                check_target_path = os.path.relpath(full_file_path, file_path)
+
+
+                if dirpath != attach_path and check_target_path not in compressed_file:
+
+
+                    target_path =  os.path.join(script_path,check_target_path)
+
+                    if chose_files != None:
+                        # check the file in the conflict files list and add a choose file to the zip file
+                        if check_target_path in list(chose_files.keys()):
+                            if full_file_path in chose_files_path:
+                                zip_files.append((full_file_path, target_path))
+                                compressed_file.append(check_target_path)
+                    else:
+
+                        zip_files.append((full_file_path,target_path))
+                        compressed_file.append(check_target_path)
+
 
 
     zip_files.append((os.path.join(project_path,"testScript.ini"),"testScript.ini"))
