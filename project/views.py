@@ -26,6 +26,15 @@ from project.restful.views import delete_file
 from test_script.list.views import no_attach_tasks
 
 
+@login_required(login_url="/user/login")
+def upload_log(request,project_name):
+    is_project = True
+    return render(request, "upload_log.html", locals())
+
+
+
+
+
 @login_required(login_url="/usr/login")
 def log_confirm(request, project_name):
     is_project = True
@@ -876,7 +885,7 @@ def get_station_tasks(project_name, part_number, station_name) :
 
             # if the task name had be repeated and not append serial number will add serial number
             if task_id in list(existed_task_id.values()) and project_task_name in list(existed_task_id.keys()):
-                task_map["task_name"] = task_map["task_name"] + "_%d"%list(existed_task_id.values()).count(task_id)
+                task_map["task_name"] = task_map["task_name"] + " %d"%list(existed_task_id.values()).count(task_id)
             existed_task_id[task_map["task_name"]] = task_id
 
             for arg in Project_task_argument.objects.filter(project_task_id=prj_task):
@@ -959,6 +968,7 @@ def save_ini_contents(ini_map, ini_order_list, token):
 def save_add_tasks(add_task_ids, station_instance):
     for task_id in add_task_ids:
         task_instance = Upload_TestCase.objects.get(task_id=task_id)
+        print("task instance ",task_instance)
         prj_task_instance = Project_task.objects.create(station_id=station_instance, task_id=task_instance,
                                                         task_name=task_instance.task_name, timeout=10,
                                                         exit_code="exitCode", retry_count=5, sleep_time=0,
@@ -969,7 +979,7 @@ def save_add_tasks(add_task_ids, station_instance):
                                                  station_id_id=station_instance.id, task_id=task_instance,
                                                  project_task_id=prj_task_instance)
 
-
+# add the new testCase on the project and handle the repeated test case add the serial number
 def save_modify_tasks(post, station_instance, posted_ids):
     projetc_task_instances = Project_task.objects.filter(station_id=station_instance)
 
