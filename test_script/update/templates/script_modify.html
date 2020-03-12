@@ -59,7 +59,7 @@
                 singleFileUploads: false,
                 autoUpload: false,
                 sequentialUploads: true,
-                url:"{% url "testCase_update" %}",
+                url: "{% url "testCase_update" %}",
 
 
                 start: function (e) {
@@ -216,6 +216,11 @@
                             regexp: {
                                 regexp: /^[\w|_|\s]+$/,
                                 message: 'The task name is incorrect.'
+                            },
+                            remote: {
+                                message: 'Your TestCase Name cannot be repeated.',
+                                url: '/testCase/valid_script_name/',
+                                delay: 1000
                             }
                         }
                     },
@@ -318,8 +323,7 @@
 
                     rowCount += 1;
                     $("#update_btn").attr('disabled', 'disabled');
-                }
-                else {
+                } else {
                     alert("Max argument is 20!")
                 }
             });
@@ -581,7 +585,8 @@
                     </div>
 
                     <div class="input-group-append">
-                        <button id="download_script" class="btn btn-outline-success" type="button"><i class="fas fa-download"></i></button>
+                        <button id="download_script" class="btn btn-outline-success" type="button"><i
+                                class="fas fa-download"></i></button>
                     </div>
                 </div>
             </div>
