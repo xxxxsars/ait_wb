@@ -168,7 +168,7 @@
                 },
                 fields: {
 
-            {{ part_number }}:
+            "{{ part_number }}":
             {
                 validators: {
                     notEmpty: {
@@ -223,6 +223,8 @@
                     e.stopPropagation();
                     var part_number = ($(this).closest("tr").find(".part_number_col").text());
                     var append_target = $($(this).closest("tr").attr("data-target"));
+
+
                     $(append_target).append(table_clone(part_number));
                     var add_input = ($('input[name="' + part_number + '"]').last());
                     $('#set_station_form').bootstrapValidator('addField', add_input);

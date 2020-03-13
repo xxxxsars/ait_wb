@@ -130,7 +130,7 @@
                 },
                 fields: {
             {% for pn in pn_instances %}
-                {{ pn.part_number }}: {
+                "{{ pn.part_number }}": {
                 validators: {
                     notEmpty: {
                         message: 'The station name cannot be empty.'
