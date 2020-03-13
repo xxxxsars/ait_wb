@@ -225,11 +225,10 @@
                             "width": "15%",
                             "targets": 3,
                         },
-                                         {
+                        {
                             "width": "10%",
                             "targets": 5,
                         },
-
 
 
                     ],
@@ -412,6 +411,15 @@
 
 {% block body %}
 
+    {% if is_project %}
+        {% if is_modify %}
+            <h3 style="margin-bottom: 2%">Modify [ {{ project_name }} ]</h3>
+        {% else %}
+            <h3 style="margin-bottom: 2%">Create [ {{ project_name }} ]</h3>
+        {% endif %}
+    {% endif %}
+
+
     <div class="row">
         <div class="col">
             <form class="form-inline" role="form">
@@ -506,7 +514,7 @@
                             data-toggle="tooltip"
                             data-placement="left"
                             data-html="true"
-                            title="{{ data.useage |linebreaks}}">{{ data.description |linebreaks }}</td>
+                            title="{{ data.useage |linebreaks }}">{{ data.description |linebreaks }}</td>
 
                     <td class="text-center">{{ data.version }}</td>
                     {% if data.create_user != "" %}

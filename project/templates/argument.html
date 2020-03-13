@@ -409,7 +409,7 @@
                 $("#arg_append").append('<input type="text" name="ajax_saved"  type="hidden">');
 
 
-                data = $("#other_form").serialize() +"&conflict_token="+"{{ conflict_token|escapejs }}";
+                data = $("#other_form").serialize() + "&conflict_token=" + "{{ conflict_token|escapejs }}";
 
                 ajax_loading("Please waiting , Checking files for conflicts...");
                 $.ajax({
@@ -491,7 +491,7 @@
 
                 $("#arg_append").append('<input type="text" name="all_task"  type="hidden" value="' + all_sorted_tasks_id + '">');
 
-                 $("#arg_append").append('<input type="text" name="conflict_token"  type="hidden" value="{{ conflict_token|escapejs }}">');
+                $("#arg_append").append('<input type="text" name="conflict_token"  type="hidden" value="{{ conflict_token|escapejs }}">');
 
 
                 $("#other_form").submit();
@@ -707,6 +707,13 @@
 
 
 {% block body %}
+
+    {% if is_modify %}
+        <h3>Modify [ {{ project_name }} ]</h3>
+    {% else %}
+        <h3>Create [ {{ project_name }} ]</h3>
+    {% endif %}
+
     <div id="saved-message"></div>
 
 

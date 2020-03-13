@@ -88,7 +88,7 @@
             //if on modify page ,it item had been move will create new testScript.ini
             {% if  is_modify %}
                 $('#sort-task').sortable({
-                    scroll:false,
+                    scroll: false,
                     start: function (event, ui) {
                         ui.item.data('start_pos', ui.item.index());
                     },
@@ -388,11 +388,12 @@
 
 {% block body %}
 
+
     {% if err_message is None %}
         {% if is_modify %}
-            <h3>TestScript.ini Content</h3>
+            <h3>Modify [ {{ project_name }} ]</h3>
         {% else %}
-            <h3>TestScript.ini Creation</h3>
+            <h3>Create [ {{ project_name }} ]</h3>
         {% endif %}
     {% endif %}
 
