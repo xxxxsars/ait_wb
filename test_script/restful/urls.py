@@ -13,5 +13,6 @@ urlpatterns = [
     url("attach_download/(?P<task_id>\w{6})/$",attach_download),
     url("script_download/(?P<task_id>\w{6})/$", script_download),
     url("delete_attach/$",delete_attachment),
-    url("valid_script_name/$",valid_script_name)
+    url("vil_cre_name/$",valid_create_script_name),
+    url("vil_mod_name/$",valid_modify_script_name),
 ]

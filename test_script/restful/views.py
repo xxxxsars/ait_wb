@@ -145,10 +145,22 @@ def attach_download(request,task_id):
 
 @api_view(["GET"])
 @authentication_classes((SessionAuthentication,))
-def valid_script_name(request):
+def valid_create_script_name(request):
     if request.GET:
         task_name = request.GET["task_name"]
         if Upload_TestCase.objects.filter(task_name=task_name).count():
+            return JsonResponse({"valid":False})
+        else:
+            return JsonResponse({"valid": True})
+
+
+
+@api_view(["GET"])
+@authentication_classes((SessionAuthentication,))
+def valid_modify_script_name(request):
+    if request.GET:
+        task_name = request.GET["task_name"]
+        if Upload_TestCase.objects.filter(task_name=task_name).count() >1:
             return JsonResponse({"valid":False})
         else:
             return JsonResponse({"valid": True})
