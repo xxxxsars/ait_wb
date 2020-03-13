@@ -25,28 +25,26 @@
             }
         {% endif %}
 
-        {% if is_modify %}
+        {#        {% if is_modify %}#}
+        {##}
+        {##}
+        {#            .task {#}
+        {#                border: 1px #ccc dashed;#}
+        {#                padding: 10px;#}
+        {##}
+        {#            }#}
 
 
-            .task {
-                border: 1px #ccc dashed;
-                padding: 10px;
+        .task {
+            padding: 10px;
+            margin: 2%;
+            background: #e8e8e8;
 
-            }
+        }
 
-
-        {% else %}
-
-            .task {
-                padding: 10px;
-                margin: 2%;
-                background: #e8e8e8;
-
-            }
-            #sort-task {
-                min-width: 50%;
-            }
-        {% endif %}
+        #sort-task {
+            min-width: 50%;
+        }
 
         ul {
             list-style-type: none;
@@ -90,6 +88,7 @@
             //if on modify page ,it item had been move will create new testScript.ini
             {% if  is_modify %}
                 $('#sort-task').sortable({
+                    scroll:false,
                     start: function (event, ui) {
                         ui.item.data('start_pos', ui.item.index());
                     },
