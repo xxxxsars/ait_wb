@@ -47,6 +47,14 @@
             vertical-align: middle;
         }
 
+        .unstyled-button {
+            border: none;
+            padding: 0;
+            background: none;
+            padding-top: 8%;
+        }
+
+
     </style>
 {% endblock %}
 
@@ -298,12 +306,34 @@
 
                         } else if (action == "Download") {
                             ajax_loading("Please waiting , Compressed all script to zip file...");
-                            ajax_download( "/project/download_script/" + project_name + "/" + part_number + "/" + station_name);
+                            ajax_download("/project/download_script/" + project_name + "/" + part_number + "/" + station_name);
 
                         }
                     })
                 })
-            })
+            });
+
+            // post the upload log necessary information
+            $("#log_uplaod").click(function () {
+
+                var dtRow = $(this).closest('tr');
+                var cls_array = (dtRow.attr("class").split(" "));
+                var username = dtRow.find("div.input-group").find("select.owner-user option:selected").text();
+                var project_name = cls_array[0];
+
+
+                var user_name_input = $("<input>")
+                    .attr("type", "hidden")
+                    .attr("name", "user_name").val(username);
+
+                var project_name_input = $("<input>")
+                    .attr("type", "hidden")
+                    .attr("name", "project_name").val(project_name);
+
+                $('#log_form').append(user_name_input);
+                $('#log_form').append(project_name_input);
+                $("#log_form").submit()
+            });
         });
 
 
@@ -382,11 +412,18 @@
 
                     <td>
                         {% if prj|lookup:"upload_date" == "Not Uploaded" %}
-                            <div class="text-danger h5 status" style="padding-left: 30%"><i class="fas fa-times"></i>
+                            <div class="text-danger h5 status" style="padding-left: 20%"><i class="fas fa-times"></i>
                             </div>
                         {% else %}
-                           {{ prj|lookup:"upload_date"|date:'Y-m-d h:i A' }}
-                           <a href="/project/upload_log/{{ project_name }}"> [log]</a>
+
+
+
+
+                            <form style=" display: inline-block;" id="log_form" action="/project/upload_log/"
+                                  method="post">{% csrf_token %}
+                                <button type="button" id="log_uplaod"
+                                        class="align-middle unstyled-button btn-link">{{ prj|lookup:"upload_date"|date:'Y-m-d h:i A' }}</button>
+                            </form>
 
                         {% endif %}
 

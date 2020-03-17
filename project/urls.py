@@ -22,4 +22,5 @@ urlpatterns = [
     url("^modify_script/(?P<project_name>\w{7})/(?P<part_number>\w+)/(?P<station_name>\w+)/$", modify_script, ),
 
     url("^log_confirm/(?P<project_name>\w{7})/$",log_confirm),
+    url("^upload_log/$",upload_log),
 ]

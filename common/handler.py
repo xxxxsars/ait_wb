@@ -344,8 +344,8 @@ def samba_mount():
         if p != 0 :
             raise ConnectionError("Connect samba failed.")
 
+# have modify will disable upload project to AIT server
 def disable_upload_project(project_name):
-    # have modify will disable upload project to AIT server
     up_instances = Project_Upload_time.objects.filter(project_name=project_name)
     if up_instances.exists():
         last_instance = up_instances.latest('time')

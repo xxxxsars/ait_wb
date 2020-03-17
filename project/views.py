@@ -27,8 +27,14 @@ from test_script.list.views import no_attach_tasks
 
 
 @login_required(login_url="/user/login")
-def upload_log(request,project_name):
+def upload_log(request):
     is_project = True
+    username = request.POST['user_name']
+    project_name =  request.POST['project_name']
+
+    # project_name = "1111212"
+    # instances =[   p for p in  Project_Upload_time.objects.filter(project_name= "1111212") if p.had_upload]
+
     return render(request, "upload_log.html", locals())
 
 

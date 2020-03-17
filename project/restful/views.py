@@ -102,6 +102,7 @@ def submit_project(request):
         instance,created = Project_Upload_time.objects.get_or_create(token=token)
 
         if created ==False:
+            instance.upload_user = User.objects.get(username=request.user)
             instance.time = datetime.datetime.now()
             instance.had_upload = True
             instance.save()
