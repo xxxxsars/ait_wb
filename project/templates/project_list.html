@@ -3,27 +3,19 @@
 {% load filter %}
 
 {% block head %}
-
-
-
-
-
-
     <link type="text/css" rel="stylesheet"
           href="{% static "bower_components/bootstrap-select/dist/css/bootstrap-select.min.css" %}">
-
-
     <link type="text/css" rel="stylesheet"
           href="{% static "bower_components/jquery-treegrid/css/jquery.treegrid.css" %}">
-
-
     <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
-
     <script src="{% static "bower_components/jquery-treegrid/js/jquery.treegrid.js" %}"></script>
-
     <script src="{% static "bower_components/bootstrap-select/dist/js/bootstrap-select.min.js" %}"></script>
 
-
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/bootstrapvalidator/dist/css/bootstrapValidator.min.css" %}">
+    <script src="{% static "bower_components/jquery-ui/jquery-ui.min.js" %}"></script>
+    <script src="{% static "bower_components/bootstrapvalidator/dist/js/bootstrapValidator.min.js" %}"></script>
+    <script src="{% static "bower_components/bootstrapvalidator/dist/js/language/en_US.js" %}"></script>
 
 {% endblock %}
 
@@ -143,7 +135,10 @@
 
                         } else if (action == "Upload") {
                             location.href = "/project/log_confirm/" + project_name
-                        } else if (action == "Delete") {
+                        } else if (action == "Copy") {
+                            $('#copy_prj_from').bootstrapValidator('resetForm', true);
+                        }
+                        else if (action == "Delete") {
                             if (confirm("Are you sure to delete this row?")) {
 
                                 projectName = dtRow.find("td.project_name").text();
@@ -343,12 +338,83 @@
             {#$('.tree').treegrid('collapseAll');#}
 
 
+            $("#copy_prj_from").bootstrapValidator({
+                message: 'This value is not valid',
+                feedbackIcons: {
+                    valid: 'fas fa-check',
+                    invalid: 'none',
+                    validating: 'fas fa-sync-alt'
+                },
+                excluded: [':disabled'],
+                fields: {
+                    project_name: {
+                        message: 'The project name is not valid',
+                        validators: {
+                            notEmpty: {
+                                message: 'The project name cannot be empty.'
+                            },
+                            regexp: {
+                                regexp: /^\w{7}$/,
+                                message: 'The project name must contains 7 characters.'
+                            },
+                            remote: {
+                                message: 'Your Project Name cannot be repeated.',
+                                url: '/project/valid_project_name/',
+                                delay: 1000
+                            }
+
+                        }
+                    },
+                }
+            })
+
+
         });
     </script>
 {% endblock %}
 {% block body %}
     <h3>[ {{ username |title }} ] Project</h3>
     <br>
+
+    <!--copy project dialog -->
+    <div class="container">
+        <!-- Modal -->
+        <div class="modal fade" id="create-dailog" role="dialog">
+            <div class="modal-dialog">
+
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+
+                    </div>
+
+                    <form id="copy_prj_from" enctype="multipart/form-data" method="post" action="">{% csrf_token %}
+                        <div class="modal-body">
+
+                            <div class="form-group row">
+
+                                <label class="col-sm-3 col-form-label" for="test_case_name">Project Name</label>
+
+                                <div class="col-sm-9">
+                                    <input type="text" name="project_name" class="form-control" maxlength="255"
+                                           required="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-success" data-dismiss="modal">Start Copy</button>
+                        </div>
+                    </form>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!--End copy project dialog -->
 
 
 
@@ -444,6 +510,9 @@
                                 <button class="dropdown-item" type="button">Edit</button>
 
                                 <button class="dropdown-item" type="button">Delete</button>
+
+                                <button class="dropdown-item" data-target="#create-dailog" type="button"><a
+                                        data-toggle="modal" data-target="#create-dailog">Copy</a></button>
 
                                 {% if  prj|lookup:"allow_upload" %}
                                     <button class="dropdown-item" type="button">Upload</button>
