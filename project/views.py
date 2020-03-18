@@ -147,6 +147,7 @@ def list_project(request):
                             ini_not_saved = len(([i for i in task_list + task_order_list if
                                                   i not in task_list or i not in task_order_list])) > 0
 
+                            print(task_list,task_order_list)
                             if ini_not_saved:
                                 st_dict["download"] = False
                                 allow_upload = False
@@ -595,6 +596,8 @@ def modify_script(request, project_name, part_number, station_name):
 
             # the testScript ini will be save and used the db order save it.
             save_ini_contents(ini_content_map, testScript_order_list, token)
+
+            print(ini_content_map, testScript_order_list, token)
             save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids, chose_map)
 
             return render(request, "confirm.html", locals())

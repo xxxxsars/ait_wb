@@ -22,6 +22,18 @@ from rest_framework import exceptions
 from FactoryWeb.settings import *
 from project.models import *
 
+
+# handle clare conflicted "common.py" file
+def replace_conflict_file():
+    path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'upload_folder')
+    for dirPath, dirNames, fileNames in os.walk(path):
+        for f in fileNames:
+            if f == "common.py":
+                print(os.path.join(dirPath, f))
+                os.remove(os.path.join(dirPath, f))
+                shutil.copyfile("common.txt",os.path.join(dirPath, f))
+
+
 def handle_path(root_path, *args):
     result_path = ""
     for arg in args:
@@ -36,7 +48,6 @@ def handle_path(root_path, *args):
         os.makedirs(result_path)
 
     return result_path
-
 
 def path_combine(root_path,*args):
     result_path = ""

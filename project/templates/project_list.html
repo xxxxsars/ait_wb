@@ -136,9 +136,12 @@
                         } else if (action == "Upload") {
                             location.href = "/project/log_confirm/" + project_name
                         } else if (action == "Copy") {
-                            $('#copy_prj_from').bootstrapValidator('resetForm', true);
-                        }
-                        else if (action == "Delete") {
+                            var dtRow = $(this).closest('tr');
+                            cls_array = (dtRow.attr("class").split(" "));
+                            project_name = cls_array[0];
+                            $('#source_prj_name').html(project_name);
+                            $('#copy_prj_form').bootstrapValidator('resetForm', true);
+                        } else if (action == "Delete") {
                             if (confirm("Are you sure to delete this row?")) {
 
                                 projectName = dtRow.find("td.project_name").text();
@@ -337,8 +340,30 @@
             $('.tree').treegrid({});
             {#$('.tree').treegrid('collapseAll');#}
 
+            $("#copy_btn").click(function () {
+                var project_name = $("#source_prj_name").text();
+                var new_project_name = $('input[name="project_name"]').val();
 
-            $("#copy_prj_from").bootstrapValidator({
+                $.ajax({
+                    url: "/project/copy_project/", // the endpoint,commonly same url
+                    type: 'POST',
+                    data: {
+                        csrfmiddlewaretoken: getCookie("csrftoken"),
+                        "project_name": project_name,
+                        "new_project_name": new_project_name
+                    },
+
+                    success: function (json) {
+                        location.href = "/project/list/"
+                    },
+                    //處理失敗時會做的動作
+                    error: function (xhr, errmsg, err) {
+                       $("#error-dailog").modal('show');
+                    }
+                });
+            });
+
+            $("#copy_prj_form").bootstrapValidator({
                 message: 'This value is not valid',
                 feedbackIcons: {
                     valid: 'fas fa-check',
@@ -366,9 +391,12 @@
                         }
                     },
                 }
+            }).on('error.field.bv', function (e, data) {
+                $("#copy_btn").attr('disabled', 'disabled');
             })
-
-
+                .on('success.field.bv', function (e, data) {
+                    $("#copy_btn").removeAttr('disabled');
+                });
         });
     </script>
 {% endblock %}
@@ -376,8 +404,33 @@
     <h3>[ {{ username |title }} ] Project</h3>
     <br>
 
+
+    <!--error dialog-->
+
+
+
+
+
     <!--copy project dialog -->
     <div class="container">
+        <div id="error-dailog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+             aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalCenterTitle">Error</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        Copy project had some error!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
         <!-- Modal -->
         <div class="modal fade" id="create-dailog" role="dialog">
             <div class="modal-dialog">
@@ -389,12 +442,12 @@
 
                     </div>
 
-                    <form id="copy_prj_from" enctype="multipart/form-data" method="post" action="">{% csrf_token %}
+                    <form id="copy_prj_form" enctype="multipart/form-data" method="post" action="">{% csrf_token %}
                         <div class="modal-body">
 
                             <div class="form-group row">
-
-                                <label class="col-sm-3 col-form-label" for="test_case_name">Project Name</label>
+                                <span id="source_prj_name" style="display:none"></span>
+                                <label class="col-sm-3 col-form-label" for="tproject_name">Project Name</label>
 
                                 <div class="col-sm-9">
                                     <input type="text" name="project_name" class="form-control" maxlength="255"
@@ -403,7 +456,9 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-success" data-dismiss="modal">Start Copy</button>
+                            <button id="copy_btn" type="button" class="btn btn-success" data-dismiss="modal">Start
+                                Copy
+                            </button>
                         </div>
                     </form>
 
@@ -506,13 +561,14 @@
                             </button>
 
                             <div class="dropdown-menu dropdown-project" aria-labelledby="btnItemsDemo">
+                                <button class="dropdown-item" data-target="#create-dailog" type="button"><a
+                                        data-toggle="modal" data-target="#create-dailog">Copy</a></button>
 
                                 <button class="dropdown-item" type="button">Edit</button>
 
                                 <button class="dropdown-item" type="button">Delete</button>
 
-                                <button class="dropdown-item" data-target="#create-dailog" type="button"><a
-                                        data-toggle="modal" data-target="#create-dailog">Copy</a></button>
+
 
                                 {% if  prj|lookup:"allow_upload" %}
                                     <button class="dropdown-item" type="button">Upload</button>

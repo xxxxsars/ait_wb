@@ -17,6 +17,7 @@ urlpatterns = [
     url("download_script/(?P<project_name>\w{7})/(?P<part_number>\w+)/(?P<station_name>\w+)/$",download),
     url("valid_project_name/$", valid_projectt_name),
     url("valid_log/$",valid_testSCript,name='valid_log'),
-    url("submit_project/$",submit_project,name='submit_project')
+    url("submit_project/$",submit_project,name='submit_project'),
+    url("copy_project/$",CopyProjectView)
 
 ]

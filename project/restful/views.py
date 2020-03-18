@@ -112,6 +112,50 @@ def submit_project(request):
 
 
 @api_view(["POST"])
+# @authentication_classes((SessionAuthentication,))
+def CopyProjectView(request):
+
+    if request.method == "POST":
+        project_name = request.data.get("project_name")
+        new_project_name = request.data.get("new_project_name")
+        print(project_name,new_project_name)
+
+        prj_instance = Project.objects.get(project_name=project_name)
+        # new_prj_instance = Project.objects.create(project_name=new_project_name,owner_user=User.objects.get(username=request.user))
+        new_prj_instance = Project.objects.create(project_name=new_project_name,
+                                                  owner_user=prj_instance.owner_user)
+
+        for pn in Project_PN.objects.filter(project_name=prj_instance):
+            new_pn = Project_PN.objects.create(project_name=new_prj_instance,part_number=pn.part_number)
+
+            for st in Project_Station.objects.filter(project_pn_id=pn):
+                new_st = Project_Station.objects.create(project_pn_id=new_pn,station_name=st.station_name)
+
+                new_task_id = []
+
+                for st_task in Project_task.objects.filter(station_id=st):
+                    new_st_task = Project_task.objects.create(station_id=new_st,task_id=st_task.task_id,task_name=st_task.task_name,timeout=st_task.timeout,exit_code=st_task.exit_code,
+                                                              retry_count=st_task.retry_count,sleep_time=st_task.sleep_time,criteria=st_task.criteria,interactive=st_task.interactive,rule=
+                                                              st_task.rule,priority=st_task.priority)
+
+                    new_task_id.append(new_st_task.id)
+
+                    for st_task_arg in Project_task_argument.objects.filter(project_task_id=st_task):
+                         Project_task_argument.objects.create(default_value=st_task_arg.default_value,argument=st_task_arg.argument,station_id=new_st,task_id=st_task.task_id,project_task_id=new_st_task)
+
+                # set testScript ini the testCase order
+                task_order = Project_TestScript_order.objects.get(station_name=st, part_number=pn,
+                                                                  project_name=prj_instance).script_oder.split(" ")
+                new_order =set_task_order(task_order,new_task_id)
+                Project_TestScript_order.objects.create(station_name=new_st,part_number=new_pn,project_name=new_prj_instance,script_oder=new_order)
+                # copy  user_project files
+                copy_project_files(prj_instance.owner_user, project_name, new_project_name)
+
+
+        return Response(status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
 def DeleteProjectStationView(request):
     if request.method == "POST":
@@ -438,6 +482,38 @@ def get_station_instacne(project, part_number, station):
     return station_instance
 
 
+def set_task_order(source:list,target:list):
+
+    target_map = {}
+    new_order = []
+    source_naems = [Project_task.objects.get(id=id).task_name for id in source]
+
+    for id in target:
+        target_map[Project_task.objects.get(id=id).task_name] = id
+
+    for name in source_naems:
+        new_order.append(str(target_map[name]))
+
+    return " ".join(new_order)
 
 
 
+
+def copy_project_files(owner_user,source_prj,target_prj):
+    root_path = handle_path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "user_project")
+
+    # root_path =handle_path( os.path.dirname(os.path.dirname(os.path.abspath(__file__))),"user_project")
+    source_path =  handle_path(root_path,"admin",source_prj)
+    target_path = handle_path(root_path, "admin",target_prj)
+
+    for dirPath, dirNames, files in os.walk(source_path):
+
+        for file in files:
+            source_file = os.path.join(dirPath,file)
+            target_file = source_file.replace(source_path,target_path)
+            file_root = os.path.dirname(target_file)
+
+            print(file_root,os.path.exists(file_root))
+            if os.path.exists(file_root) ==False:
+                os.makedirs(file_root)
+            shutil.copyfile(source_file,target_file)
