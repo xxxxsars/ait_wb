@@ -29,11 +29,8 @@ from test_script.list.views import no_attach_tasks
 @login_required(login_url="/user/login")
 def upload_log(request):
     is_project = True
-    username = request.POST['user_name']
     project_name =  request.POST['project_name']
-
-    # project_name = "1111212"
-    # instances =[   p for p in  Project_Upload_time.objects.filter(project_name= "1111212") if p.had_upload]
+    instances =[ p for p in  Project_Upload_time.objects.filter(project_name= project_name) if p.had_upload]
 
     return render(request, "upload_log.html", locals())
 
@@ -147,7 +144,6 @@ def list_project(request):
                             ini_not_saved = len(([i for i in task_list + task_order_list if
                                                   i not in task_list or i not in task_order_list])) > 0
 
-                            print(task_list,task_order_list)
                             if ini_not_saved:
                                 st_dict["download"] = False
                                 allow_upload = False
@@ -383,7 +379,6 @@ def modify_station(request, project_name, part_number):
     st_list = Project_Station.objects.filter(project_pn_id=pn_instance)
 
     if request.POST:
-
         datas = dict(request.POST)
         post_stations = list(filter(None, request.POST.getlist(part_number)))
 
@@ -597,7 +592,6 @@ def modify_script(request, project_name, part_number, station_name):
             # the testScript ini will be save and used the db order save it.
             save_ini_contents(ini_content_map, testScript_order_list, token)
 
-            print(ini_content_map, testScript_order_list, token)
             save_task_files(token, username, project_name, part_number, station_name, not_dedup_task_ids, chose_map)
 
             return render(request, "confirm.html", locals())
@@ -670,8 +664,6 @@ def save_ini(request,token):
             with open(os.path.join(handle_path(path, "user_project"), "%s.ini" % token), "w") as f:
                 # add space line for every testCase
                 new_content = ""
-
-                print("save ini",request.POST["ini_content"])
                 for line in (request.POST["ini_content"].split("\n")):
                     if re.search(r"criteria=.*", line):
                         new_content += line + "\n\n"
@@ -977,7 +969,6 @@ def save_ini_contents(ini_map, ini_order_list, token):
 def save_add_tasks(add_task_ids, station_instance):
     for task_id in add_task_ids:
         task_instance = Upload_TestCase.objects.get(task_id=task_id)
-        print("task instance ",task_instance)
         prj_task_instance = Project_task.objects.create(station_id=station_instance, task_id=task_instance,
                                                         task_name=task_instance.task_name, timeout=10,
                                                         exit_code="exitCode", retry_count=5, sleep_time=0,
