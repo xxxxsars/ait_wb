@@ -4,24 +4,21 @@
 
 {% block head %}
     <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
+    <script src="{% static "bower_components/jquery-ui/jquery-ui.min.js" %}"></script>
+    <script src="{% static "bower_components/bootstrap-select/dist/js/bootstrap-select.min.js" %}"></script>
+    <script src="{% static "bower_components/bootstrapvalidator/dist/js/bootstrapValidator.min.js" %}"></script>
+    <script src="{% static "bower_components/bootstrapvalidator/dist/js/language/en_US.js" %}"></script>
+    <script src={% static "bower_components/datatables.net/js/jquery.dataTables.min.js" %}></script>
+    <script src={% static "js/station.js" %}></script>
 
     <link type="text/css" rel="stylesheet"
           href="{% static "bower_components/datatables.net-dt/css/jquery.dataTables.min.css" %}">
-
-    <script src={% static "bower_components/datatables.net/js/jquery.dataTables.min.js" %}></script>
-
-
     <link type="text/css" rel="stylesheet"
           href="{% static "bower_components/datatables.net-dt/css/select.dataTables.min.css" %}">
     <link type="text/css" rel="stylesheet"
-          href="{% static "bower_components/datatables.net-dt/css/query.dataTables.min.css" %}">
-
+          href="{% static "bower_components/bootstrap-select/dist/css/bootstrap-select.min.css" %}">
     <link type="text/css" rel="stylesheet"
           href="{% static "bower_components/bootstrapvalidator/dist/css/bootstrapValidator.min.css" %}">
-    <script src="{% static "bower_components/jquery-ui/jquery-ui.min.js" %}"></script>
-    <script src="{% static "bower_components/bootstrapvalidator/dist/js/bootstrapValidator.min.js" %}"></script>
-    <script src="{% static "bower_components/bootstrapvalidator/dist/js/language/en_US.js" %}"></script>
-
 
 {% endblock %}
 
@@ -48,78 +45,66 @@
 {% block js %}
     <script>
 
-        var project_name = '{{ project_name|escapejs }}';
-
-
-
-        function table_clone(part_number) {
-            return '<tr>' +
-                '<td colspan="3">' +
-                '<div class="form-group">' +
-                '<div class="input-group mb-3">' +
-                '<div style="margin-left: 10%"><input type="text" name="' + part_number + '"' + 'class="form-control station_name"' +
-                'placeholder="Set station name" maxlength="255" required="" id="id_station_name"> </div>' +
-                '<div class="input-group-append">' +
-                '<button class="btn btn-outline-primary select-script" type="button" data-toggle="tooltip" data-placement="top" title="Select TestScrpit" disabled><i class="fas fa-share"></i>\</button>' +
-                ' </div></div></div></td></tr>'
-        }
-
 
         $(function () {
-            $(document).on("click", ".select-script", function () {
-                var part_number = ($(this).closest("tbody").attr("class").split(" ")[2]);
-                var station_name = ($(this).closest("div.input-group.mb-3").find('input').val());
-                location.href = '/project/select_script/' + project_name + '/' + part_number + '/' + station_name;
+
+            $(document).on("click", ".specific-st-remove", function () {
+
+                var project_name = '{{ project_name|escapejs }}';
+                var part_number = '{{ part_number|escapejs }}';
+
+                var rowCount = $("#part-table tbody").find('select').length;
+                var remove_tr = $(this).closest('tr');
+                var station_name = remove_tr.find('select[name="{{ part_number }}"]').val();
+
+                if (rowCount > 1) {
+                    ajax_del_station(project_name, part_number, station_name, remove_tr)
+                } else {
+                    alert("You must provide at least one station name!")
+                }
 
             });
 
         });
-
         $(document).ready(function () {
 
             //if had datas means posted ,even the result current ,will set the post value to all station input
             {% if datas %}
+
                 {% for pn in datas|lookup:"all_pn" %}
                     var row = {{ datas|lookup:pn |safe}}
                     var rowCount = row.length;
                     if (rowCount > 1) {
+                        <!--default had one empty part_number dropdown-->
                         for (i = 2; i <= rowCount; i++) {
-                            $("#part-table tbody.{{ pn }}").append(table_clone('{{pn}}'))
+                            $("#part-table tbody.{{ pn }}").append(station_table_clone('{{pn}}', i))
                         }
                     }
 
                     $("#part-table tbody.{{ pn }}").each(function () {
-
                         var values = {{  datas|lookup:pn|safe }}
 
-                            $(this).find("input[name='{{ pn }}']").each(function (i) {
+                            $(this).find("select[name='{{ pn }}']").each(function (i) {
                                 $(this).val(values[i])
 
                             })
 
                     });
                 {% endfor %}
-
             {% endif %}
 
-
-
+            <!--add next page button-->
             {% if datas and errors|trans_not %}
-                $('input[name="station_name"]').attr("readonly", "readonly");
+                console.log("ininin")
+                $("#part-table tbody tr").find('div.input-group').append('<div class="input-group-append"><button type="button" class="btn btn-outline-primary select-script"><i class="fas fa-share"></i></button></div>');
+                $(".select-script").click(function () {
+                    var project_name = '{{ project_name }}';
+                    var part_number = ($(this).closest("tbody").attr("class").split(" ")[2]);
+                    var station_name = $(this).closest('tr').find("select").val();
 
-                $(".select-script").each(function () {
-                    $(this).prop("disabled", false)
-                });
-
-            {% else %}
-                $(".select-script").each(function () {
-
-
-                    $(this).attr("disabled", "disabled")
+                    location.href = '/project/select_script/' + project_name + '/' + part_number + '/' + station_name;
                 });
             {% endif %}
-
-
 
             $("#set_station_form").bootstrapValidator({
                 message: 'This value is not valid',
@@ -129,54 +114,46 @@
                     validating: 'fas fa-sync-alt'
                 },
                 fields: {
-            {% for pn in pn_instances %}
-                "{{ pn.part_number }}": {
-                validators: {
-                    notEmpty: {
-                        message: 'The station name cannot be empty.'
-                    }
-                ,
-                    regexp: {
-                        regexp: /^\w+$/,
-                            message
-                    :
-                        'The station name is incorrect.'
-                    }
-                ,
-                    callback: {
-                        message: 'The station name can not be repreated.',
-                            callback
-                    :
+                    {% for pn in pn_instances %}
+                        "{{ pn.part_number }}": {
+                            validators: {
+                                notEmpty: {
+                                    message: 'The station name cannot be empty.'
+                                },
+                                regexp: {
+                                    regexp: /^\w+$/,
+                                    message:
+                                        'The station name is incorrect.'
+                                },
+                                callback: {
+                                    message: 'The station name can not be repreated.',
+                                    callback:
+                                        function (value, validator, $field) {
+                                            var station_array = [];
+                                            $("select[name='{{ pn.part_number }}']").each(function () {
+                                                station_value = $(this).val();
 
-                        function (value, validator, $field) {
-                            var station_array = [];
-                            $("input[name='{{ pn.part_number }}']").each(function () {
-                                station_value = $(this).val();
+                                                if (station_value != "") {
+                                                    station_array.push(station_value);
+                                                }
+                                            });
+                                            var count = 0;
+                                            for (var i = 0; i < station_array.length; i++) {
+                                                count += (station_array[i] == value);
+                                            }
 
-                                if (station_value != "") {
-                                    station_array.push(station_value);
+                                            if (count > 1) {
+                                                return false
+                                            } else {
+                                                return true
+                                            }
+                                        }
                                 }
-
-                            });
-                            var count = 0;
-                            for (var i = 0; i < station_array.length; i++) {
-                                count += (station_array[i] == value);
                             }
-
-                            if (count > 1) {
-                                return false
-                            } else {
-                                return true
-                            }
-                        }
-                    }
+                        },
+                    {% endfor %}
                 }
-            },
-            {% endfor %}
-
-        }
-        })
-            ;
+            });
 
 
             $("#part-table tbody").find(".st-add").each(function () {
@@ -184,8 +161,11 @@
                     e.stopPropagation();
                     var part_number = ($(this).closest("tr").find(".part_number_col").text());
                     var append_target = $($(this).closest("tr").attr("data-target"));
-                    $(append_target).append(table_clone(part_number));
-                    var add_input = ($('input[name="' + part_number + '"]').last());
+                    <!--set station_<index>-->
+                    var index = $("select").length + 1;
+                    append_target.append(station_table_clone(part_number, index));
+                    $('.add_dropdwon').selectpicker();
+                    var add_input = ($('select[name="' + part_number + '"]').last());
                     $('#set_station_form').bootstrapValidator('addField', add_input);
                     $("#save_btn").attr('disabled', 'disabled');
                 })
@@ -194,64 +174,19 @@
 
             $("#part-table tbody").find(".st-remove").each(function () {
                 $(this).click(function (e) {
-
                     e.stopPropagation();
+                    var project_name = '{{ project_name|escapejs }}';
                     var append_target = $($(this).closest("tr").attr("data-target"));
-                    var part_number = ($(this).closest("tr").find(".part_number_col").text());
-
-                    var rowCount = append_target.find('input').length;
+                    var rowCount = append_target.find('select').length;
                     var remove_tr = append_target.find('tr').last();
 
-
                     if (rowCount > 1) {
-
-
-                        var last_tr_station = remove_tr.find('input').val();
+                        var station_name = remove_tr.find('select').val();
                         var part_number = (remove_tr.closest("tbody").attr("class").split(" ")[2]);
-
-                        if (last_tr_station != "") {
-                            if (confirm("Are you sure to delete this row?")) {
-                                $.ajax({
-                                    url: "/project/station_delete/", // the endpoint,commonly same url
-                                    type: 'POST',
-                                    data: {
-                                        csrfmiddlewaretoken: getCookie("csrftoken"),
-                                        "project_name": project_name,
-                                        "part_number": part_number,
-                                        "station_name": last_tr_station
-                                    },
-
-                                    success: function (json) {
-
-                                        console.log(part_number)
-                                        var remove_input = ($('input[name="' + part_number + '"]').last());
-                                        $('#set_station_form').bootstrapValidator('removeField', remove_input);
-                                        remove_tr.remove();
-                                        $("#save_btn").removeAttr('disabled');
-                                    },
-
-
-                                    error: function (xhr, errmsg, err) {
-                                        console.log("part number not in database");
-                                        var remove_input = ($('input[name="' + part_number + '"]').last());
-                                        $('#set_station_form').bootstrapValidator('removeField', remove_input);
-                                        remove_tr.remove();
-                                        $("#save_btn").removeAttr('disabled');
-                                    }
-                                });
-                            }
-
-                        } else {
-                            var remove_input = ($('input[name="' + part_number + '"]').last());
-                            $('#set_station_form').bootstrapValidator('removeField', remove_input);
-                            remove_tr.remove();
-                            $("#save_btn").removeAttr('disabled');
-                        }
-
+                        ajax_del_station(project_name, part_number, station_name, remove_tr)
                     } else {
-                        alert("Your must to provide at least one station name.")
+                        alert("You must provide at least one station name!")
                     }
-
                 })
             });
 
@@ -262,6 +197,7 @@
 {% block body %}
     <h3>Create [ {{ project_name }} ]</h3>
     <br>
+
     {% if errors %}
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <strong>{{ errors }}</strong>
@@ -324,15 +260,45 @@
                         <div class="form-group">
                             <div class="input-group mb-3">
 
-                                <div style="margin-left: 10%"><input type="text" name="{{ pn.part_number }}"
-                                                                     class="form-control station_name"
-                                                                     placeholder="Set station name" maxlength="255"
-                                                                     required="" id="id_station_name"></div>
+                                <div style="margin-left: 10%">
+
+
+                                    <select name="{{ pn.part_number }}" id="station_{{ forloop.counter }}"
+                                            class="stations selectpicker show-tick"
+                                            data-live-search="true" title="Nothing selected">
+                                        <option value="PCBA_FT1">PCBA_FT1</option>
+                                        <option value="PCBA_FT2">PCBA_FT2</option>
+                                        <option value="PCBA_FT3">PCBA_FT3</option>
+                                        <option value="PCBA_FT4">PCBA_FT4</option>
+                                        <option value="PCBA_FT5">PCBA_FT5</option>
+                                        <option value="PCBA_FT6">PCBA_FT6</option>
+                                        <option data-divider="true"></option>
+                                        <option value="ASSY_PCBA_FT1">ASSY_PCBA_FT1</option>
+                                        <option value="ASSY_PCBA_FT2">ASSY_PCBA_FT2</option>
+                                        <option value="ASSY_PCBA_FT3">ASSY_PCBA_FT3</option>
+                                        <option value="ASSY_PCBA_FT4">ASSY_PCBA_FT4</option>
+                                        <option value="ASSY_PCBA_FT5">ASSY_PCBA_FT5</option>
+                                        <option value="ASSY_PCBA_FT6">ASSY_PCBA_FT6</option>
+                                        <option data-divider="true"></option>
+                                        <option value="ASSY_FT1">ASSY_FT1</option>
+                                        <option value="ASSY_FT2">ASSY_FT2</option>
+                                        <option value="ASSY_FT3">ASSY_FT3</option>
+                                        <option value="ASSY_FT4">ASSY_FT4</option>
+                                        <option value="ASSY_FT5">ASSY_FT5</option>
+                                        <option value="ASSY_FT6">ASSY_FT6</option>
+                                        <option data-divider="true"></option>
+                                        <option value="ASSY_DBA_FT1">ASSY_DBA_FT1</option>
+                                        <option value="ASSY_DBA_FT2">ASSY_DBA_FT2</option>
+                                        <option value="ASSY_DBA_FT3">ASSY_DBA_FT3</option>
+                                        <option value="ASSY_DBA_FT4">ASSY_DBA_FT4</option>
+                                        <option value="ASSY_DBA_FT5">ASSY_DBA_FT5</option>
+                                        <option value="ASSY_DBA_FT6">ASSY_DBA_FT6</option>
+                                        <option data-divider="true"></option>
+                                    </select></div>
 
                                 <div class="input-group-append">
-                                    <button class="btn btn-outline-primary select-script" type="button"
-                                            data-toggle="tooltip" data-placement="top"><i
-                                            class="fas fa-share"></i>
+                                    <button class="btn btn-outline-danger specific-st-remove" type="button"><i
+                                            class="fas fa-trash"></i>
                                     </button>
                                 </div>
                             </div>
