@@ -86,7 +86,7 @@
             });
 
             //if on modify page ,it item had been move will create new testScript.ini
-            {% if  is_modify %}
+            {% if is_modify and ini_content_map|lookup:"new_prj_task_ids"|length == 0 %}
                 $('#sort-task').sortable({
                     scroll: false,
                     start: function (event, ui) {
@@ -437,7 +437,7 @@
 
 
     {% if err_message is None %}
-        {% if is_modify %}
+        {% if is_modify and ini_content_map|lookup:"new_prj_task_ids"|length == 0 %}
             <ul id="sort-task">
                 {% for order_id in testScript_order_list %}
 
@@ -446,8 +446,9 @@
                     </li>
                 {% endfor %}
             </ul>
-        {% else %}
 
+            <!--handle add new project task-->
+        {% elif ini_content_map|lookup:"new_prj_task_ids"|length > 0 %}
 
             <div class="row">
                 <div class="col-md-6">
@@ -462,20 +463,50 @@
             <div class="d-flex justify-content-center" style="padding-bottom: 1%">
 
                 <ul id="task" class="droptrue">
-                    {% for order_id in testScript_order_list %}
 
-                        <li class="task" id="{{ order_id }}"><code class="javascript"
-                                                                   style="color:#333333;">{{ ini_content_map|lookup:order_id |linebreaks }}</code>
-                        </li>
+                    {% for order_id in testScript_order_list %}
+                        {% if  order_id  in ini_content_map|lookup:"new_prj_task_ids" %}
+                            <li class="task" id="{{ order_id }}"><code class="javascript"
+                                                                       style="color:#333333;">{{ ini_content_map|lookup:order_id |linebreaks }}</code>
+                            </li>
+                        {% endif %}
                     {% endfor %}
                 </ul>
 
 
                 <ul class="droptrue" id="sort-task">
+                    {% for order_id  in testScript_order_list %}
+                        {% if  order_id not in ini_content_map|lookup:"new_prj_task_ids" %}
+                            <li class="task" id="{{ order_id }}"><code class="javascript"
+                                                                       style="color:#333333;">{{ ini_content_map|lookup:order_id |linebreaks }}</code>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
                 </ul>
-
             </div>
 
+
+        {% else %}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="text-center"><h5>TestCase</h5></div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-center"><h5>TestScript.ini </h5></div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-center" style="padding-bottom: 1%">
+                <ul id="task" class="droptrue">
+                    {% for order_id in testScript_order_list %}
+                        <li class="task" id="{{ order_id }}"><code class="javascript"
+                                                                   style="color:#333333;">{{ ini_content_map|lookup:order_id |linebreaks }}</code>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <ul class="droptrue" id="sort-task">
+                </ul>
+            </div>
         {% endif %}
 
 

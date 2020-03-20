@@ -406,7 +406,14 @@
 
                 $("#arg_append").append('<input type="text" name="all_task"  type="hidden" value="' + all_sorted_tasks_id + '">');
 
+
                 $("#arg_append").append('<input type="text" name="ajax_saved"  type="hidden">');
+
+                {% if new_prj_task_ids %}
+                    console.log("in")
+                    $("#arg_append").append('<input type="text" name="new_prj_task_ids"  type="hidden" value="{{ new_prj_task_ids }}">');
+                {% endif %}
+
 
 
                 data = $("#other_form").serialize() + "&conflict_token=" + "{{ conflict_token|escapejs }}";
@@ -493,6 +500,11 @@
 
                 $("#arg_append").append('<input type="text" name="conflict_token"  type="hidden" value="{{ conflict_token|escapejs }}">');
 
+
+                {% if new_prj_task_ids %}
+                    console.log("in")
+                    $("#arg_append").append('<input type="text" name="new_prj_task_ids"  type="hidden" value="{{ new_prj_task_ids }}">');
+                {% endif %}
 
                 $("#other_form").submit();
 
@@ -707,7 +719,7 @@
 
 
 {% block body %}
-
+    {{ new_prj_task_ids }}
     {% if is_modify %}
         <h3>Modify [ {{ project_name }}/{{ part_number }}/{{ station_name }} ]</h3>
     {% else %}

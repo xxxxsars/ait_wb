@@ -556,7 +556,7 @@ def modify_script(request, project_name, part_number, station_name):
             if request.POST['add_task_ids'] != "":
                 add_task_ids = (request.POST['add_task_ids']).split(",")
                 # if will save project_task and project_task_argument ,the data get from default value
-                save_add_tasks(add_task_ids, station_instance)
+                new_prj_task_ids = save_add_tasks(add_task_ids, station_instance)
             prj_task_li = get_station_tasks(project_name, part_number, station_name)
             disable_upload_project(project_name)
             return render(request, "argument.html", locals())
@@ -598,6 +598,9 @@ def modify_script(request, project_name, part_number, station_name):
 
         else:
             post_data = dict(request.POST.lists())
+            if "new_prj_task_ids" in request.POST:
+                new_prj_task_ids=(request.POST.get('new_prj_task_ids')).split(",")
+
             project_infos = get_project_infos(post_data)
 
             not_dedup_task_ids = list(
@@ -834,7 +837,12 @@ def get_script_name(task_id):
 
 
 def get_project_infos(post):
+    new_prj_task_ids = []
     project_task_ids = (post["all_task"][0]).split(",")
+    new_prj_obj = (post.get("new_prj_task_ids"))
+    if new_prj_obj:
+        new_prj_task_ids = new_prj_obj[0].split(",")
+
     project_infos = []
     for prj_id in project_task_ids:
         tmp_prj_info = {}
@@ -842,9 +850,15 @@ def get_project_infos(post):
 
         id_reg = re.search(r"(.+)_(\d+)", prj_id)
         task_id = id_reg.group(1)
+        project_task_id = id_reg.group(2)
         tmp_prj_info["task_id"] = task_id
-        tmp_prj_info["project_task_id"] = id_reg.group(2)
         tmp_prj_info["script_name"] = get_script_name(task_id)
+        tmp_prj_info["project_task_id"] = project_task_id
+
+        if project_task_id in new_prj_task_ids:
+            tmp_prj_info["new_task"] = True
+        else:
+            tmp_prj_info["new_task"] = False
 
         for k, v in post.items():
             prj_id_reg = re.search(r"(.*)_%s$" % prj_id, k)
@@ -858,6 +872,7 @@ def get_project_infos(post):
         tmp_prj_info["args"] = sorted_arg_value(task_id, tmp_arg_value_map)
 
         project_infos.append(tmp_prj_info)
+
     return project_infos
 
 
@@ -922,6 +937,8 @@ def get_station_tasks(project_name, part_number, station_name) :
 
 
 def gen_ini_contents(project_infos):
+    new_prj_task_ids = []
+
     ini_map = {}
     for prj_info in (project_infos):
         project_task_id = prj_info["project_task_id"]
@@ -949,6 +966,9 @@ def gen_ini_contents(project_infos):
         elif prj_info['interactive'] == 'auto':
             ini_map[project_task_id] = title + content
 
+        if prj_info["new_task"]:
+            new_prj_task_ids.append(prj_info["project_task_id"])
+    ini_map["new_prj_task_ids"] = new_prj_task_ids
 
     return ini_map
 
@@ -965,8 +985,9 @@ def save_ini_contents(ini_map, ini_order_list, token):
     with open(os.path.join(handle_path(path, "user_project"), "%s.ini" % token), "w") as f:
         f.write(ini_content)
 
-
+# if will return the new project_task id list
 def save_add_tasks(add_task_ids, station_instance):
+    prj_task_ids = []
     for task_id in add_task_ids:
         task_instance = Upload_TestCase.objects.get(task_id=task_id)
         prj_task_instance = Project_task.objects.create(station_id=station_instance, task_id=task_instance,
@@ -974,10 +995,13 @@ def save_add_tasks(add_task_ids, station_instance):
                                                         exit_code="exitCode", retry_count=5, sleep_time=0,
                                                         criteria="PASS")
 
+        prj_task_ids.append(str(prj_task_instance.id))
+
         for arg in Arguments.objects.filter(task_id=task_instance):
             Project_task_argument.objects.create(default_value=arg.default_value, argument=arg,
                                                  station_id_id=station_instance.id, task_id=task_instance,
                                                  project_task_id=prj_task_instance)
+    return ",".join(prj_task_ids)
 
 # add the new testCase on the project and handle the repeated test case add the serial number
 def save_modify_tasks(post, station_instance, posted_ids):
