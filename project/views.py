@@ -599,7 +599,7 @@ def modify_script(request, project_name, part_number, station_name):
         else:
             post_data = dict(request.POST.lists())
             if "new_prj_task_ids" in request.POST:
-                new_prj_task_ids=(request.POST.get('new_prj_task_ids')).split(",")
+                new_prj_task_ids=(request.POST.get('new_prj_task_ids')).split(" ")
 
             project_infos = get_project_infos(post_data)
 
@@ -841,7 +841,7 @@ def get_project_infos(post):
     project_task_ids = (post["all_task"][0]).split(",")
     new_prj_obj = (post.get("new_prj_task_ids"))
     if new_prj_obj:
-        new_prj_task_ids = new_prj_obj[0].split(",")
+        new_prj_task_ids = new_prj_obj[0].split(" ")
 
     project_infos = []
     for prj_id in project_task_ids:
@@ -1001,7 +1001,7 @@ def save_add_tasks(add_task_ids, station_instance):
             Project_task_argument.objects.create(default_value=arg.default_value, argument=arg,
                                                  station_id_id=station_instance.id, task_id=task_instance,
                                                  project_task_id=prj_task_instance)
-    return ",".join(prj_task_ids)
+    return " ".join(prj_task_ids)
 
 # add the new testCase on the project and handle the repeated test case add the serial number
 def save_modify_tasks(post, station_instance, posted_ids):
