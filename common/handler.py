@@ -29,7 +29,7 @@ def replace_conflict_file():
     for dirPath, dirNames, fileNames in os.walk(path):
         for f in fileNames:
             if f == "common.py":
-                print(os.path.join(dirPath, f))
+
                 os.remove(os.path.join(dirPath, f))
                 shutil.copyfile("common.txt",os.path.join(dirPath, f))
 

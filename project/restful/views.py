@@ -87,14 +87,12 @@ def submit_project(request):
             try:
                 shutil.rmtree(project_path)
             except Exception as e:
-                print(tmp_path)
                 shutil.rmtree(tmp_path)
                 return JsonResponse({"valid": False, "message": re.search(r"\]([\s|\w]+):*",str(e)).group(1).strip()}, status=status.HTTP_417_EXPECTATION_FAILED)
 
         try:
             os.rename(tmp_path,project_path)
         except Exception as e:
-            print(tmp_path)
             shutil.rmtree(tmp_path)
             return JsonResponse({"valid": False, "message":re.search(r"\]([\s|\w]+):*",str(e)).group(1).strip()}, status=status.HTTP_417_EXPECTATION_FAILED)
 
@@ -118,7 +116,7 @@ def CopyProjectView(request):
     if request.method == "POST":
         project_name = request.data.get("project_name")
         new_project_name = request.data.get("new_project_name")
-        print(project_name,new_project_name)
+
 
         prj_instance = Project.objects.get(project_name=project_name)
         # new_prj_instance = Project.objects.create(project_name=new_project_name,owner_user=User.objects.get(username=request.user))
@@ -513,7 +511,6 @@ def copy_project_files(owner_user,source_prj,target_prj):
             target_file = source_file.replace(source_path,target_path)
             file_root = os.path.dirname(target_file)
 
-            print(file_root,os.path.exists(file_root))
             if os.path.exists(file_root) ==False:
                 os.makedirs(file_root)
             shutil.copyfile(source_file,target_file)

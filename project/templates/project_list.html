@@ -358,7 +358,7 @@
                     },
                     //處理失敗時會做的動作
                     error: function (xhr, errmsg, err) {
-                       $("#error-dailog").modal('show');
+                       $("#prj-error-dialog").modal('show');
                     }
                 });
             });
@@ -413,7 +413,7 @@
 
     <!--copy project dialog -->
     <div class="container">
-        <div id="error-dailog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+        <div id="prj-error-dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
              aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
@@ -432,7 +432,7 @@
 
 
         <!-- Modal -->
-        <div class="modal fade" id="create-dailog" role="dialog">
+        <div class="modal fade" id="prj-dialog" role="dialog">
             <div class="modal-dialog">
 
                 <!-- Modal content-->
@@ -466,12 +466,8 @@
 
             </div>
         </div>
-
     </div>
-
     <!--End copy project dialog -->
-
-
 
     <div id="message"></div>
 
@@ -561,8 +557,8 @@
                             </button>
 
                             <div class="dropdown-menu dropdown-project" aria-labelledby="btnItemsDemo">
-                                <button class="dropdown-item" data-target="#create-dailog" type="button"><a
-                                        data-toggle="modal" data-target="#create-dailog">Copy</a></button>
+                                <button class="dropdown-item" data-target="#prj-dialog" type="button"><a
+                                        data-toggle="modal" data-target="#prj-dialog">Copy</a></button>
 
                                 <button class="dropdown-item" type="button">Edit</button>
 
