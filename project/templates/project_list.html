@@ -349,8 +349,15 @@
         $(document).ready(function () {
 
             $('.tree').treegrid({});
-            {#$('.tree').treegrid('collapseAll');#}
+            $('.tree').treegrid("collapseAll");
 
+            $("#collpase").click(function () {
+                $('.tree').treegrid("collapseAll");
+            });
+
+            $("#expand").click(function () {
+                $('.tree').treegrid("expandAll");
+            });
 
             $("#copy_part_btn").click(function () {
                 var project_name = $("#part_prj_name").text();
@@ -476,18 +483,17 @@
                     error: function (xhr, errmsg, err) {
 
 
+                        $.ajax({
+                            url: "/project/delete/" + new_project_name, // the endpoint,commonly same url
+                            type: 'DELETE',
+                            beforeSend: function (xhr) {
+                                xhr.setRequestHeader("X-CSRFToken", getCookie("csrftoken"));
+                            },
 
-                                                        $.ajax({
-                                    url: "/project/delete/" + new_project_name, // the endpoint,commonly same url
-                                    type: 'DELETE',
-                                    beforeSend: function (xhr) {
-                                        xhr.setRequestHeader("X-CSRFToken", getCookie("csrftoken"));
-                                    },
-
-                                    success: function (json) {
-                                        console.log("Remove failed project copy successfully")
-                                    }
-                                });
+                            success: function (json) {
+                                console.log("Remove failed project copy successfully")
+                            }
+                        });
 
 
                         $("#prj-error-dialog").modal('show');
@@ -662,7 +668,8 @@
 
 
     <div id="message"></div>
-
+    <button type="button" class="btn btn-outline-success" id="expand"><i class="fas fa-plus"></i> Expand</button>
+    <button type="button" class="btn btn-outline-primary" id="collpase"><i class="fas fa-minus"></i> Collapse</button>
 
     <table class="tree table  table-hover" id="project_table">
         <thead>
