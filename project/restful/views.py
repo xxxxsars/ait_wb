@@ -109,17 +109,66 @@ def submit_project(request):
     return  JsonResponse({"valid": True,"message":"Submit successfully!"},status=status.HTTP_200_OK)
 
 
-@api_view(["POST"])
-# @authentication_classes((SessionAuthentication,))
-def CopyProjectView(request):
 
+@api_view(["POST"])
+@authentication_classes((SessionAuthentication,))
+def CopyPartNumberView(request):
+
+    if request.method == "POST":
+        project_name = request.data.get("project_name")
+        part_number = request.data.get("part_number")
+        new_part_number = request.data.get("new_part_number")
+
+        prj_instance = Project.objects.get(project_name=project_name)
+        pn_instance = Project_PN.objects.get(project_name=prj_instance,part_number=part_number)
+
+        new_pn = Project_PN.objects.create(project_name=prj_instance, part_number=new_part_number)
+
+
+        for st in Project_Station.objects.filter(project_pn_id=pn_instance):
+            print(st.station_name)
+            new_st = Project_Station.objects.create(project_pn_id=new_pn, station_name=st.station_name)
+
+            new_task_id = []
+
+            for st_task in Project_task.objects.filter(station_id=st):
+                new_st_task = Project_task.objects.create(station_id=new_st, task_id=st_task.task_id,
+                                                          task_name=st_task.task_name, timeout=st_task.timeout,
+                                                          exit_code=st_task.exit_code,
+                                                          retry_count=st_task.retry_count,
+                                                          sleep_time=st_task.sleep_time, criteria=st_task.criteria,
+                                                          interactive=st_task.interactive, rule=
+                                                          st_task.rule, priority=st_task.priority)
+
+                new_task_id.append(new_st_task.id)
+
+                for st_task_arg in Project_task_argument.objects.filter(project_task_id=st_task):
+                    Project_task_argument.objects.create(default_value=st_task_arg.default_value,
+                                                         argument=st_task_arg.argument, station_id=new_st,
+                                                         task_id=st_task.task_id, project_task_id=new_st_task)
+            # set testScript ini the testCase order
+            task_order = Project_TestScript_order.objects.get(station_name=st, part_number=pn_instance,
+                                                              project_name=prj_instance).script_oder.split(" ")
+            new_order = set_task_order(task_order, new_task_id)
+            print(new_order)
+            Project_TestScript_order.objects.create(station_name=new_st, part_number=new_pn,
+                                                    project_name=prj_instance, script_oder=new_order)
+
+            # copy  user_project files
+            copy_pn_files(prj_instance.owner_user, project_name, part_number,new_part_number)
+
+
+    return HttpResponse(status=200)
+
+@api_view(["POST"])
+@authentication_classes((SessionAuthentication,))
+def CopyProjectView(request):
     if request.method == "POST":
         project_name = request.data.get("project_name")
         new_project_name = request.data.get("new_project_name")
 
-
         prj_instance = Project.objects.get(project_name=project_name)
-        # new_prj_instance = Project.objects.create(project_name=new_project_name,owner_user=User.objects.get(username=request.user))
+
         new_prj_instance = Project.objects.create(project_name=new_project_name,
                                                   owner_user=prj_instance.owner_user)
 
@@ -448,7 +497,17 @@ def valid_projectt_name(request):
 
 
 
+@api_view(["POST"])
+@authentication_classes((SessionAuthentication,))
+def valid_part_number(request):
+    if request.POST:
+        project_name = request.POST["project_name"]
+        part_number = request.POST["part_number"]
 
+        if Project_PN.objects.filter(project_name=project_name,part_number=part_number).count():
+            return HttpResponse (status=status.HTTP_409_CONFLICT)
+        else:
+            return HttpResponse (status=status.HTTP_200_OK)
 
 def change_project(project_name,old_username, new_username):
     path = handle_path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "user_project")
@@ -496,14 +555,24 @@ def set_task_order(source:list,target:list):
 
 
 
+def copy_pn_files(owner_user,prj,source_pn,target_pn):
+    root_path = handle_path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "user_project",str(owner_user),prj)
+
+    source_pn_path = handle_path(root_path,source_pn)
+    target_pn_path = handle_path(root_path,target_pn)
+
+    copy_files(source_pn_path, target_pn_path)
 
 def copy_project_files(owner_user,source_prj,target_prj):
+
     root_path = handle_path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "user_project")
 
-    # root_path =handle_path( os.path.dirname(os.path.dirname(os.path.abspath(__file__))),"user_project")
-    source_path =  handle_path(root_path,"admin",source_prj)
-    target_path = handle_path(root_path, "admin",target_prj)
+    source_path =  handle_path(root_path,str(owner_user),source_prj)
+    target_path = handle_path(root_path, str(owner_user),target_prj)
 
+    copy_files(source_path,target_path)
+
+def copy_files(source_path,target_path):
     for dirPath, dirNames, files in os.walk(source_path):
 
         for file in files:

@@ -207,6 +207,17 @@
 
                             location.href = "/project/modify_station/" + project_name + "/" + part_number;
 
+                        } else if (action == "Copy") {
+                            var dtRow = $(this).closest('tr');
+                            cls_array = (dtRow.attr("class").split(" "));
+                            project_name = cls_array[0];
+                            part_number = cls_array[1];
+
+                            $("#part_prj_name").html(project_name);
+                            $("#part_part_number").html(part_number);
+
+                            $('#copy_part_form').bootstrapValidator('resetForm', true);
+
                         } else if (action == "Delete") {
 
                             if (confirm("Are you sure to delete this row?")) {
@@ -340,7 +351,112 @@
             $('.tree').treegrid({});
             {#$('.tree').treegrid('collapseAll');#}
 
-            $("#copy_btn").click(function () {
+
+            $("#copy_part_btn").click(function () {
+                var project_name = $("#part_prj_name").text();
+                var part_number = $("#part_part_number").text();
+                var new_part_number = $("input[name='part_number']").val();
+                $.ajax({
+                    url: "/project/copy_part_number/", // the endpoint,commonly same url
+                    type: 'POST',
+                    data: {
+                        csrfmiddlewaretoken: getCookie("csrftoken"),
+                        "project_name": project_name,
+                        "part_number": part_number,
+                        "new_part_number": new_part_number
+                    },
+
+                    success: function (json) {
+                        location.href = "/project/list/"
+                    },
+                    //處理失敗時會做的動作
+                    error: function (xhr, errmsg, err) {
+
+                        $.ajax({
+                            url: "/project/pn_delete/", // the endpoint,commonly same url
+                            type: 'POST',
+                            data: {
+                                csrfmiddlewaretoken: getCookie("csrftoken"),
+                                "project_name": project_name,
+                                "part_number": new_part_number,
+                            },
+
+                            success: function (json) {
+                                //remove the sub station item
+                                console.log("Remove failed part number copy successfully")
+                            }
+                        });
+                        $("#part-error-dialog").modal('show');
+                    }
+                });
+
+
+            });
+
+
+            $("#copy_part_form").bootstrapValidator({
+                message: 'This value is not valid',
+                feedbackIcons: {
+                    valid: 'fas fa-check',
+                    invalid: 'none',
+                    validating: 'fas fa-sync-alt'
+                },
+                excluded: [':disabled'],
+                fields: {
+
+
+                    part_number: {
+                        message: 'The part number is not valid',
+                        validators: {
+                            notEmpty: {
+                                message: 'The part number cannot be empty.'
+                            },
+                            regexp: {
+                                regexp: /^\w+$/,
+                                message: 'The part number is incorrect.'
+                            },
+                            callback: {
+                                message: 'The part number can not be repreated.',
+                                delay: 1000,
+                                callback: function (value, validator, $field) {
+                                    var project_name = $("#part_prj_name").text();
+                                    var part_number = $('input[name="part_number"]').val();
+
+                                    var result = false;
+
+
+                                    $.ajax({
+                                        url: '/project/valid_part_number/',
+                                        type: 'post',
+                                        async: false,
+                                        data: {
+                                            csrfmiddlewaretoken: getCookie('csrftoken'),
+                                            "project_name": project_name,
+                                            "part_number": part_number,
+                                        },
+                                        success: function (data) {
+                                            result = true
+                                        },
+
+                                        error: function (data) {
+                                            result = false
+                                        }
+                                    });
+                                    return result
+                                }
+                            }
+                        }
+                    },
+                }
+            }).on('error.field.bv', function (e, data) {
+                $("#copy_part_btn").attr('disabled', 'disabled');
+            })
+                .on('success.field.bv', function (e, data) {
+                    $("#copy_part_btn").removeAttr('disabled');
+                })
+
+
+            $("#copy_prj_btn").click(function () {
                 var project_name = $("#source_prj_name").text();
                 var new_project_name = $('input[name="project_name"]').val();
 
@@ -358,7 +474,23 @@
                     },
                     //處理失敗時會做的動作
                     error: function (xhr, errmsg, err) {
-                       $("#prj-error-dialog").modal('show');
+
+
+
+                                                        $.ajax({
+                                    url: "/project/delete/" + new_project_name, // the endpoint,commonly same url
+                                    type: 'DELETE',
+                                    beforeSend: function (xhr) {
+                                        xhr.setRequestHeader("X-CSRFToken", getCookie("csrftoken"));
+                                    },
+
+                                    success: function (json) {
+                                        console.log("Remove failed project copy successfully")
+                                    }
+                                });
+
+
+                        $("#prj-error-dialog").modal('show');
                     }
                 });
             });
@@ -392,11 +524,11 @@
                     },
                 }
             }).on('error.field.bv', function (e, data) {
-                $("#copy_btn").attr('disabled', 'disabled');
+                $("#copy_prj_btn").attr('disabled', 'disabled');
             })
                 .on('success.field.bv', function (e, data) {
-                    $("#copy_btn").removeAttr('disabled');
-                });
+                    $("#copy_prj_btn").removeAttr('disabled');
+                })
         });
     </script>
 {% endblock %}
@@ -405,15 +537,11 @@
     <br>
 
 
-    <!--error dialog-->
-
-
-
-
 
     <!--copy project dialog -->
     <div class="container">
-        <div id="prj-error-dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+        <div id="prj-error-dialog" class="modal fade" tabindex="-1" role="dialog"
+             aria-labelledby="exampleModalCenterTitle"
              aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
@@ -431,11 +559,9 @@
         </div>
 
 
-        <!-- Modal -->
         <div class="modal fade" id="prj-dialog" role="dialog">
             <div class="modal-dialog">
 
-                <!-- Modal content-->
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal">&times;</button>
@@ -456,7 +582,7 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button id="copy_btn" type="button" class="btn btn-success" data-dismiss="modal">Start
+                            <button id="copy_prj_btn" type="button" class="btn btn-success" data-dismiss="modal">Start
                                 Copy
                             </button>
                         </div>
@@ -468,6 +594,72 @@
         </div>
     </div>
     <!--End copy project dialog -->
+
+
+
+
+    <!--copy part number dialog -->
+    <div class="container">
+        <div id="part-error-dialog" class="modal fade" tabindex="-1" role="dialog"
+             aria-labelledby="exampleModalCenterTitle"
+             aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalCenterTitle">Error</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        Copy Part number had some error!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="modal fade" id="part-dialog" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+
+                    <form id="copy_part_form" enctype="multipart/form-data" method="post" action="">{% csrf_token %}
+                        <div class="modal-body">
+
+                            <div class="form-group row">
+                                <span id="part_prj_name" style="display:none"></span>
+                                <span id="part_part_number" style="display:none"></span>
+                                <label class="col-sm-3 col-form-label" for="part_number">Part Number</label>
+
+                                <div class="col-sm-9">
+                                    <input type="text" name="part_number" class="form-control" maxlength="255"
+                                           required="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button id="copy_part_btn" type="button" class="btn btn-success" data-dismiss="modal">Start
+                                Copy
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!--End copy project dialog -->
+
+
+
+
+
+
+
 
     <div id="message"></div>
 
@@ -597,6 +789,8 @@
 
                                 <div class="dropdown-menu dropdown-partnumber" aria-labelledby="btnItemsDemo">
 
+                                    <button class="dropdown-item" type="button"><a
+                                            data-toggle="modal" data-target="#part-dialog">Copy</a></button>
                                     <button class="dropdown-item" type="button">Edit</button>
 
                                     <button class="dropdown-item" type="button">Delete</button>
