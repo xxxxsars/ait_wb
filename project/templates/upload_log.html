@@ -3,6 +3,29 @@
 {% load  filter %}
 
 
+{% block head %}
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/datatables.net-dt/css/jquery.dataTables.min.css" %}">
+
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/bootstrap-select/dist/css/bootstrap-select.min.css" %}">
+
+    <script src={% static "bower_components/datatables.net/js/jquery.dataTables.min.js" %}></script>
+
+
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/datatables.net-dt/css/select.dataTables.min.css" %}">
+    <link type="text/css" rel="stylesheet"
+          href="{% static "bower_components/datatables.net-dt/css/query.dataTables.min.css" %}">
+
+
+    <script src={% static "bower_components/datatables.net/js/dataTables.select.min.js" %}></script>
+
+    <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
+
+    <script src="{% static "bower_components/bootstrap-select/dist/js/bootstrap-select.min.js" %}"></script>
+{% endblock %}
+
 
 {% block css %}
     <style>
@@ -16,35 +39,72 @@
             border-bottom: 1px solid #dee2e6;
         }
 
+        #log-table_filter {
+            display: none;
+        }
+
+        #log-table_length {
+            margin-top: 10px;
+        }
+
+
         .table tbody tr td {
             vertical-align: middle;
         }
 
+        .condition-lable {
+            margin-right: 20px;
+        }
+
+        .tooltip-inner {
+            padding: 5px;
+            line-height: 20px;
+            text-align: left;
+            background-color: rgba(0, 0, 0, 0.80);
+            max-width: 500px;
+        }
     </style>
+{% endblock %}
+{% block js %}
+    <script>
+        $(document).ready(function () {
+            $('#log-table').DataTable({
+                "dom": '<"top"i>rt<"bottom"flp><"clear">',
+                "autoWidth": true,
+                "scrollX": true,
+                order: [[2, 'asc']],
+                "info": true
+            });
+            $('.dataTables_length').addClass('bs-select');
+        });
+    </script>
+
 {% endblock %}
 
 
 {% block body %}
-    <h3 style="margin-bottom: 2%">[ {{ project_name }} ] Upload Log</h3>
+    <h3 style="margin-bottom: 2%">Upload Log</h3>
 
+    <table id="log-table" class="hover" style="width:100%">
 
-    <table class="table table-hover">
         <thead>
         <tr>
-            <th scope="col">#</th>
-            <th scope="col">Upload Time</th>
-            <th scope="col">Upload User</th>
+            <th class="th-sm">User
+            </th>
+            <th class="th-sm">Project Name
+            </th>
+            <th class="th-sm">Upload Time
+            </th>
         </tr>
         </thead>
         <tbody>
-
         {% for instance in instances %}
-        <tr>
-            <th scope="row">{{forloop.counter}}</th>
-            <td>{{instance.time |date:'Y-m-d h:i A'}}</td>
-            <td>{{instance.upload_user}}</td>
-        </tr>
+            <tr>
+                <td>{{ instance.upload_user }}</td>
+                <td>{{ instance.project_name.project_name }}</td>
+                <td>{{ instance.time |date:'Y-m-d h:i A' }}</td>
+
+            </tr>
         {% endfor %}
-        </tbody>
     </table>
 {% endblock %}
