@@ -25,12 +25,13 @@ def update_API(request):
     error_messages = []
     if request.POST:
 
+        task_id = request.POST.get("task_id")
+        task_name = request.POST.get("task_name")
+        task_descript = request.POST.get("description")
+        script_name = request.POST.get("script_name")
+        sample = request.POST.get("sample")
 
-        task_id = request.POST["task_id"]
-        task_name = request.POST["task_name"]
-        task_descript = request.POST["description"]
-        script_name = request.POST["script_name"]
-        sample = request.POST["sample"]
+        interactive = request.POST.get("interactive")
 
         if "file" in request.FILES:
             try:
@@ -39,8 +40,29 @@ def update_API(request):
                 error_messages.append("Upload file is no valid zip file.")
 
         task_info = Upload_TestCase.objects.get(task_id=task_id)
-        is_modify = had_modify(request)
 
+        if 'attachment' in request.FILES:
+            handle_update_attachment(request.FILES['attachment'], task_id)
+            task_info.existed_attachment = True
+            attach_name = request.FILES["attachment"].name
+
+
+        if interactive =="True":
+            task_info.task_name = task_name
+            task_info.time = datetime.datetime.now()
+            task_info.description = task_descript
+            task_info.save()
+
+            if len(error_messages) == 0:
+                return JsonResponse(
+                    {'is_valid': True, "message": "Update  Test Case ID: [ %s ] was successfully!" % task_id,
+                     "task_id": task_id}, status=200)
+
+
+            return JsonResponse({'is_valid': False, "error": list(set(error_messages))}, status=500)
+
+
+        is_modify = had_modify(request)
 
         if (is_modify):
             task_info.modify_user = request.user.username
@@ -50,11 +72,6 @@ def update_API(request):
                 err = [str(e)]
                 return JsonResponse({'is_valid': False, "error": err}, status=417)
             task_info.version = new_version
-
-        if 'attachment' in request.FILES:
-            handle_update_attachment(request.FILES['attachment'], task_id)
-            task_info.existed_attachment = True
-            attach_name = request.FILES["attachment"].name
 
         # handle post task information
         task_info.task_name = task_name
@@ -128,7 +145,10 @@ def modify_index(request, task_id, message=None):
         attach_name = get_attach_name(task_id)
 
     # update testScript zip modified time
-    modify_time = get_modify_time(task_id)
+    if task_info.script_name =="interactive":
+        modify_time = ""
+    else:
+        modify_time = get_modify_time(task_id)
 
     return render(request, "script_modify.html", locals())
 

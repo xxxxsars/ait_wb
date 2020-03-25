@@ -22,6 +22,51 @@
 
 {% block js %}
     <script>
+
+        function close_input_condition(value) {
+            vailder = true;
+            input = false;
+
+            if (value) {
+                vailder = false;
+                input = true;
+            }
+
+
+            {#$("#update-form").bootstrapValidator('enableFieldValidators',#}
+            {#    'file', vailder, 'notEmpty');#}
+            {##}
+            {#$('#update-form').bootstrapValidator('enableFieldValidators',#}
+            {#    'script_name', vailder, 'notEmpty');#}
+            {##}
+            {#$('#update-form').bootstrapValidator('enableFieldValidators',#}
+            {#    'argument', vailder, 'notEmpty');#}
+            {#$('#update-form').bootstrapValidator('enableFieldValidators',#}
+            {#    'default_value', vailder, 'notEmpty');#}
+            {##}
+            {#$('#update-form').bootstrapValidator('enableFieldValidators',#}
+            {#    'arg_description', vailder, 'notEmpty');#}
+
+
+            $("#download_script").attr("disabled", input);
+
+            $('input[name="file"]').attr('disabled', input);
+            $('input[name="script_name"]').attr('disabled', input);
+            $('input[name="sample"]').attr('disabled', input);
+            $('input[name="argument"]').attr('disabled', input);
+            $('input[name="default_value"]').attr('disabled', input);
+            $('input[name="arg_description"]').attr('disabled', input);
+
+            $("#task-table").hide();
+            $("#add_argument").hide();
+            $("#remove_argument").hide();
+            $(".hide-group").each(function () {
+                $(this).hide()
+            })
+
+
+        }
+
         //display the upload file name
         $(function () {
             $('#zip_file').on('change', function () {
@@ -38,6 +83,14 @@
         });
 
         $(document).ready(function () {
+            var task_id = "{{ task_id |escapejs }}"
+
+            if (task_id[1] == 6) {
+                close_input_condition(true);
+                $("#update-form").append('<input  value="True" type="hidden" name="interactive"/>');
+            }
+
+
             //if on modify page will show the file info
             {% if task_info.existed_attachment %}
                 $("#attachment_file").next('.custom-file-label').html('<p class="text-dark">' + '{{ attach_name }}' + '</div>');
@@ -135,12 +188,12 @@
                         });
                         //else using ajax update
                     } else {
-
+                        data = $("#update-form").serialize();
 
                         $.ajax({
                             url: "{% url "testCase_update" %}",
                             type: 'POST',
-                            data: $("#update-form").serialize(),
+                            data: data,
 
                             success: function (json) {
                                 $("div.alert").alert("close");
@@ -532,7 +585,7 @@
 
         <div class="row">
             <div class="col-md-5">
-                <div class="form-group">
+                <div class="form-group hide-group">
                     <label for="script" class="col-sm-4 col-form-label form-control-label">Script Name</label>
                     <div class="col-sm-8">{{ u.script_name }}
                     </div>
@@ -540,7 +593,7 @@
             </div>
 
             <div class="col-md-7">
-                <div class="form-group">
+                <div class="form-group hide-group">
                     <label for="sample" class="col-sm-3 col-form-label form-control-label">Sample</label>
                     <div class="col-sm-9"> {{ u.sample }}
                     </div>
@@ -577,7 +630,7 @@
             </div>
 
             <div class="col-md-6">
-                <div class="input-group">
+                <div class="input-group hide-group">
                     <label style="padding-top: 1%" class="form-control-label">TestScript Zip&emsp;</label>
                     <div class="custom-file">
                         {{ u.file }}

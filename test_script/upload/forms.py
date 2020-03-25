@@ -25,9 +25,9 @@ class PhotoForm(forms.Form):
                                            "invalid": "Please update valid zip file"},required=False)
 
 class UploadFileForm(forms.Form):
-    task_id = forms.CharField(max_length=255, required=True, widget=forms.TextInput(attrs={'class': 'form-control'}),
+    task_id = forms.CharField(max_length=255, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}),
                               error_messages={'required': 'ID is empyt!', "invalid": "Please insert valid ID"})
-    task_name = forms.CharField(max_length=255, required=True,
+    task_name = forms.CharField(max_length=255, required=False,
                                 widget=forms.TextInput(attrs={'class': 'form-control'}),
                                 error_messages={'required': 'TestCase Name is empyt!',
                                                 "invalid": "Please insert valid TestCase Name."})
@@ -40,7 +40,7 @@ class UploadFileForm(forms.Form):
                                   error_messages={'required': 'Script Name is empty!',
                                                   "invalid": "Please insert valid script name."})
 
-    file = forms.FileField(required=True,
+    file = forms.FileField(required=False,
                            widget=forms.FileInput(attrs={'class': 'form-control custom-file-input', "id": "zip_file" ,"accept":".zip"}),
                            error_messages={'required': 'Please update zip file.',
                                            "invalid": "Please update valid zip file"})

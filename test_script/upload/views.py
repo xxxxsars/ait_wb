@@ -15,7 +15,8 @@ from common.handler import *
 # Create your views here.
 
 from django.http import HttpResponse
-from common.limit import input_project_name,input_part_station
+from common.limit import input_project_name, input_part_station
+
 
 def test(request):
     p = PhotoForm()
@@ -27,15 +28,17 @@ def test(request):
             if "file" in request.FILES:
                 f = request.FILES.get('file0')
                 if f is not None:
-                    with open(os.path.join('/Users/mac/Python/Python_Project/Python/FactoryWeb/test_script/upload', f.name), 'wb+') as destination:
+                    with open(os.path.join('/Users/mac/Python/Python_Project/Python/FactoryWeb/test_script/upload',
+                                           f.name), 'wb+') as destination:
                         for chunk in f.chunks():
                             destination.write(chunk)
 
-                    return JsonResponse({'is_valid': True,'name': f.name,})
+                    return JsonResponse({'is_valid': True, 'name': f.name, })
                 else:
                     return JsonResponse({'is_valid': False})
 
-    return render(request,'test.html',locals())
+    return render(request, 'test.html', locals())
+
 
 @login_required(login_url="/user/login/")
 def upload_index(request):
@@ -45,29 +48,26 @@ def upload_index(request):
     return render(request, "upload.html", locals())
 
 
-
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
 def upload_API(request):
     error_messages = []
     user_name = request.user.username
     if request.POST:
-        print(request.POST,request.FILES)
-        id = request.POST["task_id"]
-        task_name = request.POST["task_name"]
-        task_descript = request.POST["description"]
-        script_name = request.POST["script_name"]
-        sample = request.POST["sample"]
-        zip_file =request.FILES['file']
+
+        id = request.POST.get("task_id")
+        task_name = request.POST.get("task_name")
+        task_descript = request.POST.get("description")
+        script_name = request.POST.get("script_name")
+        sample = request.POST.get("sample")
+        zip_file = request.FILES.get('file')
+        interactive = request.POST.get("interactive")
 
         arg_descripts = request.POST.getlist("arg_description")
         arguments = request.POST.getlist("argument")
         values = request.POST.getlist("default_value")
 
 
-        err = valid_zip_file(zip_file)
-        if len(err)>0:
-            error_messages+=err
 
         serial_number = "00"
         try:
@@ -76,21 +76,40 @@ def upload_API(request):
             error = "Upload TestCase ID was gather then 99!"
             error_messages.append(error)
 
+        # not interactive will check upload file
+        if interactive != "True":
+            err = valid_zip_file(zip_file)
+            if len(err) > 0:
+                error_messages += err
+
 
         if len(error_messages) == 0:
             task_id = id + serial_number
-
-            up = Upload_TestCase.objects.create(task_id=task_id, task_name=task_name, description=task_descript,
-                                                script_name=script_name, sample=sample,modify_user=user_name,create_user=user_name)
-
-            for i, e in enumerate(arguments):
-                argument = arguments[i]
-                description = arg_descripts[i]
-                value = values[i]
-                Arguments.objects.create(argument=argument, description=description, default_value=value, task_id=up)
+            print(task_id,task_name,task_descript,script_name,sample,user_name,user_name)
 
 
-            handle_uploaded_file(zip_file, task_id)
+            if interactive =="True":
+                up = Upload_TestCase.objects.create(task_id=task_id, task_name=task_name, description=task_descript,
+                                                    script_name="interactive", sample="", modify_user=user_name,
+                                                    create_user=user_name)
+                # create folder
+                path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                handle_path(path, "upload_files",task_id)
+
+            else:
+                up = Upload_TestCase.objects.create(task_id=task_id, task_name=task_name, description=task_descript,
+                                                    script_name=script_name, sample=sample, modify_user=user_name,
+
+                                                    create_user=user_name)
+            # not interactive will save arguments
+            if interactive != "True":
+                for i, e in enumerate(arguments):
+                    argument = arguments[i]
+                    description = arg_descripts[i]
+                    value = values[i]
+                    Arguments.objects.create(argument=argument, description=description, default_value=value, task_id=up)
+
+                handle_uploaded_file(zip_file, task_id)
 
             if 'attachment' in request.FILES:
                 handle_attachment(request.FILES['attachment'], task_id)
@@ -99,13 +118,13 @@ def upload_API(request):
                 up.existed_attachment = False
 
             up.save()
-            return JsonResponse({'is_valid': True,"message":"Upload  Test Case ID: [ %s ] was successfully!" % task_id,"task_id":task_id},status=200)
-
+            return JsonResponse(
+                {'is_valid': True, "message": "Upload  Test Case ID: [ %s ] was successfully!" % task_id,
+                 "task_id": task_id}, status=200)
 
         return JsonResponse({'is_valid': False, "error": list(set(error_messages))}, status=500)
 
-    return JsonResponse({'is_valid': False,"error":list(set(error_messages))},status=500)
-
+    return JsonResponse({'is_valid': False, "error": list(set(error_messages))}, status=500)
 
 
 def handle_attachment(f, task_id):

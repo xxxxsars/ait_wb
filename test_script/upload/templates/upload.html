@@ -40,9 +40,53 @@
         });
 
 
+        function close_input_condition(value) {
+            vailder = true;
+            input = false;
+
+            if (value) {
+                vailder = false;
+                input = true;
+
+                $(".hide-group").each(function () {
+                    $(this).hide()
+                })
+            } else {
+                $(".hide-group").each(function () {
+                    $(this).show()
+                })
+            }
+
+
+            $('#upload-form').bootstrapValidator('enableFieldValidators',
+                'file', vailder, 'notEmpty');
+
+            $('#upload-form').bootstrapValidator('enableFieldValidators',
+                'script_name', vailder, 'notEmpty');
+
+            $('#upload-form').bootstrapValidator('enableFieldValidators',
+                'argument', vailder, 'notEmpty');
+            $('#upload-form').bootstrapValidator('enableFieldValidators',
+                'default_value', vailder, 'notEmpty');
+
+            $('#upload-form').bootstrapValidator('enableFieldValidators',
+                'arg_description', vailder, 'notEmpty');
+
+
+            $("#add_argument").attr("disabled", input);
+            $("#remove_argument").attr("disabled", input);
+
+
+            $('input[name="script_name"]').attr('disabled', input);
+            $('input[name="sample"]').attr('disabled', input);
+            $('input[name="argument"]').attr('disabled', input);
+            $('input[name="default_value"]').attr('disabled', input);
+            $('input[name="arg_description"]').attr('disabled', input);
+
+
+        }
+
         $(document).ready(function () {
-
-
             var m = $('#modal-progress');
             var filesList = [],
                 paramNames = [],
@@ -54,7 +98,7 @@
                 singleFileUploads: false,
                 autoUpload: false,
                 sequentialUploads: true,
-                url:"{% url "testCase_upload" %}",
+                url: "{% url "testCase_upload" %}",
                 {#formData: $("#upload-form").serializeArray(),#}
 
                 {% comment %}               add: function (e, data) {
@@ -124,13 +168,52 @@
                 $('#upload-form').bootstrapValidator('validate');
                 if ($("#upload-form").data('bootstrapValidator').isValid()) {
 
-                    file_upload.fileupload('send', {
-                        files: filesList,
-                        paramName: paramNames,
+                    var task_id = $("input[name='task_id']").val();
+                    //if is interactive testCase disable some limit
+                    if (task_id.length == 4 && task_id[1] == "6") {
 
-                    });
+                        data = $("#upload-form").serialize() + "&interactive=True";
+
+                        $.ajax({
+                            type: "POST",
+                            url: "{% url "testCase_upload" %}",
+                            data: data, // serializes the form's elements.
+                            success: function (data) {
+
+                                location.href = "/testCase/modify/" + data.task_id + "/" + data.message
+
+                            },
+
+                            error: function (data) {
+                                $("#message").empty();
+                                var error_messages = data.error;
+                                $.each(error_messages, function (index, value) {
+                                    $("#message").append(
+                                        '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                                        '<strong>' + value + '</strong>' +
+                                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                                        '<span aria-hidden="true">&times;</span>' +
+                                        '</button>' +
+                                        '</div>')
+                                })
+
+                            }
+                        });
+
+
+                    } else {
+
+                        file_upload.fileupload('send', {
+                            files: filesList,
+                            paramName: paramNames,
+
+                        });
+                    }
+
+
                 }
-            });
+            })
+            ;
 
 
             $("#upload-form").bootstrapValidator({
@@ -155,6 +238,20 @@
                             regexp: {
                                 regexp: /^[0-2][0-9A]\d{2}$/,
                                 message: 'ID is incorrect.'
+                            },
+                            callback: {
+                                message: 'The part number can not be repreated.',
+                                delay: 1000,
+                                callback: function (value, validator, $field) {
+                                    var task_id = $("input[name='task_id']").val();
+                                    //if is interactive testCase disable some limit
+                                    if (task_id.length == 4 && task_id[1] == "6") {
+                                        close_input_condition(true)
+                                    } else {
+                                        close_input_condition(false)
+                                    }
+                                    return true
+                                }
                             }
                         }
                     },
@@ -243,7 +340,7 @@
                                 message: 'The default value cannot be empty.'
                             },
                             regexp: {
-                                 regexp: /^[\w|"|\\|\\\\/|\.|\-|\s|\u4e00-\u9fa5|=|&|:|;|\*|,|\(|\)]+$/,
+                                regexp: /^[\w|"|\\|\\\\/|\.|\-|\s|\u4e00-\u9fa5|=|&|:|;|\*|,|\(|\)]+$/,
                                 message: 'The default value is incorrect.'
                             }
                         }
@@ -280,8 +377,7 @@
 
                     rowCount += 1;
                     $("#upload_btn").attr('disabled', 'disabled');
-                }
-                else {
+                } else {
                     alert("Max argument is 20!")
                 }
             });
@@ -316,7 +412,8 @@
             });
 
 
-        });
+        })
+        ;
 
 
     </script>
@@ -383,7 +480,7 @@
 
         <div class="row">
             <div class="col-md-5">
-                <div class="form-group">
+                <div class="form-group  hide-group">
                     <label for="script" class="col-sm-4 col-form-label form-control-label">Script Name</label>
                     <div class="col-sm-8">{{ u.script_name }}
                     </div>
@@ -391,7 +488,7 @@
             </div>
 
             <div class="col-md-7">
-                <div class="form-group">
+                <div class="form-group hide-group">
                     <label for="sample" class="col-sm-3 col-form-label form-control-label">Sample</label>
                     <div class="col-sm-9"> {{ u.sample }}
                     </div>
@@ -421,7 +518,7 @@
             </div>
 
             <div class="col-md-6">
-                <div class="input-group">
+                <div class="input-group hide-group">
                     <label style="padding-top: 1%" class="form-control-label"> TestCase Zip&emsp;</label>
                     <div class="custom-file">
                         {{ u.file }}
@@ -437,11 +534,11 @@
 
         <div class="text-right">
 
-            <button class="btn btn btn-outline-success" type="button" id="add_argument">
+            <button class="btn btn btn-outline-success  hide-group" type="button" id="add_argument">
                 New
             </button>
 
-            <button class="btn btn btn-outline-danger" type="button" id="remove_argument">
+            <button class="btn btn btn-outline-danger  hide-group" type="button" id="remove_argument">
                 Delete
             </button>
 
@@ -449,7 +546,7 @@
         </div>
 
 
-        <table class="table table-bordered" id="task-table">
+        <table class="table table-bordered  hide-group" id="task-table">
             <thead>
             <tr>
                 <th scope="col" style="width: 20%">Argument</th>
