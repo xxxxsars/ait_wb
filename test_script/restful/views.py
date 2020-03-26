@@ -17,7 +17,7 @@ import zipfile, os, shutil, platform
 from test_script.update.forms import *
 from test_script.restful.serializer import *
 
-from common.handler import handle_path
+from common.handler import handle_path,update_script_version
 
 from django.contrib.auth import login
 @api_view(["POST"])
@@ -47,6 +47,8 @@ def delete_attachment(request):
 @authentication_classes((SessionAuthentication,))
 def script_download(request,task_id):
     if request.method == "GET":
+        # update  python script version
+        update_script_version(task_id)
         path = handle_path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
                            "upload_files", task_id)
 

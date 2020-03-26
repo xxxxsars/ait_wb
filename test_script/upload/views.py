@@ -78,7 +78,7 @@ def upload_API(request):
 
         # not interactive will check upload file
         if interactive != "True":
-            err = valid_zip_file(zip_file)
+            err = valid_zip_file(zip_file,id)
             if len(err) > 0:
                 error_messages += err
 
@@ -152,16 +152,5 @@ def handle_uploaded_file(f, task_id):
     os.remove(source_zip)
 
 
-def valid_zip_file(file):
-    error_messages = []
-    try:
-        zip_file = zipfile.ZipFile(file)
-        ret = zip_file.testzip()
-        if ret is not None:
-            error_messages.append("Upload file is no valid zip file.")
-        zip_file.close()
 
-    except Exception:
-        error_messages.append("Upload file is no valid zip file.")
 
-    return error_messages

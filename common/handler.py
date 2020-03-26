@@ -17,11 +17,12 @@ import django
 django.setup()
 
 from django.contrib.auth.models import User
+import zipfile
 from rest_framework import authentication
 from rest_framework import exceptions
 from FactoryWeb.settings import *
 from project.models import *
-
+import re
 
 # handle clare conflicted "common.py" file
 def replace_conflict_file():
@@ -370,17 +371,75 @@ def token_disable_upload_project(token):
         instance.allow_upload = False
         instance.save()
 
-if __name__ =="__main__":
-    # import shutil
-    #
-    # path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'upload_folder')
-    # for dirPath, dirNames, fileNames in os.walk(path):
-    #     for f in fileNames:
-    #         if f == "common.py":
-    #             print(os.path.join(dirPath, f))
-    #             os.remove(os.path.join(dirPath, f))
-    #             shutil.copyfile("common.txt",os.path.join(dirPath, f))
+
+def valid_zip_file(file,task_id):
+    instance = Upload_TestCase.objects.get(task_id = task_id)
+    script_name = instance.script_name
+    version = instance.version
+
+    error_messages = []
     try:
-        print(update_version("9.99"))
-    except ValueError as e:
-        print(e)
+        zip_file = zipfile.ZipFile(file)
+        files = zip_file.namelist()
+        if script_name not in files:
+            error_messages.append("Your file not have [%s] file"%script_name)
+        else:
+            version_line = (zip_file.read(script_name)).decode("utf-8").split("\n")[0]
+            compare = re.search("version\s:\s([\d|\.]+)", version_line)
+            if compare == None:
+                error_messages.append("Your file not had valid version.")
+            else:
+                script_version = compare.group(1)
+                if script_version != version:
+                    error_messages.append("Your script version was not matched.")
+
+
+        ret = zip_file.testzip()
+        if ret is not None:
+            error_messages.append("Upload file is no valid zip file.")
+        zip_file.close()
+
+    except Exception:
+        error_messages.append("Upload file is no valid zip file.")
+
+    return error_messages
+
+
+
+def update_script_version(task_id):
+    task_instance = Upload_TestCase.objects.get(task_id=task_id)
+    script_name =task_instance.script_name
+    version = task_instance.version
+
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    file_path = os.path.join(handle_path(path,"upload_files",task_id),script_name)
+
+    if os.path.exists(file_path)== False:
+        raise FileNotFoundError(f"[{task_id}] :{file_path} not existed")
+
+    with open(file_path,"r+") as fin:
+        lines = fin.readlines()
+
+        version_content = f"#version : {version} \n"
+        if re.search("version.+",lines[0]) ==None:
+            lines.insert(0,version_content)
+        else:
+            lines[0] = version_content
+    with open(file_path,"w") as fout:
+        fout.writelines(lines)
+
+
+
+
+
+if __name__ =="__main__":
+    from test_script.upload.models import *
+
+
+
+    for id in [i.task_id for i in Upload_TestCase.objects.all()]:
+        try:
+            update_script_version(id)
+        except Exception as e:
+            print(e)
+

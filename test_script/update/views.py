@@ -13,6 +13,8 @@ import platform
 import collections
 import re
 
+from common.handler import *
+
 from test_script.update.forms import *
 from test_script.upload.forms import *
 from common.limit import input_argument, valid_default_value
@@ -32,14 +34,20 @@ def update_API(request):
         sample = request.POST.get("sample")
 
         interactive = request.POST.get("interactive")
+        task_info = Upload_TestCase.objects.get(task_id=task_id)
 
         if "file" in request.FILES:
-            try:
-                handle_update_file(request.FILES['file'], task_id)
-            except Exception as e:
-                error_messages.append("Upload file is no valid zip file.")
+            errors = handle_update_file(request.FILES['file'], task_id)
 
-        task_info = Upload_TestCase.objects.get(task_id=task_id)
+            if len(errors)>0:
+                error_messages+= errors
+
+        else:
+            if task_info.script_name != script_name:
+                error_messages.append("Modify the script name must be re-uploaded TestScript.zip.")
+
+
+
 
         if 'attachment' in request.FILES:
             handle_update_attachment(request.FILES['attachment'], task_id)
@@ -53,18 +61,11 @@ def update_API(request):
             task_info.description = task_descript
             task_info.save()
 
-            if len(error_messages) == 0:
-                return JsonResponse(
-                    {'is_valid': True, "message": "Update  Test Case ID: [ %s ] was successfully!" % task_id,
-                     "task_id": task_id}, status=200)
-
-
-            return JsonResponse({'is_valid': False, "error": list(set(error_messages))}, status=500)
 
 
         is_modify = had_modify(request)
 
-        if (is_modify):
+        if (is_modify and len(error_messages)<=0):
             task_info.modify_user = request.user.username
             try:
                 new_version = update_version(task_info.version)
@@ -72,13 +73,14 @@ def update_API(request):
                 err = [str(e)]
                 return JsonResponse({'is_valid': False, "error": err}, status=417)
             task_info.version = new_version
+            task_info.time = datetime.datetime.now()
 
         # handle post task information
         task_info.task_name = task_name
         task_info.script_name = script_name
         task_info.description = task_descript
         task_info.sample = sample
-        task_info.time = datetime.datetime.now()
+
         task_info.save()
 
         db_args = [a.argument for a in Arguments.objects.filter(task_id=task_info)]
@@ -230,6 +232,7 @@ def handle_update_attachment(f, task_id):
 
 # handle_update_file will remove all unzip folder
 def handle_update_file(f, task_id):
+    error_messages = []
     if input_zip_file_name.search(str(f.name)) == None:
         raise Exception("Upload file is no valid zip file.")
 
@@ -242,16 +245,10 @@ def handle_update_file(f, task_id):
             destination.write(chunk)
 
     # check vaild zip file
-    try:
-        zip_file = zipfile.ZipFile(source_zip)
-        ret = zip_file.testzip()
-
-        if ret is not None:
-            raise Exception("not valid zip")
-        zip_file.close()
-    except Exception:
-        os.remove(source_zip)
-        raise Exception("Upload file is no valid zip file.")
+    errors = valid_zip_file(source_zip,task_id)
+    if len(errors) >0:
+        error_messages+=errors
+        return error_messages
 
     # remove old script file
     for file in os.listdir(unzip_path):
@@ -266,3 +263,5 @@ def handle_update_file(f, task_id):
         zip_ref.extractall(unzip_path)
 
     os.remove(source_zip)
+
+    return  error_messages
