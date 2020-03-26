@@ -710,6 +710,17 @@
                 })
             });
 
+            $("#task_table").find("tr").each(function () {
+                if ($(this).find('td.task_id').text()[1] ==6){
+                    $(this).find('td.hide-group').each(function () {
+
+                        input = $(this).find('input');
+                        input.attr('readonly', true);
+                    })
+
+                }
+            })
+
 
         });
     </script>
@@ -771,7 +782,7 @@
 
 
                     </td>
-                    <td>
+                    <td class="hide-group">
                         <div class="form-group">
                             <input type="text"
                                    name="timeout_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
@@ -779,7 +790,7 @@
                                    value="{{ project_di| lookup:"timeout" }}" required>
                         </div>
                     </td>
-                    <td>
+                    <td class="hide-group">
                         <div class="form-group">
                             <input type="text"
                                    name="exitcode_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
@@ -787,7 +798,7 @@
                                    value="{{ project_di| lookup:"exit_code" }}" required>
                         </div>
                     </td>
-                    <td>
+                    <td class="hide-group">
                         <div class="form-group">
                             <input type="text"
                                    name="retry_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
@@ -795,7 +806,7 @@
                                    value="{{ project_di| lookup:"retry_count" }}" required>
                         </div>
                     </td>
-                    <td>
+                    <td class="hide-group">
                         <div class="form-group">
                             <input type="text"
                                    name="sleep_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
@@ -804,7 +815,7 @@
                         </div>
                     </td>
                     <td>
-                        <div class="form-group">
+                        <div class="form-group hide-group">
                             <input type="text"
                                    name="criteria_{{ project_di|lookup:"task_id" }}_{{ project_di|lookup:"id" }}"
                                    class="form-control"

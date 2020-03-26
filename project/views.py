@@ -882,6 +882,7 @@ def get_station_tasks(project_name, part_number, station_name) :
     projetc_task_instances = Project_task.objects.filter(station_id=station_instance)
 
     station_task_ids = [p.task_id.task_id for p in projetc_task_instances]
+    # remove same task id
     task_ids = []
     for id in station_task_ids:
         if id not in task_ids:
@@ -942,18 +943,23 @@ def gen_ini_contents(project_infos):
     ini_map = {}
     for prj_info in (project_infos):
         project_task_id = prj_info["project_task_id"]
+        task_id = prj_info["task_id"]
 
         interactive = "AUTO"
         if prj_info['interactive'] != 'auto':
             interactive = "INTERACTIVE"
 
-        title = "[0_%s_%s_%s]\n" % (interactive, prj_info["task_id"], prj_info["task_name"])
+        title = "[0_%s_%s_%s]\n" % (interactive, task_id, prj_info["task_name"])
         script_path = r'cmd=TestScriptRes\\%s' % prj_info["script_name"]
         arg_str = " ".join([arg for arg in prj_info["args"]])
 
-        content = "%s %s;%s;%s;%s;%s\ncriteria=%s\n" % (
-            script_path, arg_str, prj_info["timeout"], prj_info["exitcode"], prj_info["retry"], prj_info["sleep"],
-            prj_info["criteria"])
+        # if was interactive item the content will be emptied
+        if task_id[1]!="6":
+            content = "%s %s;%s;%s;%s;%s\ncriteria=%s\n" % (
+                script_path, arg_str, prj_info["timeout"], prj_info["exitcode"], prj_info["retry"], prj_info["sleep"],
+                prj_info["criteria"])
+        else:
+            content = "criteria=%s\n" %prj_info["criteria"]
 
         if prj_info['interactive'] != 'auto':
             rule = "%s=%s" % ((prj_info['interactive']).upper(), prj_info['rule'])
