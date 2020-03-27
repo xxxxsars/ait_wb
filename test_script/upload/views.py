@@ -85,8 +85,6 @@ def upload_API(request):
 
         if len(error_messages) == 0:
             task_id = id + serial_number
-            print(task_id,task_name,task_descript,script_name,sample,user_name,user_name)
-
 
             if interactive =="True":
                 up = Upload_TestCase.objects.create(task_id=task_id, task_name=task_name, description=task_descript,

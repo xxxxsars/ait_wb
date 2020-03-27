@@ -32,100 +32,110 @@ def update_API(request):
         task_descript = request.POST.get("description")
         script_name = request.POST.get("script_name")
         sample = request.POST.get("sample")
-
         interactive = request.POST.get("interactive")
         task_info = Upload_TestCase.objects.get(task_id=task_id)
 
+
+        # check error
         if "file" in request.FILES:
             errors = handle_update_file(request.FILES['file'], task_id)
 
             if len(errors)>0:
                 error_messages+= errors
-
         else:
             if task_info.script_name != script_name:
                 error_messages.append("Modify the script name must be re-uploaded TestScript.zip.")
 
 
+        # if had error will return error and not save modify data
+        if len(error_messages) > 0:
+            return JsonResponse({'is_valid': False, "error": list(set(error_messages))}, status=500)
 
 
         if 'attachment' in request.FILES:
             handle_update_attachment(request.FILES['attachment'], task_id)
             task_info.existed_attachment = True
-            attach_name = request.FILES["attachment"].name
+            # attach_name = request.FILES["attachment"].name
 
-
+        # if interactive item only save those item.
         if interactive =="True":
             task_info.task_name = task_name
             task_info.time = datetime.datetime.now()
             task_info.description = task_descript
             task_info.save()
 
+            if len(error_messages) == 0:
+                return JsonResponse(
+                    {'is_valid': True, "message": "Update  Test Case ID: [ %s ] was successfully!" % task_id,
+                     "task_id": task_id}, status=200)
+
+            return JsonResponse({'is_valid': False, "error": list(set(error_messages))}, status=500)
+
+        # not interactive item will do...
+        else:
+            is_modify = had_modify(request)
+
+            if (is_modify and len(error_messages)<=0 and "file" in request.FILES):
+                task_info.modify_user = request.user.username
+                try:
+                    new_version = update_version(task_info.version)
+                except ValueError as e:
+                    err = [str(e)]
+                    return JsonResponse({'is_valid': False, "error": err}, status=417)
+                task_info.version = new_version
+                task_info.time = datetime.datetime.now()
+
+            # handle post task information
+            task_info.task_name = task_name
+            task_info.script_name = script_name
+            task_info.description = task_descript
+            task_info.sample = sample
+
+            task_info.save()
+
+            db_args = [a.argument for a in Arguments.objects.filter(task_id=task_info)]
+
+            arg_descripts = request.POST.getlist("arg_description")
+            arguments = request.POST.getlist("argument")
+            values = request.POST.getlist("default_value")
 
 
-        is_modify = had_modify(request)
+            # if post argument more than database argument will create it.
+            if len(arguments) > len(db_args):
+                index = len(db_args)
+                new_args =arguments[index::]
 
-        if (is_modify and len(error_messages)<=0):
-            task_info.modify_user = request.user.username
-            try:
-                new_version = update_version(task_info.version)
-            except ValueError as e:
-                err = [str(e)]
-                return JsonResponse({'is_valid': False, "error": err}, status=417)
-            task_info.version = new_version
-            task_info.time = datetime.datetime.now()
-
-        # handle post task information
-        task_info.task_name = task_name
-        task_info.script_name = script_name
-        task_info.description = task_descript
-        task_info.sample = sample
-
-        task_info.save()
-
-        db_args = [a.argument for a in Arguments.objects.filter(task_id=task_info)]
-
-        arg_descripts = request.POST.getlist("arg_description")
-        arguments = request.POST.getlist("argument")
-        values = request.POST.getlist("default_value")
+                for i,arg in  enumerate(new_args):
+                    argument = arguments[index+i]
+                    description = arg_descripts[index+i]
+                    value = values[index+i]
+                    a = Arguments.objects.create(argument=argument, description=description, default_value=value,
+                                                 task_id=task_info)
+                    # if had new arg the project argument must be update
+                    for prj_task in Project_task.objects.filter(task_id=task_info):
+                        if not Project_task_argument.objects.filter(project_task_id=prj_task, argument=a).exists():
+                            Project_task_argument.objects.create(default_value=a.default_value, argument=a,
+                                                                 task_id=task_info,
+                                                                 station_id=prj_task.station_id, project_task_id=prj_task)
 
 
-        # if post argument more than database argument will create it.
-        if len(arguments) > len(db_args):
-            index = len(db_args)
-            new_args =arguments[index::]
-
-            for i,arg in  enumerate(new_args):
-                argument = arguments[index+i]
-                description = arg_descripts[index+i]
-                value = values[index+i]
-                a = Arguments.objects.create(argument=argument, description=description, default_value=value,
-                                             task_id=task_info)
-                # if had new arg the project argument must be update
-                for prj_task in Project_task.objects.filter(task_id=task_info):
-                    if not Project_task_argument.objects.filter(project_task_id=prj_task, argument=a).exists():
-                        Project_task_argument.objects.create(default_value=a.default_value, argument=a,
-                                                             task_id=task_info,
-                                                             station_id=prj_task.station_id, project_task_id=prj_task)
+            new_db_args = [a.argument for a in Arguments.objects.filter(task_id=task_info)]
+            for i, arg in enumerate(arguments):
+                # if argument had in database will update
+                if arg in db_args or arg != new_db_args[i]:
+                    arg_info = Arguments.objects.get(task_id=task_info, argument=new_db_args[i])
+                    arg_info.argument = arguments[i]
+                    arg_info.description = arg_descripts[i]
+                    arg_info.default_value = values[i]
+                    arg_info.save()
 
 
-        new_db_args = [a.argument for a in Arguments.objects.filter(task_id=task_info)]
-        for i, arg in enumerate(arguments):
-            # if argument had in database will update
-            if arg in db_args or arg != new_db_args[i]:
-                arg_info = Arguments.objects.get(task_id=task_info, argument=new_db_args[i])
-                arg_info.argument = arguments[i]
-                arg_info.description = arg_descripts[i]
-                arg_info.default_value = values[i]
-                arg_info.save()
+            if len(error_messages) == 0:
+                return JsonResponse(
+                    {'is_valid': True, "message": "Update  Test Case ID: [ %s ] was successfully!" % task_id,
+                     "task_id": task_id}, status=200)
 
-
-        if len(error_messages) == 0:
-            return JsonResponse(
-                {'is_valid': True, "message": "Update  Test Case ID: [ %s ] was successfully!" % task_id,
-                 "task_id": task_id}, status=200)
-
-        return JsonResponse({'is_valid': False, "error": list(set(error_messages))}, status=500)
+            return JsonResponse({'is_valid': False, "error": list(set(error_messages))}, status=500)
 
 
 @login_required(login_url="/user/login/")
