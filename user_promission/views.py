@@ -13,9 +13,14 @@ from django.core.mail import send_mail
 
 
 def login(request):
+    next = request.GET.get('next', '')
+
     login_page = True
     if request.user.is_authenticated:
-        return HttpResponseRedirect(reverse('index'))
+        if next=="":
+            return HttpResponseRedirect(reverse('index'))
+        else:
+            return HttpResponseRedirect(next)
 
     if request.method == "POST":
 
@@ -31,7 +36,10 @@ def login(request):
 
             if user is not None and user.is_active:
                 auth.login(request, user)
-                return HttpResponseRedirect(reverse('index'))
+                if next == "":
+                    return HttpResponseRedirect(reverse('index'))
+                else:
+                    return HttpResponseRedirect(next)
             else:
                 return render(request, 'login.html', locals())
 
