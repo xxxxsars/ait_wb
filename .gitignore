@@ -1,5 +1,5 @@
 *.sqlite3
-.idea
+.idea/
 upload_files/*
 user_project/*
 ait/ait_jar/*

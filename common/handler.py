@@ -16,6 +16,8 @@ import django
 
 django.setup()
 
+
+
 from django.contrib.auth.models import User
 import zipfile
 from rest_framework import authentication
@@ -33,7 +35,6 @@ def replace_conflict_file():
 
                 os.remove(os.path.join(dirPath, f))
                 shutil.copyfile("common.txt",os.path.join(dirPath, f))
-
 
 def handle_path(root_path, *args):
     result_path = ""
@@ -79,7 +80,6 @@ def create_project_folder(username, project_name, part_numbers):
         if not os.path.exists(part_number_path):
             os.makedirs(part_number_path)
 
-
 def create_pn_folder(username, project_name, part_number):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -91,7 +91,6 @@ def create_pn_folder(username, project_name, part_number):
     part_number_path = os.path.join(root_path, part_number)
     if not os.path.exists(part_number_path):
         os.makedirs(part_number_path)
-
 
 def create_stations_folder(username, project_name, part_number, stations):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -105,7 +104,6 @@ def create_stations_folder(username, project_name, part_number, stations):
         if not os.path.exists(station_path):
             os.makedirs(station_path)
 
-
 def create_single_station_folder(username, project_name, part_number, station_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -117,7 +115,6 @@ def create_single_station_folder(username, project_name, part_number, station_na
     part_number_path = os.path.join(root_path, station_name)
     if not os.path.exists(part_number_path):
         os.makedirs(part_number_path)
-
 
 def modify_project_folder(username, new_name, old_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -133,7 +130,6 @@ def modify_project_folder(username, new_name, old_name):
     if not os.path.exists(old_path):
         raise AttributeError("rename paht %s not existed." % old_path)
     os.rename(old_path, new_path)
-
 
 def modify_station_folder(username, project_name, part_number, old_name, new_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -153,7 +149,6 @@ def modify_station_folder(username, project_name, part_number, old_name, new_nam
         raise AttributeError("rename paht %s not existed." % old_path)
     os.rename(old_path, new_path)
 
-
 def modify_pn_folder(username, project_name, old_name, new_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -172,6 +167,45 @@ def modify_pn_folder(username, project_name, old_name, new_name):
         raise AttributeError("rename paht %s not existed." % old_path)
     os.rename(old_path, new_path)
 
+# old id must be full id ,the new_id only input 4 number
+def modify_task_id(old_id, new_id):
+    old_instance = Upload_TestCase.objects.filter(task_id=old_id)
+
+    if old_instance.exists() == False:
+        raise ValueError("Your provide Task ID had error")
+
+    task_instance = old_instance[0]
+
+    task_name = task_instance.task_name
+
+    id = new_id + get_serial_number(new_id)
+
+    new_task_instance = Upload_TestCase.objects.create(task_id=id,
+                                                       task_name="",
+                                                       description=task_instance.description,
+                                                       script_name=task_instance.script_name)
+
+    arguments_table = Arguments.objects.filter(task_id=task_instance)
+
+    for arg in arguments_table:
+        arg.task_id = new_task_instance
+        arg.save()
+
+    task_instance.delete()
+    new_task_instance.task_name = task_name
+    new_task_instance.save()
+
+    # modify the save path
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    if platform.system() == "Windows":
+        source_path = path + r'\upload_files\\'
+
+
+    else:
+        source_path = path + '/upload_files/'
+
+    os.rename(os.path.join(source_path, old_id), os.path.join(source_path, id))
 
 def get_attach_name(task_id):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -180,7 +214,6 @@ def get_attach_name(task_id):
     if os.path.exists(attach_path):
         return os.listdir(attach_path)[0]
     return ""
-
 
 def get_modify_time(task_id):
     path = (os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -194,10 +227,9 @@ def get_modify_time(task_id):
             break
     return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(updata_file_path)))
 
-
 def get_download_file(owner_user, project_name, part_number, station_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    config_path = handle_path(path, "ait_config")
+    config_path = handle_path(path, "project","ait_config")
     project_path = handle_path(path, "user_project", owner_user, project_name, part_number, station_name)
     json_file = os.path.join(project_path, "file_info.json")
     script_path = "TestScriptRes"
@@ -257,8 +289,6 @@ def get_download_file(owner_user, project_name, part_number, station_name):
 
     return zip_files
 
-
-
 def get_script_list():
     task_instances = Upload_TestCase.objects.all()
     datas = []
@@ -282,6 +312,35 @@ def get_script_list():
         datas.append(task_map)
     return datas
 
+def get_serial_number(task_id):
+    datas = Upload_TestCase.objects.filter(task_id__iregex=r"^%s\d{2}" % task_id).values()
+    if len(datas) == 0:
+        return "00"
+    serials = []
+    for data in datas:
+        serial = re.search(r'(\d{2})$', data["task_id"]).group(1)
+        serials.append(int(serial))
+
+    # if not increment get max serials add 1
+    else:
+        serial_number = max(serials) + 1
+
+    if serial_number > 99:
+        # get not increment the smallest serial number
+        tmp = [i for i in range(100)]
+        not_increment = []
+        for i in tmp[:max(serials)]:
+            if i not in serials:
+                not_increment.append(i)
+
+        if len(not_increment) != 0:
+            serial_number = min(not_increment)
+        elif len(not_increment) == 0:
+            raise ValueError("Your serial id is gather than 99.")
+
+    serial = "%02d" % serial_number
+
+    return serial
 
 def update_version(version:str) ->str:
     regex = re.compile(r"^(\d){1}\.(\d{2})$")
@@ -371,7 +430,6 @@ def token_disable_upload_project(token):
         instance.allow_upload = False
         instance.save()
 
-
 def valid_zip_file(file,task_id):
     instance = Upload_TestCase.objects.get(task_id = task_id)
     script_name = instance.script_name
@@ -404,8 +462,6 @@ def valid_zip_file(file,task_id):
 
     return error_messages
 
-
-
 def update_script_version(task_id):
     task_instance = Upload_TestCase.objects.get(task_id=task_id)
     script_name =task_instance.script_name
@@ -427,6 +483,9 @@ def update_script_version(task_id):
             lines[0] = version_content
     with open(file_path,"w") as fout:
         fout.writelines(lines)
+
+
+
 
 
 

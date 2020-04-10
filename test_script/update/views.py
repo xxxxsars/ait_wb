@@ -23,7 +23,7 @@ from project.models import *
 
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
-def update_API(request):
+def update_API_view(request):
     error_messages = []
     if request.POST:
 
@@ -137,9 +137,8 @@ def update_API(request):
 
             return JsonResponse({'is_valid': False, "error": list(set(error_messages))}, status=500)
 
-
 @login_required(login_url="/user/login/")
-def modify_index(request, task_id, message=None):
+def modify_index_view(request, task_id, message=None):
     is_script = True
 
     u = UpdateFileForm()
@@ -164,7 +163,6 @@ def modify_index(request, task_id, message=None):
 
     return render(request, "script_modify.html", locals())
 
-
 def update_version(version:str) ->str:
     regex = re.compile(r"^(\d){1}\.(\d{2})$")
 
@@ -186,8 +184,6 @@ def update_version(version:str) ->str:
         return "%d.%02d"%(first_number,second_number)
     else:
         raise ValueError("Version content is not match")
-
-
 
 def had_modify(request) ->bool:
     # check testCase.zip had been modified
@@ -222,7 +218,6 @@ def had_modify(request) ->bool:
             return True
     return False
 
-
 def handle_update_attachment(f, task_id):
     path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     save_path = handle_path(path, "upload_files", task_id, "attachment")
@@ -238,7 +233,6 @@ def handle_update_attachment(f, task_id):
     with open(os.path.join(save_path, f.name), 'wb+') as destination:
         for chunk in f.chunks():
             destination.write(chunk)
-
 
 # handle_update_file will remove all unzip folder
 def handle_update_file(f, task_id):

@@ -22,7 +22,7 @@ from common.handler import handle_path,update_script_version
 from django.contrib.auth import login
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
-def delete_attachment(request):
+def delete_attachment_view(request):
     if request.method == "POST":
         task_ids = [ u.task_id  for u in Upload_TestCase.objects.all() ]
         if "task_id" not in request.data:
@@ -42,10 +42,9 @@ def delete_attachment(request):
         task_instance.save()
         return Response(status=status.HTTP_200_OK)
 
-
 @api_view(["GET"])
 @authentication_classes((SessionAuthentication,))
-def script_download(request,task_id):
+def script_download_view(request,task_id):
     if request.method == "GET":
         # update  python script version
         update_script_version(task_id)
@@ -71,7 +70,6 @@ def script_download(request,task_id):
 
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
-
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
 def DeleteArgumentView(request, format=None):
@@ -91,7 +89,6 @@ def DeleteArgumentView(request, format=None):
         arg_obj = task_args.get(argument=argument)
         arg_obj.delete()
         return Response(status=status.HTTP_200_OK)
-
 
 class DeleteTestCaseView(viewsets.ModelViewSet):
     queryset = Upload_TestCase.objects.all()
@@ -113,22 +110,9 @@ class DeleteTestCaseView(viewsets.ModelViewSet):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
-def remove_upload_file(task_id):
-    path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-    source_folder = os.path.join(handle_path(path, "upload_files"), task_id)
-
-    # remove  script file
-    try:
-        shutil.rmtree(source_folder)
-    except Exception:
-        pass
-
-
 @api_view(["GET"])
 @authentication_classes((SessionAuthentication,))
-def attach_download(request,task_id):
+def attach_download_view(request,task_id):
     path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     file_root = handle_path(path,"upload_files",task_id,"attachment")
 
@@ -144,10 +128,9 @@ def attach_download(request,task_id):
     response['Content-Disposition'] = 'attachment;filename="%s"'%file_name
     return response
 
-
 @api_view(["GET"])
 @authentication_classes((SessionAuthentication,))
-def valid_create_script_name(request):
+def valid_create_script_name_view(request):
     if request.GET:
         task_name = request.GET["task_name"]
         if Upload_TestCase.objects.filter(task_name=task_name).count():
@@ -155,14 +138,25 @@ def valid_create_script_name(request):
         else:
             return JsonResponse({"valid": True})
 
-
-
 @api_view(["GET"])
 @authentication_classes((SessionAuthentication,))
-def valid_modify_script_name(request):
+def valid_modify_script_name_view(request):
     if request.GET:
         task_name = request.GET["task_name"]
         if Upload_TestCase.objects.filter(task_name=task_name).count() >1:
             return JsonResponse({"valid":False})
         else:
             return JsonResponse({"valid": True})
+
+def remove_upload_file(task_id):
+    path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+    source_folder = os.path.join(handle_path(path, "upload_files"), task_id)
+
+    # remove  script file
+    try:
+        shutil.rmtree(source_folder)
+    except Exception:
+        pass
+
+

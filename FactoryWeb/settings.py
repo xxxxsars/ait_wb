@@ -22,7 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '_)jy1xz6e#-8#s90(!mi9v)n$f*v4j=oe@l7!h#uslcg)ni=r@'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "rest_framework",
-    'user_promission',
+    'user',
     "FactoryWeb",
     'test_script.upload',
     'test_script.update',
@@ -125,6 +125,7 @@ STATIC_URL = '/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+
 # Extra places for collectstatic to find static files.
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'test_script/upload/static'),
@@ -147,9 +148,18 @@ REST_FRAMEWORK = {
 
 
 #samba connection infomation
-SAMBA_IP = "172.21.10.126"
-ACCOUNT = "ait_admin"
-PASSWORD = "ZAQwsx126"
-SAMBA_FOLDER = "CEDATA"
+# SAMBA_IP = "172.21.10.126"
+# ACCOUNT = "ait_admin"
+# PASSWORD = "ZAQwsx126"
+# SAMBA_FOLDER = "CEDATA"
+# WIN_MOUNT_PATH = "W:"
+# OSX_MOUNT_PATH = "/Users/mac/Desktop/share"
+
+
+
+SAMBA_IP = "10.57.8.136"
+ACCOUNT = "kawsing"
+PASSWORD = "pass"
+SAMBA_FOLDER = "public"
 WIN_MOUNT_PATH = "W:"
 OSX_MOUNT_PATH = "/Users/mac/Desktop/share"

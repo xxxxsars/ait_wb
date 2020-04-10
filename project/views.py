@@ -27,19 +27,15 @@ from test_script.list.views import no_attach_tasks
 
 
 @login_required(login_url="/user/login")
-def upload_log(request):
+def upload_log_view(request):
     is_project = True
     project_name =  request.POST['project_name']
     instances =[ p for p in  Project_Upload_time.objects.filter(project_name= project_name) if p.had_upload]
 
     return render(request, "upload_log.html", locals())
 
-
-
-
-
 @login_required(login_url="/usr/login")
-def log_confirm(request, project_name):
+def log_confirm_view(request, project_name):
     is_project = True
 
     token = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(30))
@@ -91,9 +87,8 @@ def log_confirm(request, project_name):
 
     return render(request, "log_confirm.html", locals())
 
-
 @login_required(login_url="/user/login/")
-def list_project(request):
+def list_project_view(request):
     is_project = True
 
 
@@ -164,9 +159,8 @@ def list_project(request):
 
     return render(request, "project_list.html", locals())
 
-
 @login_required(login_url="/user/login")
-def create_project(request):
+def create_project_view(request):
     is_project = True
 
     if request.POST:
@@ -231,9 +225,8 @@ def create_project(request):
 
     return render(request, "project_create.html", locals())
 
-
 @login_required(login_url="/user/login")
-def modify_project(request, project_name, message=None):
+def modify_project_view(request, project_name, message=None):
     is_project = True
     c = CreateProjectForm()
 
@@ -297,9 +290,8 @@ def modify_project(request, project_name, message=None):
 
     return render(request, "project_modify.html", locals())
 
-
 @login_required(login_url='/usr/login')
-def set_station(request, project_name):
+def set_station_view(request, project_name):
     is_project = True
     username = Project.objects.get(project_name=project_name).owner_user.username
     # check project is valid
@@ -354,9 +346,8 @@ def set_station(request, project_name):
 
     return render(request, "station_set.html", locals())
 
-
 @login_required(login_url='/usr/login')
-def modify_station(request, project_name, part_number):
+def modify_station_view(request, project_name, part_number):
     is_project = True
     username = Project.objects.get(project_name=project_name).owner_user.username
     # check project is valid
@@ -399,9 +390,8 @@ def modify_station(request, project_name, part_number):
 
     return render(request, "station_modify.html", locals())
 
-
 @login_required(login_url="/user/login/")
-def select_script(request, project_name, part_number, station_name):
+def select_script_view(request, project_name, part_number, station_name):
     is_project = True
 
     username = Project.objects.get(project_name=project_name).owner_user.username
@@ -529,9 +519,8 @@ def select_script(request, project_name, part_number, station_name):
 
     return render(request, "script_list.html", locals())
 
-
 @login_required(login_url="/user/login/")
-def modify_script(request, project_name, part_number, station_name):
+def modify_script_view(request, project_name, part_number, station_name):
     is_project = True
     is_modify = True
 
@@ -657,7 +646,7 @@ def modify_script(request, project_name, part_number, station_name):
 
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
-def save_ini(request,token):
+def save_ini_view(request,token):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if request.POST:
         # if testScript not been resorted will only provide file download service
@@ -692,7 +681,6 @@ def save_ini(request,token):
 
         return HttpResponse(status=200)
 
-
 def save_token_ini(token ,username, project_name, part_number, station_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     dest_path = handle_path(path, "user_project", username, project_name, part_number, station_name)
@@ -702,7 +690,7 @@ def save_token_ini(token ,username, project_name, part_number, station_name):
 
 def save_task_files(token ,username, project_name, part_number, station_name,task_list,chose_files=None):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    config_path = handle_path(path, "ait_config")
+    config_path = handle_path(path,"project" ,"ait_config")
     script_path = "TestScriptRes"
     dest_path = handle_path(path,"user_project",username, project_name, part_number, station_name)
     shutil.rmtree(dest_path)
@@ -748,7 +736,6 @@ def task_files(task_list):
 def get_md5_map(file, result_map):
     result_map[file] = md5(file)
     return result_map
-
 
 def conflict_files(task_list):
     root_path = handle_path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'upload_files')
@@ -823,18 +810,15 @@ def get_conflict_tasks(conflict_dict):
         conflict_task[cf] = tasks
     return conflict_task
 
-
 def get_station_instacne(project, part_number, station):
     project_instance = Project.objects.get(project_name=project)
     pn_instance = Project_PN.objects.get(project_name=project_instance, part_number=part_number)
     station_instance = Project_Station.objects.get(project_pn_id=pn_instance, station_name=station)
     return station_instance
 
-
 def get_script_name(task_id):
     task_instance = Upload_TestCase.objects.get(task_id=task_id)
     return task_instance.script_name
-
 
 def get_project_infos(post):
     new_prj_task_ids = []
@@ -874,7 +858,6 @@ def get_project_infos(post):
         project_infos.append(tmp_prj_info)
 
     return project_infos
-
 
 def get_station_tasks(project_name, part_number, station_name) :
     part_number_instance = Project_PN.objects.get(project_name=project_name, part_number=part_number)
@@ -936,7 +919,6 @@ def get_station_tasks(project_name, part_number, station_name) :
 
     return sorted_prj_task_li
 
-
 def gen_ini_contents(project_infos):
     new_prj_task_ids = []
 
@@ -977,7 +959,6 @@ def gen_ini_contents(project_infos):
     ini_map["new_prj_task_ids"] = new_prj_task_ids
 
     return ini_map
-
 
 # save int will be save before the download page ,it use token to the file name
 def save_ini_contents(ini_map, ini_order_list, token):
@@ -1041,7 +1022,6 @@ def save_modify_tasks(post, station_instance, posted_ids):
                 arg.default_value = post["arg_%s_%s_%s" % (argument_name, id, arg.project_task_id.id)]
                 arg.save()
 
-
 def save_testScript_order(project_name, part_number, station_name, sorted_list, force_change_sortted):
     project_instance = Project.objects.get(project_name=project_name)
     part_number_instance = Project_PN.objects.get(project_name=project_name, part_number=part_number)
@@ -1091,7 +1071,6 @@ def save_testScript_order(project_name, part_number, station_name, sorted_list, 
                                                           station_name=station_instance)
     return sorted_list
 
-
 def modify_station_name(project_name, part_number, post_st_list):
     project_instance = Project.objects.get(project_name=project_name)
     user_name = project_instance.owner_user.username
@@ -1113,7 +1092,6 @@ def modify_station_name(project_name, part_number, post_st_list):
             create_single_station_folder(user_name, project_name, part_number, post_st)
     else:
         raise ValueError("Your station name had error.")
-
 
 def modify_part_number(project_name, post_pn_list):
     project_instance = Project.objects.get(project_name=project_name)
@@ -1137,7 +1115,6 @@ def modify_part_number(project_name, post_pn_list):
     else:
         raise ValueError("Your part number had error.")
 
-
 def modify_project_name(old_name, new_name):
     project_instance = Project.objects.get(project_name=old_name)
     pn_instances = Project_PN.objects.filter(project_name=project_instance)
@@ -1155,7 +1132,6 @@ def modify_project_name(old_name, new_name):
 
     modify_project_folder(user_name, new_name, old_name)
 
-
 def sorted_arg_value(task_id, value_map):
     task_instance = Upload_TestCase.objects.get(task_id=task_id)
     db_args = [a.argument for a in Arguments.objects.filter(task_id=task_instance)]
@@ -1165,7 +1141,6 @@ def sorted_arg_value(task_id, value_map):
         sort_values.append(value_map[arg])
 
     return sort_values
-
 
 def valid_user(username):
     if User.objects.filter(username=username).exists():

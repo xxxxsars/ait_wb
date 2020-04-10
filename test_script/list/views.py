@@ -9,7 +9,7 @@ from datetime import datetime
 from common.handler import handle_path,get_script_list
 
 @login_required(login_url="/user/login/")
-def list_task(request):
+def list_task_view(request):
     is_script = True
 
     task_instances = Upload_TestCase.objects.all()

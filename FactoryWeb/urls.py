@@ -25,7 +25,7 @@ urlpatterns = [
     url('admin/', admin.site.urls),
     url("^$", index, name="index"),
     url(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
-    url("^user/", include("user_promission.urls")),
+    url("^user/", include("user.urls")),
 
     url("^testCase/", include("test_script.upload.urls")),
     url("^testCase/", include("test_script.update.urls")),

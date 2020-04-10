@@ -21,11 +21,9 @@ from common.handler import handle_path,get_download_file,path_combine,samba_moun
 
 
 # # Create your views here.
-
-
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
-def submit_project(request):
+def submit_project_view(request):
     if request.method == "POST":
 
         project_name = request.data.get("project_name")
@@ -108,11 +106,9 @@ def submit_project(request):
 
     return  JsonResponse({"valid": True,"message":"Submit successfully!"},status=status.HTTP_200_OK)
 
-
-
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
-def CopyPartNumberView(request):
+def copy_part_nummber_view(request):
 
     if request.method == "POST":
         project_name = request.data.get("project_name")
@@ -162,7 +158,7 @@ def CopyPartNumberView(request):
 
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
-def CopyProjectView(request):
+def  copy_project_view(request):
     if request.method == "POST":
         project_name = request.data.get("project_name")
         new_project_name = request.data.get("new_project_name")
@@ -201,7 +197,6 @@ def CopyProjectView(request):
 
         return Response(status=status.HTTP_200_OK)
 
-
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
 def DeleteProjectStationView(request):
@@ -226,7 +221,6 @@ def DeleteProjectStationView(request):
         # delete_pn_file(owner_user,project_name,part_number)
         return Response(status=status.HTTP_200_OK)
 
-
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
 def DeleteProjectPNView(request):
@@ -249,12 +243,10 @@ def DeleteProjectPNView(request):
         delete_file(owner_user, project_name, part_number)
         return Response(status=status.HTTP_200_OK)
 
-
-
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
 @permission_classes([IsAdminUser])
-def ModifyOwnerUser(request):
+def modify_owner_user_view(request):
     if request.method == "POST":
         project_name = request.data.get("project_name")
         username = request.data.get("username")
@@ -275,8 +267,6 @@ def ModifyOwnerUser(request):
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-
-
 class DeleteProjectView(viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
@@ -294,11 +284,9 @@ class DeleteProjectView(viewsets.ModelViewSet):
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
-
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
-def GetScriptSorted(request):
+def get_script_sorted_view(request):
     if request.method == "POST":
         project_name = request.data.get("project_name")
         part_number = request.data.get("part_number")
@@ -314,14 +302,9 @@ def GetScriptSorted(request):
         data = {"script_oder": script_oder.split(" ")}
         return JsonResponse(data)
 
-
-
-
-
-
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
-def valid_testSCript(request):
+def valid_log_view(request):
     if request.method == "POST":
 
         project_name = request.data.get("project_name")
@@ -417,13 +400,9 @@ def valid_testSCript(request):
             token_disable_upload_project(token)
             return JsonResponse({"valid": False,"message":"Please re-download this testScript and test it aging."},status=400)
 
-
-
-
-
 @api_view(["GET"])
 @authentication_classes((SessionAuthentication,))
-def download(request,project_name,part_number,station_name):
+def download_view(request,project_name,part_number,station_name):
     if request.method == "GET":
         station_instance = get_station_instacne(project_name, part_number, station_name)
         owner_user =station_instance.project_pn_id.project_name.owner_user.username
@@ -483,10 +462,9 @@ class DeleteProjectTaskView(viewsets.ModelViewSet):
         disable_upload_project(project_name)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
 @api_view(["GET"])
 @authentication_classes((SessionAuthentication,))
-def valid_projectt_name(request):
+def valid_projectt_name_view(request):
     if request.GET:
         project_name = request.GET["project_name"]
         if Project.objects.filter(project_name=project_name).count():
@@ -499,7 +477,7 @@ def valid_projectt_name(request):
 
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
-def valid_part_number(request):
+def valid_part_number_view(request):
     if request.POST:
         project_name = request.POST["project_name"]
         part_number = request.POST["part_number"]
@@ -524,20 +502,16 @@ def change_project(project_name,old_username, new_username):
 
     shutil.move(old_path, new_path)
 
-
-
 def delete_file(username, *args):
     path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     rm_path = handle_path(path, "user_project", username, *args)
     shutil.rmtree(os.path.join(path, rm_path))
-
 
 def get_station_instacne(project, part_number, station):
     project_instance = Project.objects.get(project_name=project)
     pn_instance = Project_PN.objects.get(project_name=project_instance, part_number=part_number)
     station_instance = Project_Station.objects.get(project_pn_id=pn_instance, station_name=station)
     return station_instance
-
 
 def set_task_order(source:list,target:list):
 
@@ -552,8 +526,6 @@ def set_task_order(source:list,target:list):
         new_order.append(str(target_map[name]))
 
     return " ".join(new_order)
-
-
 
 def copy_pn_files(owner_user,prj,source_pn,target_pn):
     root_path = handle_path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "user_project",str(owner_user),prj)

@@ -10,9 +10,9 @@ router.register(r'delete', DeleteTestCaseView)
 urlpatterns = [
     url("", include(router.urls)),
     url("arg_delete/", DeleteArgumentView),
-    url("attach_download/(?P<task_id>\w{6})/$",attach_download),
-    url("script_download/(?P<task_id>\w{6})/$", script_download),
-    url("delete_attach/$",delete_attachment),
-    url("vil_cre_name/$",valid_create_script_name),
-    url("vil_mod_name/$",valid_modify_script_name),
+    url("attach_download/(?P<task_id>\w{6})/$",attach_download_view),
+    url("script_download/(?P<task_id>\w{6})/$", script_download_view),
+    url("delete_attach/$",delete_attachment_view),
+    url("vil_cre_name/$",valid_create_script_name_view),
+    url("vil_mod_name/$",valid_modify_script_name_view),
 ]
