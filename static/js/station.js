@@ -28,12 +28,12 @@ function station_table_clone(part_number, index) {
                 '                                            <option value="ASSY_FT5">ASSY_FT5</option>\n' +
                 '                                            <option value="ASSY_FT6">ASSY_FT6</option>\n' +
                 '                                            <option data-divider="true"></option>\n' +
-                '                                            <option value="ASSY_DBA_FT1">ASSY_DBA_FT1</option>\n' +
-                '                                            <option value="ASSY_DBA_FT2">ASSY_DBA_FT2</option>\n' +
-                '                                            <option value="ASSY_DBA_FT3">ASSY_DBA_FT3</option>\n' +
-                '                                            <option value="ASSY_DBA_FT4">ASSY_DBA_FT4</option>\n' +
-                '                                            <option value="ASSY_DBA_FT5">ASSY_DBA_FT5</option>\n' +
-                '                                            <option value="ASSY_DBA_FT6">ASSY_DBA_FT6</option>\n' +
+                '                                            <option value="ASSY_OBA_FT1">ASSY_OBA_FT1</option>\n' +
+                '                                            <option value="ASSY_OBA_FT2">ASSY_OBA_FT2</option>\n' +
+                '                                            <option value="ASSY_OBA_FT3">ASSY_OBA_FT3</option>\n' +
+                '                                            <option value="ASSY_OBA_FT4">ASSY_OBA_FT4</option>\n' +
+                '                                            <option value="ASSY_OBA_FT5">ASSY_OBA_FT5</option>\n' +
+                '                                            <option value="ASSY_OBA_FT6">ASSY_OBA_FT6</option>\n' +
                 '                                            <option data-divider="true"></option>\n' +
                 '                                        </select>\n' +
                 '                                    </div>\n' +
