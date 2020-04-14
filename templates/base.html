@@ -8,7 +8,7 @@
     <link rel="icon" type="image/png" href="{% static "pic/qsi_icon.png" %}" sizes="96x96">
 
     <!--import css path-->
-   <link rel="stylesheet" href=  "{% static "bower_components/semantic/dist/semantic.min.css" %}">
+    <link rel="stylesheet" href="{% static "bower_components/semantic/dist/semantic.min.css" %}">
     <link type="text/css" rel="stylesheet" href="{% static "bower_components/bootstrap/dist/css/bootstrap.min.css" %}">
     <link type="text/css" rel="stylesheet"
           href="{% static "bower_components/components-font-awesome/css/fontawesome.min.css" %}">
@@ -114,13 +114,16 @@
 
                 <ul class="nav navbar-nav navbar-right">
                     {% if is_script %}
-                        <li><a class="nav-link" href="{% url "list_script" %}"><i class="fas fa-arrow-left"></i> Back to List</a>
+                        <li><a class="nav-link" href="{% url "list_script" %}"><i class="fas fa-arrow-left"></i> Back to
+                            List</a>
                         </li>
                     {% elif is_project %}
-                        <li><a class="nav-link" href="{% url "list_project" %}"><i class="fas fa-arrow-left"></i> Back to List</a>
+                        <li><a class="nav-link" href="{% url "list_project" %}"><i class="fas fa-arrow-left"></i> Back
+                            to List</a>
                         </li>
                     {% elif is_ait %}
-                        <li><a class="nav-link" href="{% url "ait_download" %}"><i class="fas fa-arrow-left"></i> Back to List</a>
+                        <li><a class="nav-link" href="{% url "ait_download" %}"><i class="fas fa-arrow-left"></i> Back
+                            to List</a>
                         </li>
                     {% endif %}
 
@@ -137,6 +140,29 @@
 <br>
 
 <div class="container">
+
+    <div id="message">
+    </div>
+    <div class="container">
+        <div id="error-dialog" class="modal fade" tabindex="-1" role="dialog"
+             aria-labelledby="exampleModalCenterTitle"
+             aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalCenterTitle">You Get Error!!</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div id="error_message" class="modal-body">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {% block body %}Pleas extend body block {% endblock %}
 </div>
 </body>

@@ -21,6 +21,11 @@
 
 {% block js %}
     <script>
+        function clean_message() {
+            $("#message").empty();
+            $("#error_message").html("");
+
+        }
 
         {#display the upload file name#}
         $(function () {
@@ -99,23 +104,7 @@
                 autoUpload: false,
                 sequentialUploads: true,
                 url: "{% url "testCase_upload" %}",
-                {#formData: $("#upload-form").serializeArray(),#}
 
-                {% comment %}               add: function (e, data) {
-
-
-                                   $("#upload_btn").click(function (e) {
-                                       if ($("#upload-form").data('bootstrapValidator').isValid()) {
-                                           // Make the ajax call here.
-                                           console.log(data);
-                                           data.submit();
-                                       }
-                                   });
-                                                       $("#upload_btn").off('click').on('click', function () {
-
-                                                       });
-
-                               },{% endcomment %}
 
                 start: function (e) {
                     m.modal('show')
@@ -143,17 +132,16 @@
                 fail: function (e, data) {
                     var json = $.parseJSON(data.jqXHR.responseText);
                     if (json.is_valid == false) {
-                        $("#message").empty();
-                        var error_messages = json.error;
-                        $.each(error_messages, function (index, value) {
-                            $("#message").append(
-                                '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
-                                '<strong>' + value + '</strong>' +
-                                '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-                                '<span aria-hidden="true">&times;</span>' +
-                                '</button>' +
-                                '</div>')
-                        })
+
+                        clean_message();
+
+                        var error_messages = "";
+                        $.each(json.error, function (index, value) {
+                            error_messages += value + "<br>";
+                        });
+
+                        $("#error_message").append(error_messages);
+                        $("#error-dialog").modal('show');
                     }
 
                 },
@@ -186,16 +174,13 @@
 
                             error: function (data) {
                                 $("#message").empty();
-                                var error_messages = data.error;
-                                $.each(error_messages, function (index, value) {
-                                    $("#message").append(
-                                        '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
-                                        '<strong>' + value + '</strong>' +
-                                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-                                        '<span aria-hidden="true">&times;</span>' +
-                                        '</button>' +
-                                        '</div>')
-                                })
+                                var error_messages = "";
+                                $.each(data.error, function (index, value) {
+                                    rror_messages += value + "<br>";
+                                });
+
+                                $("#error_message").append(error_messages);
+                                $("#error-dialog").modal('show');
 
                             }
                         });

@@ -430,26 +430,37 @@ def token_disable_upload_project(token):
         instance.allow_upload = False
         instance.save()
 
-def valid_zip_file(file,task_id):
-    instance = Upload_TestCase.objects.get(task_id = task_id)
-    script_name = instance.script_name
-    version = instance.version
-
+def valid_zip_file(file,task_id,post_name=""):
     error_messages = []
+    is_modify = True
+
+    instance = Upload_TestCase.objects.filter(task_id = task_id)
+    # The existed instance means update files
+    if instance.exists():
+        script_name = instance.first().script_name
+        version = instance.first().version
+    elif post_name=="":
+        error_messages.append("Your don't provide the valid script name.")
+        return error_messages
+    else:
+        script_name = post_name
+        is_modify = False
+
+
     try:
         zip_file = zipfile.ZipFile(file)
         files = zip_file.namelist()
         if script_name not in files:
-            error_messages.append("Your file not have [%s] file"%script_name)
-        else:
-            version_line = (zip_file.read(script_name)).decode("utf-8").split("\n")[0]
-            compare = re.search("version\s:\s([\d|\.]+)", version_line)
-            if compare == None:
-                error_messages.append("Your file not had valid version.")
-            else:
-                script_version = compare.group(1)
-                if script_version != version:
-                    error_messages.append("Your script version was not matched.")
+            error_messages.append("Your don't have [%s] file"%script_name)
+        elif is_modify:
+                version_line = (zip_file.read(script_name)).decode("utf-8").split("\n")[0]
+                compare = re.search("version\s:\s([\d|\.]+)", version_line)
+                if compare == None:
+                    error_messages.append("Your file not had valid version.")
+                else:
+                    script_version = compare.group(1)
+                    if script_version != version:
+                        error_messages.append("Your script version was not matched.")
 
 
         ret = zip_file.testzip()

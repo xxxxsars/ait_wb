@@ -3,11 +3,11 @@
  */
 
 
-//auto close alert  after 4 seconds.
-$(".alert").delay(4000).slideUp(200, function () {
-    $(this).alert('close');
-
-});
+// //auto close alert  after 4 seconds.
+// $(".alert").delay(4000).slideUp(200, function () {
+//     $(this).alert('close');
+//
+// });
 
 
 $(function () {
@@ -16,35 +16,35 @@ $(function () {
 
 function ajax_download(url) {
 
-                $.ajax({
-                    "consumes": [],
-                    "produces": [
-                        "application/octet-stream"
-                    ],
-                    url: url,
-                    xhrFields: {
-                        // keep binary file
-                        responseType: "blob"
-                    }
-                }).done((response, status, xhr) => {
-                    // 這邊一定要用原生的 document.createElement
-                    // jQuery 沒辦法真的模擬原生的 click event
+    $.ajax({
+        "consumes": [],
+        "produces": [
+            "application/octet-stream"
+        ],
+        url: url,
+        xhrFields: {
+            // keep binary file
+            responseType: "blob"
+        }
+    }).done((response, status, xhr) => {
+        // 這邊一定要用原生的 document.createElement
+        // jQuery 沒辦法真的模擬原生的 click event
 
-                    const a = document.createElement("a");
-                    // 給下載回來的資料產生一個網址
-                    const url = URL.createObjectURL(response);
-                    a.style = "display: none";
+        const a = document.createElement("a");
+        // 給下載回來的資料產生一個網址
+        const url = URL.createObjectURL(response);
+        a.style = "display: none";
 
-                    //get original filename
-                    var f = (xhr.getResponseHeader('Content-Disposition').split("=")[1]);
+        //get original filename
+        var f = (xhr.getResponseHeader('Content-Disposition').split("=")[1]);
 
-                    var dt = new Date();
-                    a.download = dt.toISOString() +".zip";
-                    a.href = url;
+        var dt = new Date();
+        a.download = dt.toISOString() + ".zip";
+        a.href = url;
 
-                    a.click();
-                    setTimeout(() => URL.revokeObjectURL(url), 5000)
-                });
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 5000)
+    });
 
 }
 
@@ -59,7 +59,7 @@ function ajax_loading(content) {
         $("html").append(
             '<div class="load_panel" style="width: 100%; height: 100%;">' +
             '  <div class="ui active inverted dimmer">' +
-            '    <div class="ui text loader">'+ content +'</div>' +
+            '    <div class="ui text loader">' + content + '</div>' +
             '  </div>' +
             '</div>');
 
@@ -91,4 +91,11 @@ function getCookie(name) {
         }
     }
     return cookieValue;
+}
+
+
+function clean_message() {
+    $("#message").empty();
+    $("#error_message").html("");
+
 }

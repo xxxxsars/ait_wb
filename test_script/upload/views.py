@@ -78,7 +78,7 @@ def upload_API(request):
 
         # not interactive will check upload file
         if interactive != "True":
-            err = valid_zip_file(zip_file,id)
+            err = valid_zip_file(zip_file,id,script_name)
             if len(err) > 0:
                 error_messages += err
 

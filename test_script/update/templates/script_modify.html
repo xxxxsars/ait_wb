@@ -22,6 +22,11 @@
 
 {% block js %}
     <script>
+        function clean_message() {
+            $("#message").empty();
+            $("#error_message").html("");
+
+        }
 
         function close_input_condition(value) {
             vailder = true;
@@ -31,21 +36,6 @@
                 vailder = false;
                 input = true;
             }
-
-
-            {#$("#update-form").bootstrapValidator('enableFieldValidators',#}
-            {#    'file', vailder, 'notEmpty');#}
-            {##}
-            {#$('#update-form').bootstrapValidator('enableFieldValidators',#}
-            {#    'script_name', vailder, 'notEmpty');#}
-            {##}
-            {#$('#update-form').bootstrapValidator('enableFieldValidators',#}
-            {#    'argument', vailder, 'notEmpty');#}
-            {#$('#update-form').bootstrapValidator('enableFieldValidators',#}
-            {#    'default_value', vailder, 'notEmpty');#}
-            {##}
-            {#$('#update-form').bootstrapValidator('enableFieldValidators',#}
-            {#    'arg_description', vailder, 'notEmpty');#}
 
 
             $("#download_script").attr("disabled", input);
@@ -83,7 +73,9 @@
         });
 
         $(document).ready(function () {
-            var task_id = "{{ task_id |escapejs }}"
+
+
+            var task_id = "{{ task_id |escapejs }}";
 
             if (task_id[1] == 6) {
                 close_input_condition(true);
@@ -106,7 +98,7 @@
                 elem = $("#update-form");
 
 
-            /* 2. INITIALIZE THE FILE UPLOAD COMPONENT */
+            //with file update
             file_update = elem.fileupload({
                 dataType: 'json',
                 singleFileUploads: false,
@@ -136,6 +128,8 @@
                     $("div.alert").alert("close");
                     var json = $.parseJSON(data.jqXHR.responseText);
                     if (json.is_valid) {
+
+
                         location.href = "/testCase/modify/" + json.task_id + "/" + json.message
 
                     }
@@ -145,23 +139,13 @@
 
                     var json = $.parseJSON(data.jqXHR.responseText);
                     if (json.is_valid == false) {
-                        $("#message").empty();
-                        var error_messages = json.error;
-                        $.each(error_messages, function (index, value) {
-                            $("#message").append(
-                                '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
-                                '<strong>' + value + '</strong>' +
-                                '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-                                '<span aria-hidden="true">&times;</span>' +
-                                '</button>' +
-                                '</div>')
+                        clean_message();
+                        var error_messages = "";
+                        $.each(json.error, function (index, value) {
+                            error_messages += value + "<br>";
                         });
-
-                        //auto close alert  after 4 seconds.
-                        $(".alert").delay(4000).slideUp(200, function () {
-                            $(this).alert('close');
-
-                        });
+                        $("#error_message").append(error_messages);
+                        $("#error-dialog").modal('show');
 
                         //disable download zip
                         $("#download_script").attr('disabled', 'disabled');
@@ -174,67 +158,56 @@
             });
 
 
-            //if click save button will check all data is valid.
+            //without file update
             $("#update_btn").click(function (e) {
                 $('#update-form').bootstrapValidator('validate');
-                if ($("#update-form").data('bootstrapValidator').isValid()) {
-
-                    //if had updated file will use progress update
-                    if (filesList.length > 0) {
-                        file_update.fileupload('send', {
-                            files: filesList,
-                            paramName: paramNames,
-
-                        });
-                        //else using ajax update
-                    } else {
-                        data = $("#update-form").serialize();
-
-                        $.ajax({
-                            url: "{% url "testCase_update" %}",
-                            type: 'POST',
-                            data: data,
-
-                            success: function (json) {
-                                $("div.alert").alert("close");
-                                location.href = "/testCase/modify/" + json.task_id + "/" + json.message
-
-                            },
-
-                            //處理失敗時會做的動作
-                            error: function (xhr, errmsg, err) {
-
-                                $("div.alert").alert("close");
 
 
-                                var json = $.parseJSON(xhr.responseText);
-                                if (json.is_valid == false) {
-                                    $("#message").empty();
-                                    var error_messages = json.error;
-                                    $.each(error_messages, function (index, value) {
-                                        $("#message").append(
-                                            '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
-                                            '<strong>' + value + '</strong>' +
-                                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-                                            '<span aria-hidden="true">&times;</span>' +
-                                            '</button>' +
-                                            '</div>')
-                                    });
+                //if had updated file will use progress update
+                if (filesList.length > 0) {
+                    file_update.fileupload('send', {
+                        files: filesList,
+                        paramName: paramNames,
 
-                                    //auto close alert  after 4 seconds.
-                                    $(".alert").delay(4000).slideUp(200, function () {
-                                        $(this).alert('close');
+                    });
+                    //else using ajax update
+                } else {
+                    data = $("#update-form").serialize();
 
-                                    })
-                                    //disable download zip
-                                    $("#download_script").attr('disabled', 'disabled');
-                                }
+                    $.ajax({
+                        url: "{% url "testCase_update" %}",
+                        type: 'POST',
+                        data: data,
 
+                        success: function (json) {
+                            $("div.alert").alert("close");
+                            location.href = "/testCase/modify/" + json.task_id + "/" + json.message
+
+                        },
+
+                        error: function (xhr, errmsg, err) {
+                            $("div.alert").alert("close");
+
+                            var json = $.parseJSON(xhr.responseText);
+                            if (json.is_valid == false) {
+                                clean_message();
+
+                                var error_messages = "";
+                                $.each(json.error, function (index, value) {
+                                    error_messages += value + "<br>";
+                                });
+                                $("#error_message").html(error_messages);
+                                $("#error-dialog").modal('show');
+
+                                //disable download zip
+                                $("#download_script").attr('disabled', 'disabled');
                             }
-                        });
-                    }
 
+                        }
+                    });
                 }
+
+
             });
 
 
@@ -492,7 +465,9 @@
     <h3>Modify TeseCase</h3>
 
 
-    <div id="message"></div>
+
+
+
     <br>
 
     <div class="modal fade" id="modal-progress" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
@@ -546,14 +521,14 @@
 
 
 
-    {% if error_message %}
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <strong>{{ error_message|escape }}</strong>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    {% endif %}
+    {#    {% if error_message %}#}
+    {#        <div class="alert alert-danger alert-dismissible fade show" role="alert">#}
+    {#            <strong>{{ error_message|escape }}</strong>#}
+    {#            <button type="button" class="close" data-dismiss="alert" aria-label="Close">#}
+    {#                <span aria-hidden="true">&times;</span>#}
+    {#            </button>#}
+    {#        </div>#}
+    {#    {% endif %}#}
 
 
     <form enctype="multipart/form-data" method="post"
