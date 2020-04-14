@@ -89,7 +89,12 @@ __pycache__/
 local_settings.py
 
 .env
-*.sqlite3
+db.sqlite3
+.idea
+.idea/*
+upload_files/
+ait/ait_jar/
+user_project/
 ipfs_file
 _test*
 celerybeat-schedule
