@@ -148,18 +148,18 @@ REST_FRAMEWORK = {
 
 
 #samba connection infomation
-# SAMBA_IP = "172.21.10.126"
-# ACCOUNT = "ait_admin"
-# PASSWORD = "ZAQwsx126"
-# SAMBA_FOLDER = "CEDATA"
-# WIN_MOUNT_PATH = "W:"
-# OSX_MOUNT_PATH = "/Users/mac/Desktop/share"
-
-
-
-SAMBA_IP = "10.57.8.136"
-ACCOUNT = "kawsing"
-PASSWORD = "pass"
-SAMBA_FOLDER = "public"
+SAMBA_IP = "172.21.10.126"
+ACCOUNT = "ait_admin"
+PASSWORD = "ZAQwsx126"
+SAMBA_FOLDER = "CEDATA"
 WIN_MOUNT_PATH = "W:"
 OSX_MOUNT_PATH = "/Users/mac/Desktop/share"
+
+
+
+# SAMBA_IP = "10.57.8.136"
+# ACCOUNT = "kawsing"
+# PASSWORD = "pass"
+# SAMBA_FOLDER = "public"
+# WIN_MOUNT_PATH = "W:"
+# OSX_MOUNT_PATH = "/Users/mac/Desktop/share"
