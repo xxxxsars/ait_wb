@@ -20,7 +20,7 @@ from ait.forms import *
 from ait.models import *
 
 from FactoryWeb.settings import *
-from common.handler import path_combine, samba_mount
+from common.handler import path_combine, samba_mount,handle_path
 
 
 # Create your views here.
@@ -213,7 +213,7 @@ def handle_uploaded_file(f):
     else:
         samba_path = path_combine(OSX_MOUNT_PATH,"AIT.jar")
 
-    save_path = path_combine(path, 'ait_jar', "AIT.jar")
+    save_path =  path_combine(handle_path(path, 'ait_jar'),"AIT.jar")
 
     with open(os.path.join(save_path), 'wb+') as destination:
         for chunk in f.chunks():
