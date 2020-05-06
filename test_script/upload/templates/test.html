@@ -110,31 +110,17 @@
 
 
         $(document).ready(function () {
-            var filesList = [],
-                paramNames = [],
-                elem = $("form");
+            $("#set").click(function () {
+                $('input[name="myName"]').data("tel", "0988736182");
 
-
-            file_upload = elem.fileupload({
-                formData: $("#test-form").serializeArray(),
-                autoUpload: false,
-                fileInput: $("input:file"),
-                start: function (e) {  /* 2. WHEN THE UPLOADING PROCESS STARTS, SHOW THE MODAL */
-                    console.log("start")
-                },
-            }).on("fileuploadadd", function (e, data) {
-                filesList.push(data.files[0]);
-                paramNames.push(e.delegatedEvent.target.name);
             });
 
-            $("button").click(function (e) {
-                e.preventDefault();
-                file_upload.fileupload('send', {
-                    files: filesList,
-                    paramName: paramNames,
 
-                });
-            })
+            $("#get").click(function () {
+                 let tel = $('input[name="myName"]').data("tel");
+                 let name = $('input[name="myName"]').val();
+                 alert(name +':'+tel);
+            });
         })
     </script>
 {% endblock %}
@@ -143,19 +129,13 @@
 
 
 
-    <form action="http://127.0.0.1:8000/testCase/test/" method="POST" id="test-form">{% csrf_token %}
-        <input name="file1[]" type="file" multiple/>
-        <br/>
-
-        <input name="file2[]" type="file" multiple/>
-        <br/>
-
-        <input name="file3[]" type="file" multiple/>
-        <br/>
+    <form action="#" id="test-form">{% csrf_token %}
+        Name: <input name="myName" type="text">
 
 
     </form>
-    <button>send by fileupload send api</button>
+    <button id="set">set</button>
+    <button id="get">get</button>
 
     {% comment %}    <form enctype="multipart/form-data" method="post" action="" id="upload-form">{% csrf_token %}
         {{ p.task_id }}

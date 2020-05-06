@@ -38,7 +38,7 @@ def update_API_view(request):
 
         # check error
         if "file" in request.FILES:
-            errors = handle_update_file(request.FILES['file'], task_id)
+            errors = handle_update_file(request.FILES['file'], task_id,script_name)
 
             if len(errors)>0:
                 error_messages+= errors
@@ -235,7 +235,8 @@ def handle_update_attachment(f, task_id):
             destination.write(chunk)
 
 # handle_update_file will remove all unzip folder
-def handle_update_file(f, task_id):
+def handle_update_file(f, task_id,script_name):
+
     error_messages = []
     if input_zip_file_name.search(str(f.name)) == None:
         raise Exception("Upload file is no valid zip file.")
@@ -249,7 +250,7 @@ def handle_update_file(f, task_id):
             destination.write(chunk)
 
     # check vaild zip file
-    errors = valid_zip_file(source_zip,task_id)
+    errors = valid_zip_file(source_zip,task_id,script_name)
     if len(errors) >0:
         error_messages+=errors
         return error_messages
