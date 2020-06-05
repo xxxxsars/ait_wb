@@ -29,10 +29,11 @@ from test_script.list.views import no_attach_tasks
 @login_required(login_url="/user/login")
 def upload_log_view(request):
     is_project = True
-    project_name =  request.POST['project_name']
-    instances =[ p for p in  Project_Upload_time.objects.filter(project_name= project_name) if p.had_upload]
+    project_name = request.POST['project_name']
+    instances = [p for p in Project_Upload_time.objects.filter(project_name=project_name) if p.had_upload]
 
     return render(request, "upload_log.html", locals())
+
 
 @login_required(login_url="/usr/login")
 def log_confirm_view(request, project_name):
@@ -87,10 +88,10 @@ def log_confirm_view(request, project_name):
 
     return render(request, "log_confirm.html", locals())
 
+
 @login_required(login_url="/user/login/")
 def list_project_view(request):
     is_project = True
-
 
     username = request.user.username
     user_list = [u.username for u in User.objects.all()]
@@ -107,8 +108,9 @@ def list_project_view(request):
         allow_upload = False
         upload_date = "Not Uploaded"
 
-        filter_instances = [ instance  for instance in  Project_Upload_time.objects.filter(project_name=p)  if instance.had_upload ]
-        if len(filter_instances) >0:
+        filter_instances = [instance for instance in Project_Upload_time.objects.filter(project_name=p) if
+                            instance.had_upload]
+        if len(filter_instances) > 0:
             upload_date = filter_instances[-1].time
 
         project_dict = {"project_id": 'prj_%d' % prj_id, "project_name": p.project_name,
@@ -158,6 +160,7 @@ def list_project_view(request):
         project_structure.append(project_dict)
 
     return render(request, "project_list.html", locals())
+
 
 @login_required(login_url="/user/login")
 def create_project_view(request):
@@ -225,6 +228,7 @@ def create_project_view(request):
 
     return render(request, "project_create.html", locals())
 
+
 @login_required(login_url="/user/login")
 def modify_project_view(request, project_name, message=None):
     is_project = True
@@ -290,6 +294,7 @@ def modify_project_view(request, project_name, message=None):
 
     return render(request, "project_modify.html", locals())
 
+
 @login_required(login_url='/usr/login')
 def set_station_view(request, project_name):
     is_project = True
@@ -346,6 +351,7 @@ def set_station_view(request, project_name):
 
     return render(request, "station_set.html", locals())
 
+
 @login_required(login_url='/usr/login')
 def modify_station_view(request, project_name, part_number):
     is_project = True
@@ -387,8 +393,8 @@ def modify_station_view(request, project_name, part_number):
         susessful = "Modify Station Name successfully!"
         disable_upload_project(project_name)
 
-
     return render(request, "station_modify.html", locals())
+
 
 @login_required(login_url="/user/login/")
 def select_script_view(request, project_name, part_number, station_name):
@@ -519,6 +525,7 @@ def select_script_view(request, project_name, part_number, station_name):
 
     return render(request, "script_list.html", locals())
 
+
 @login_required(login_url="/user/login/")
 def modify_script_view(request, project_name, part_number, station_name):
     is_project = True
@@ -588,7 +595,7 @@ def modify_script_view(request, project_name, part_number, station_name):
         else:
             post_data = dict(request.POST.lists())
             if "new_prj_task_ids" in request.POST:
-                new_prj_task_ids=(request.POST.get('new_prj_task_ids')).split(" ")
+                new_prj_task_ids = (request.POST.get('new_prj_task_ids')).split(" ")
 
             project_infos = get_project_infos(post_data)
 
@@ -601,23 +608,22 @@ def modify_script_view(request, project_name, part_number, station_name):
             save_modify_tasks(request.POST, station_instance, not_dedup_task_ids)
 
             # if on "confirm page" will save testScript ordering and return order list
-            sorted_list =  [info["project_task_id"] for info in project_infos]
-            testScript_order_list = save_testScript_order(project_name, part_number, station_name, sorted_list,False)
+            sorted_list = [info["project_task_id"] for info in project_infos]
+            testScript_order_list = save_testScript_order(project_name, part_number, station_name, sorted_list, False)
             disable_upload_project(project_name)
-
 
             # if ajax call will check conflict file
             if 'ajax_saved' in request.POST:
                 # check conflict files
                 cf = conflict_files(not_dedup_task_ids)
 
-
                 if len(cf.keys()) != 0:
                     conflict_tmp_path = path_combine(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                                                      "user_project", "cf_%s.json" % request.POST["conflict_token"])
                     with open(conflict_tmp_path, 'w') as f:
                         json.dump(cf, f)
-                    return  HttpResponseBadRequest(content= 'You have some conflicting files. Please click "Next" to proceed.')
+                    return HttpResponseBadRequest(
+                        content='You have some conflicting files. Please click "Next" to proceed.')
 
 
             # if submit only check confilct json had existed.
@@ -644,9 +650,10 @@ def modify_script_view(request, project_name, part_number, station_name):
 
     return render(request, "argument.html", locals())
 
+
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
-def save_ini_view(request,token):
+def save_ini_view(request, token):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if request.POST:
         # if testScript not been resorted will only provide file download service
@@ -666,33 +673,34 @@ def save_ini_view(request,token):
 
             # # save those file to owner user folder
             username = request.user.username
-            path =request.POST.getlist("path[]")
+            path = request.POST.getlist("path[]")
             project_name = path[0]
             part_number = path[1]
             station_name = path[2]
 
-
             # save new ini
-            save_token_ini(token ,username, project_name, part_number, station_name)
+            save_token_ini(token, username, project_name, part_number, station_name)
             # save the new order to db
             sorted_list = request.POST.getlist("sroted_list[]")
-            save_testScript_order(project_name, part_number, station_name, sorted_list,True)
+            save_testScript_order(project_name, part_number, station_name, sorted_list, True)
             disable_upload_project(project_name)
 
         return HttpResponse(status=200)
 
-def save_token_ini(token ,username, project_name, part_number, station_name):
+
+def save_token_ini(token, username, project_name, part_number, station_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     dest_path = handle_path(path, "user_project", username, project_name, part_number, station_name)
     ini_path = os.path.join(handle_path(path, "user_project"), "%s.ini" % token)
-    shutil.copy2(ini_path, os.path.join(dest_path,"testScript.ini"))
+    shutil.copy2(ini_path, os.path.join(dest_path, "testScript.ini"))
     os.remove(ini_path)
 
-def save_task_files(token ,username, project_name, part_number, station_name,task_list,chose_files=None):
+
+def save_task_files(token, username, project_name, part_number, station_name, task_list, chose_files=None):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    config_path = handle_path(path,"project" ,"ait_config")
+    config_path = handle_path(path, "project", "ait_config")
     script_path = "TestScriptRes"
-    dest_path = handle_path(path,"user_project",username, project_name, part_number, station_name)
+    dest_path = handle_path(path, "user_project", username, project_name, part_number, station_name)
     shutil.rmtree(dest_path)
 
     if not os.path.exists(dest_path):
@@ -705,14 +713,15 @@ def save_task_files(token ,username, project_name, part_number, station_name,tas
 
     # create task files information json file
     json_data = {}
-    with open( os.path.join(dest_path ,"file_info.json"),"w") as f:
+    with open(os.path.join(dest_path, "file_info.json"), "w") as f:
         json_data["task_list"] = task_list
-        if chose_files!=None:
+        if chose_files != None:
             json_data["chose_file"] = chose_files
-        json.dump(json_data,f)
+        json.dump(json_data, f)
 
     # add ini
     save_token_ini(token, username, project_name, part_number, station_name)
+
 
 def task_files(task_list):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -733,9 +742,11 @@ def task_files(task_list):
 
     return task_files
 
+
 def get_md5_map(file, result_map):
     result_map[file] = md5(file)
     return result_map
+
 
 def conflict_files(task_list):
     root_path = handle_path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'upload_files')
@@ -743,7 +754,7 @@ def conflict_files(task_list):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     file_map = task_files(task_list)
 
-    pool =  Pool()
+    pool = Pool()
     result = []
     md5_map = {}
 
@@ -765,9 +776,9 @@ def conflict_files(task_list):
     for path, md5 in md5_map.items():
 
         if platform.system() == "Windows":
-            match = re.search(r'upload_files\\(\w+)\\(.+)',path)
+            match = re.search(r'upload_files\\(\w+)\\(.+)', path)
         else:
-            match = re.search(r'upload_files/(\w+)/(.+)',path)
+            match = re.search(r'upload_files/(\w+)/(.+)', path)
 
         if match:
             file = match.group(2)
@@ -790,6 +801,7 @@ def conflict_files(task_list):
 
     return dedup_map
 
+
 def get_conflict_tasks(conflict_dict):
     # get conflict file
     conflict_files = []
@@ -810,15 +822,18 @@ def get_conflict_tasks(conflict_dict):
         conflict_task[cf] = tasks
     return conflict_task
 
+
 def get_station_instacne(project, part_number, station):
     project_instance = Project.objects.get(project_name=project)
     pn_instance = Project_PN.objects.get(project_name=project_instance, part_number=part_number)
     station_instance = Project_Station.objects.get(project_pn_id=pn_instance, station_name=station)
     return station_instance
 
+
 def get_script_name(task_id):
     task_instance = Upload_TestCase.objects.get(task_id=task_id)
     return task_instance.script_name
+
 
 def get_project_infos(post):
     new_prj_task_ids = []
@@ -859,7 +874,8 @@ def get_project_infos(post):
 
     return project_infos
 
-def get_station_tasks(project_name, part_number, station_name) :
+
+def get_station_tasks(project_name, part_number, station_name):
     part_number_instance = Project_PN.objects.get(project_name=project_name, part_number=part_number)
     station_instance = Project_Station.objects.get(station_name=station_name, project_pn_id=part_number_instance)
     projetc_task_instances = Project_task.objects.filter(station_id=station_instance)
@@ -885,7 +901,7 @@ def get_station_tasks(project_name, part_number, station_name) :
 
             # if the task name had be repeated and not append serial number will add serial number
             if task_id in list(existed_task_id.values()) and project_task_name in list(existed_task_id.keys()):
-                task_map["task_name"] = task_map["task_name"] + " %d"%list(existed_task_id.values()).count(task_id)
+                task_map["task_name"] = task_map["task_name"] + " %d" % list(existed_task_id.values()).count(task_id)
             existed_task_id[task_map["task_name"]] = task_id
 
             for arg in Project_task_argument.objects.filter(project_task_id=prj_task):
@@ -907,7 +923,6 @@ def get_station_tasks(project_name, part_number, station_name) :
 
             prj_task_li.append(task_map)
 
-
     sorted_prj_task_ids = sorted([info["id"] for info in prj_task_li])
 
     sorted_prj_task_li = []
@@ -918,6 +933,7 @@ def get_station_tasks(project_name, part_number, station_name) :
                 sorted_prj_task_li.append(info)
 
     return sorted_prj_task_li
+
 
 def gen_ini_contents(project_infos):
     new_prj_task_ids = []
@@ -934,20 +950,33 @@ def gen_ini_contents(project_infos):
         title = "[0_%s_%s_%s]\n" % (interactive, task_id, prj_info["task_name"])
         script_path = r'cmd=TestScriptRes\\%s' % prj_info["script_name"]
         arg_str = " ".join([arg for arg in prj_info["args"]])
+        args = prj_info["args"]
+        remove_args = []
+        # if arg was empty will not add to content
+        for i, arg in enumerate(args):
+            if re.search("\-\w{1}", arg):
+                next_arg = args[i + 1]
+                if next_arg == "":
+                    remove_args.append(arg)
+                    remove_args.append(next_arg)
+        if len(args) > 0:
+            for r_arg in remove_args:
+                args.remove(r_arg)
+        arg_str = " ".join([arg for arg in args])
 
         # if was interactive item the content will be emptied
-        if task_id[1]!="6":
+        if task_id[1] != "6":
             content = "%s %s;%s;%s;%s;%s\ncriteria=%s\n" % (
                 script_path, arg_str, prj_info["timeout"], prj_info["exitcode"], prj_info["retry"], prj_info["sleep"],
                 prj_info["criteria"])
         else:
-            content = "criteria=%s\n" %prj_info["criteria"]
+            content = "criteria=%s\n" % prj_info["criteria"]
 
         if prj_info['interactive'] != 'auto':
             rule = "%s=%s" % ((prj_info['interactive']).upper(), prj_info['rule'])
 
             if prj_info['priority'] == "interactive":
-                ini_map[project_task_id] = title + rule +"\n" + content
+                ini_map[project_task_id] = title + rule + "\n" + content
             else:
                 ini_map[project_task_id] = title + content + rule
 
@@ -960,6 +989,7 @@ def gen_ini_contents(project_infos):
 
     return ini_map
 
+
 # save int will be save before the download page ,it use token to the file name
 def save_ini_contents(ini_map, ini_order_list, token):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -971,6 +1001,7 @@ def save_ini_contents(ini_map, ini_order_list, token):
     # save ini
     with open(os.path.join(handle_path(path, "user_project"), "%s.ini" % token), "w") as f:
         f.write(ini_content)
+
 
 # if will return the new project_task id list
 def save_add_tasks(add_task_ids, station_instance):
@@ -989,6 +1020,7 @@ def save_add_tasks(add_task_ids, station_instance):
                                                  station_id_id=station_instance.id, task_id=task_instance,
                                                  project_task_id=prj_task_instance)
     return " ".join(prj_task_ids)
+
 
 # add the new testCase on the project and handle the repeated test case add the serial number
 def save_modify_tasks(post, station_instance, posted_ids):
@@ -1009,18 +1041,19 @@ def save_modify_tasks(post, station_instance, posted_ids):
 
             prj_task.interactive = post["interactive_%s_%s" % (id, prj_task.id)]
 
-            if  prj_task.interactive !="auto":
+            if prj_task.interactive != "auto":
                 prj_task.rule = post["rule_%s_%s" % (id, prj_task.id)]
                 prj_task.priority = post["priority_%s_%s" % (id, prj_task.id)]
             else:
-                prj_task.rule =""
-                prj_task.priority =""
+                prj_task.rule = ""
+                prj_task.priority = ""
 
             prj_task.save()
             for arg in Project_task_argument.objects.filter(project_task_id=prj_task):
                 argument_name = arg.argument.argument
                 arg.default_value = post["arg_%s_%s_%s" % (argument_name, id, arg.project_task_id.id)]
                 arg.save()
+
 
 def save_testScript_order(project_name, part_number, station_name, sorted_list, force_change_sortted):
     project_instance = Project.objects.get(project_name=project_name)
@@ -1055,8 +1088,6 @@ def save_testScript_order(project_name, part_number, station_name, sorted_list, 
                     if id not in sorted_list:
                         db_order.remove(id)
 
-
-
                 order_content = " ".join(db_order)
                 order_instance[0].script_oder = order_content
                 order_instance[0].save()
@@ -1070,6 +1101,7 @@ def save_testScript_order(project_name, part_number, station_name, sorted_list, 
                                                           part_number=part_number_instance,
                                                           station_name=station_instance)
     return sorted_list
+
 
 def modify_station_name(project_name, part_number, post_st_list):
     project_instance = Project.objects.get(project_name=project_name)
@@ -1093,6 +1125,7 @@ def modify_station_name(project_name, part_number, post_st_list):
     else:
         raise ValueError("Your station name had error.")
 
+
 def modify_part_number(project_name, post_pn_list):
     project_instance = Project.objects.get(project_name=project_name)
     user_name = project_instance.owner_user.username
@@ -1115,6 +1148,7 @@ def modify_part_number(project_name, post_pn_list):
     else:
         raise ValueError("Your part number had error.")
 
+
 def modify_project_name(old_name, new_name):
     project_instance = Project.objects.get(project_name=old_name)
     pn_instances = Project_PN.objects.filter(project_name=project_instance)
@@ -1132,6 +1166,7 @@ def modify_project_name(old_name, new_name):
 
     modify_project_folder(user_name, new_name, old_name)
 
+
 def sorted_arg_value(task_id, value_map):
     task_instance = Upload_TestCase.objects.get(task_id=task_id)
     db_args = [a.argument for a in Arguments.objects.filter(task_id=task_instance)]
@@ -1141,6 +1176,7 @@ def sorted_arg_value(task_id, value_map):
         sort_values.append(value_map[arg])
 
     return sort_values
+
 
 def valid_user(username):
     if User.objects.filter(username=username).exists():

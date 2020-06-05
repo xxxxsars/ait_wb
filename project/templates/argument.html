@@ -575,6 +575,17 @@
                 ]
 
             });
+
+
+            var detailInputNames = [];
+
+            {% for info in prj_task_li %}
+                {% for arg in info|lookup:"args" %}
+                    detailInputNames.push('arg_{{ arg|lookup:"argument"}}_{{ info|lookup:"task_id" }}_{{ info|lookup:"id" }}');
+                {% endfor %}
+            {% endfor %}
+
+
             // Add event listener for opening and closing details
             $('#task_table tbody').on('click', 'td.details-control', function () {
                 var tr = $(this).closest('tr.row_tr');
@@ -597,7 +608,8 @@
                     row.child(format(index, task_id)).show();
                     tr.addClass('shown');
 
-                    tr.next('tr').find('td').find("table.detail-table").bootstrapValidator({
+                    let t = tr.next('tr').find('td').find("table.detail-table")
+                    t.bootstrapValidator({
                         message: 'This value is not valid',
                         feedbackIcons: {
                             valid: 'fas fa-check',
@@ -609,6 +621,7 @@
                                 {% for arg in info|lookup:"args" %}
                                     arg_{{ arg|lookup:"argument"}}_{{ info|lookup:"task_id" }}_{{ info|lookup:"id" }}: {
                                         message: 'The default value is not valid',
+                                        enabled: false,
                                         validators: {
                                             notEmpty: {
                                                 message: 'The default value cannot be empty.'
@@ -625,10 +638,18 @@
 
                     }).on('error.field.bv', function (e, data) {
                         $("#btn-save").attr('disabled', 'disabled');
-                    })
-                        .on('success.field.bv', function (e, data) {
-                            $("#btn-save").removeAttr('disabled');
-                        });
+                    }).on('success.field.bv', function (e, data) {
+                        $("#btn-save").removeAttr('disabled');
+                    //if empty not check data else will check
+                    }).on('keyup', 'input', function () {
+                        let inputName = $(this).attr("name");
+                        let isCheekInput = jQuery.inArray(inputName, detailInputNames);
+                        if (isCheekInput) {
+                            var isEmpty = $(this).val() == '';
+                            t.bootstrapValidator('enableFieldValidators', inputName, !isEmpty);
+
+                        }
+                    });
 
 
                     //hide the unless value
@@ -711,7 +732,7 @@
             });
 
             $("#task_table").find("tr").each(function () {
-                if ($(this).find('td.task_id').text()[1] ==6){
+                if ($(this).find('td.task_id').text()[1] == 6) {
                     $(this).find('td.hide-group').each(function () {
 
                         input = $(this).find('input');
