@@ -80,6 +80,7 @@
                 $("#part-table tbody.{{ part_number }}").each(function () {
                     var values = row;
                     $(this).find("select[name='{{ part_number }}']").each(function (i) {
+                        console.log(values[i])
                         $(this).val(values[i])
                     })
                 });
@@ -185,7 +186,7 @@
 
             <!--set selected station name-->
             {% for st in st_list %}
-                $('#station_{{ forloop.counter }} option[value="{{st.station_name}}"]').attr("selected", true);
+                 $('#station_{{ forloop.counter }}').val("{{st.station_name}}");
             {% endfor %}
         });
 
