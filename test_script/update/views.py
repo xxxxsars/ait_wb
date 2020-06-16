@@ -42,7 +42,7 @@ def update_API_view(request):
 
             if len(errors)>0:
                 error_messages+= errors
-        else:
+        elif interactive ==False:
             if task_info.script_name != script_name:
                 error_messages.append("Modify the script name must be re-uploaded TestScript.zip.")
 
@@ -146,6 +146,7 @@ def modify_index_view(request, task_id, message=None):
     # handle the "GET" function
     a = ArgumentForm()
     task_info = Upload_TestCase.objects.get(task_id=task_id)
+    print(task_info.script_name)
     args = Arguments.objects.filter(task_id=task_info)
     render_value = True
     if message !=None:
