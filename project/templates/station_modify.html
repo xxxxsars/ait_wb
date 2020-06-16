@@ -5,7 +5,7 @@
 {% block head %}
     <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
     <script src="{% static "bower_components/jquery-ui/jquery-ui.min.js" %}"></script>
-    <script src="{% static "bower_components/bootstrap-select/dist/js/bootstrap-select.min.js" %}"></script>
+
     <script src="{% static "bower_components/bootstrapvalidator/dist/js/bootstrapValidator.min.js" %}"></script>
     <script src="{% static "bower_components/bootstrapvalidator/dist/js/language/en_US.js" %}"></script>
     <script src={% static "bower_components/datatables.net/js/jquery.dataTables.min.js" %}></script>
@@ -16,9 +16,10 @@
     <link type="text/css" rel="stylesheet"
           href="{% static "bower_components/datatables.net-dt/css/select.dataTables.min.css" %}">
     <link type="text/css" rel="stylesheet"
-          href="{% static "bower_components/bootstrap-select/dist/css/bootstrap-select.min.css" %}">
+
     <link type="text/css" rel="stylesheet"
           href="{% static "bower_components/bootstrapvalidator/dist/css/bootstrapValidator.min.css" %}">
+
 
 {% endblock %}
 
@@ -80,7 +81,6 @@
                 $("#part-table tbody.{{ part_number }}").each(function () {
                     var values = row;
                     $(this).find("select[name='{{ part_number }}']").each(function (i) {
-                        console.log(values[i])
                         $(this).val(values[i])
                     })
                 });
@@ -156,7 +156,6 @@
                     <!--set station_<index>-->
                     var index = $("select").length + 1;
                     append_target.append(station_table_clone(part_number, index));
-                    $('.add_dropdwon').selectpicker();
 
                     var add_input = ($('select[name="' + part_number + '"]').last());
                     $('#set_station_form').bootstrapValidator('addField', add_input);
@@ -186,7 +185,7 @@
 
             <!--set selected station name-->
             {% for st in st_list %}
-                  $('#station_{{ forloop.counter }} option[value="{{st.station_name}}"]').attr("selected", "selected").change();
+                  $('#station_{{ forloop.counter }} option[value="{{st.station_name}}"]').attr("selected", "selected");
             {% endfor %}
         });
 
@@ -265,8 +264,7 @@
                                     <div style="margin-left: 10%">
                                         <select name="{{ pn_instance.part_number }}"
                                                 id="station_{{ forloop.counter }}"
-                                                class="stations selectpicker show-tick"
-                                                data-live-search="true">
+                                                class="stations form-control">
                                             <option value="PCBA_FT1">PCBA_FT1</option>
                                             <option value="PCBA_FT2">PCBA_FT2</option>
                                             <option value="PCBA_FT3">PCBA_FT3</option>
@@ -320,8 +318,9 @@
 
                                     <div style="margin-left: 10%">
 
-                                        <select name="{{ pn_instance.part_number }}" id="station_{{ forloop.counter }}"
-                                                class="stations selectpicker">
+                                             <select name="{{ pn_instance.part_number }}"
+                                                id="station_{{ forloop.counter }}"
+                                                class="stations form-control">
                                             <option value="PCBA_FT1">PCBA_FT1</option>
                                             <option value="PCBA_FT2">PCBA_FT2</option>
                                             <option value="PCBA_FT3">PCBA_FT3</option>

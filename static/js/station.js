@@ -5,7 +5,7 @@ function station_table_clone(part_number, index) {
                 '                                <div class="input-group mb-3">\n' +
                 '                                    <div style="margin-left: 10%">\n' +
                 '                                        <select name="' + part_number + '" id="station_' + index + '"\n' +
-                '                                                class="add_dropdwon stations selectpicker show-tick"\n' +
+                '                                                class="stations form-control"\n' +
                 '                                                data-live-search="true" title="Nothing selected">\n' +
                 '                                            <option value="PCBA_FT1">PCBA_FT1</option>\n' +
                 '                                            <option value="PCBA_FT2">PCBA_FT2</option>\n' +
