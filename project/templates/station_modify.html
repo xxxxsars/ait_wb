@@ -186,7 +186,7 @@
 
             <!--set selected station name-->
             {% for st in st_list %}
-                  $('#station_{{ forloop.counter }} option[value="{{st.station_name}}"]').attr("selected", "selected");
+                  $('#station_{{ forloop.counter }} option[value="{{st.station_name}}"]').attr("selected", "selected").change();
             {% endfor %}
         });
 
@@ -321,8 +321,7 @@
                                     <div style="margin-left: 10%">
 
                                         <select name="{{ pn_instance.part_number }}" id="station_{{ forloop.counter }}"
-                                                class="stations selectpicker show-tick"
-                                                data-live-search="true">
+                                                class="stations selectpicker">
                                             <option value="PCBA_FT1">PCBA_FT1</option>
                                             <option value="PCBA_FT2">PCBA_FT2</option>
                                             <option value="PCBA_FT3">PCBA_FT3</option>
