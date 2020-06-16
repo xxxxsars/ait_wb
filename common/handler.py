@@ -281,6 +281,10 @@ def get_download_file(owner_user, project_name, part_number, station_name):
                             if full_file_path in chose_files_path:
                                 zip_files.append((full_file_path, target_path))
                                 compressed_file.append(check_target_path)
+                        # append other not conflict files
+                        else:
+                            zip_files.append((full_file_path, target_path))
+                            compressed_file.append(check_target_path)
                     else:
 
                         zip_files.append((full_file_path, target_path))
