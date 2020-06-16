@@ -186,7 +186,7 @@
 
             <!--set selected station name-->
             {% for st in st_list %}
-                 $('#station_{{ forloop.counter }}').val("{{st.station_name}}");
+                  $('#station_{{ forloop.counter }} option[value="{{st.station_name}}"]').attr("selected", "selected");
             {% endfor %}
         });
 
