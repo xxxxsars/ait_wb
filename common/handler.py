@@ -262,6 +262,7 @@ def get_download_file(owner_user, project_name, part_number, station_name):
     zip_files = []
 
     for task_id in task_list:
+        update_script_version(task_id)
         file_path = handle_path(path, "upload_files", task_id)
         attach_path = handle_path(file_path, "attachment")
 
