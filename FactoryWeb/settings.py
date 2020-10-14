@@ -123,8 +123,15 @@ USE_TZ = False
 
 STATIC_URL = '/static/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+if DEBUG:
+	STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+else:
+	STATIC_ROOT = 'static'
+
+
+import mimetypes
+mimetypes.add_type("application/javascript", ".js", True)
 
 # Extra places for collectstatic to find static files.
 STATICFILES_DIRS = (
