@@ -464,7 +464,7 @@ def valid_zip_file(file, task_id, script_name):
             error_messages.append("Your don't have [%s] file" % script_name)
         elif is_modify:
             version_line = (zip_file.read(script_name)).decode("utf-8").split("\n")[0]
-            compare = re.search("version\s:\s([\d|\.]+)", version_line)
+            compare = re.search(r'([\d|\.]+)', version_line)
             if compare == None:
                 error_messages.append("Your file not had valid version.")
             else:
@@ -497,12 +497,12 @@ def update_script_version(task_id):
     with open(file_path, "r+") as fin:
         lines = fin.readlines()
 
-        version_content = f"#version : {version} \n"
+        version_parameter = f"server_version = \"{version}\"  \n"
         print_version = f"print('server version : {version}')\n"
-        if re.search(r"^#version.+", lines[0]) == None:
-            lines.insert(0, version_content)
+        if re.search(r"^server_version =.+", lines[0]) == None :
+            lines.insert(0, version_parameter)
         else:
-            lines[0] = version_content
+            lines[0] = version_parameter
 
         if re.search(r"^print\('server version.+", lines[1]) == None:
             lines.insert(1, print_version)
