@@ -498,10 +498,17 @@ def update_script_version(task_id):
         lines = fin.readlines()
 
         version_content = f"#version : {version} \n"
-        if re.search("version.+", lines[0]) == None:
+        print_version = f"print('server version : {version}')\n"
+        if re.search(r"^#version.+", lines[0]) == None:
             lines.insert(0, version_content)
         else:
             lines[0] = version_content
+
+        if re.search(r"^print\('server version.+", lines[1]) == None:
+            lines.insert(1, print_version)
+        else:
+            lines[1] = print_version
+
     with open(file_path, "w") as fout:
         fout.writelines(lines)
 
