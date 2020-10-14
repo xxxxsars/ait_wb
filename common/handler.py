@@ -499,7 +499,9 @@ def update_script_version(task_id):
 
         version_parameter = f"server_version = \"{version}\"  \n"
         print_version = f"print('server version : {version}')\n"
-        if re.search(r"^server_version =.+", lines[0]) == None :
+        if re.search(r"^#version.+", lines[0]):
+            lines[0] = version_parameter
+        elif re.search(r"^server_version =.+", lines[0]) == None :
             lines.insert(0, version_parameter)
         else:
             lines[0] = version_parameter
