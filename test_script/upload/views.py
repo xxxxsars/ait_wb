@@ -91,7 +91,6 @@ def upload_API(request):
                     else:
                         next_arg = arguments[i+1]
                         if re.search("^_\w+$", next_arg):
-                            print(1)
                             error_messages.append("Argument had error!")
 
 
@@ -136,8 +135,6 @@ def upload_API(request):
                  "task_id": task_id}, status=200)
 
         else:
-            # remove zip file
-            os.remove(zip_file)
             return JsonResponse({'is_valid': False, "error": list(set(error_messages))}, status=500)
 
     return JsonResponse({'is_valid': False, "error": list(set(error_messages))}, status=500)
