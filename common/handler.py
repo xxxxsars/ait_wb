@@ -485,7 +485,7 @@ def valid_zip_file(file, task_id, script_name):
 
 
 def update_script_version(task_id):
-    if re.search(r"\d(\d{1}).+",task_id).group(1) == "6":
+    if re.search(r"\d(\d{1}).+", task_id).group(1) == "6":
         return
     task_instance = Upload_TestCase.objects.get(task_id=task_id)
     script_name = task_instance.script_name
@@ -500,16 +500,16 @@ def update_script_version(task_id):
     with open(file_path, "r+") as fin:
         lines = fin.readlines()
 
-        version_parameter = f"server_version = \"{version}\"  \n"
-        print_version = f"print('server version : {version}')\n"
+        version_parameter = f"script_version = \"{version}\"  \n"
+        print_version = f"print('script version : {version}')\n"
         if re.search(r"^#version.+", lines[0]):
             lines[0] = version_parameter
-        elif re.search(r"^server_version =.+", lines[0]) == None :
+        elif re.search(r"^script_version =.+", lines[0]) == None:
             lines.insert(0, version_parameter)
         else:
             lines[0] = version_parameter
 
-        if re.search(r"^print\('server version.+", lines[1]) == None:
+        if re.search(r"^print\('script version.+", lines[1]) == None:
             lines.insert(1, print_version)
         else:
             lines[1] = print_version
