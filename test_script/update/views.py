@@ -267,6 +267,7 @@ def handle_update_file(f, task_id,script_name):
     # check vaild zip file
     errors = valid_zip_file(source_zip,task_id,script_name)
     if len(errors) >0:
+        os.remove(source_zip)
         error_messages+=errors
         return error_messages
 

@@ -135,7 +135,10 @@ def upload_API(request):
                 {'is_valid': True, "message": "Upload  Test Case ID: [ %s ] was successfully!" % task_id,
                  "task_id": task_id}, status=200)
 
-        return JsonResponse({'is_valid': False, "error": list(set(error_messages))}, status=500)
+        else:
+            # remove zip file
+            os.remove(zip_file)
+            return JsonResponse({'is_valid': False, "error": list(set(error_messages))}, status=500)
 
     return JsonResponse({'is_valid': False, "error": list(set(error_messages))}, status=500)
 
