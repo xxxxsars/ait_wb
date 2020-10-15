@@ -145,6 +145,7 @@ def update_API_view(request):
 
 
             if len(error_messages) == 0:
+                update_script_version(task_id)
                 return JsonResponse(
                     {'is_valid': True, "message": "Update  Test Case ID: [ %s ] was successfully!" % task_id,
                      "task_id": task_id}, status=200)
@@ -160,7 +161,6 @@ def modify_index_view(request, task_id, message=None):
     # handle the "GET" function
     a = ArgumentForm()
     task_info = Upload_TestCase.objects.get(task_id=task_id)
-    print(task_info.script_name)
     args = Arguments.objects.filter(task_id=task_info)
     render_value = True
     if message !=None:

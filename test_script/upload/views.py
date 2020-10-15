@@ -130,6 +130,9 @@ def upload_API(request):
                 up.existed_attachment = False
 
             up.save()
+
+            update_script_version(task_id)
+
             return JsonResponse(
                 {'is_valid': True, "message": "Upload  Test Case ID: [ %s ] was successfully!" % task_id,
                  "task_id": task_id}, status=200)
