@@ -954,7 +954,7 @@ def gen_ini_contents(project_infos):
         remove_args = []
         # if arg was empty will not add to content
         for i, arg in enumerate(args):
-            if re.search("^\-\w{1}$", arg):
+            if re.search("^\-\w+$", arg):
                 next_arg = args[i + 1]
                 if next_arg == "":
                     remove_args.append(arg)

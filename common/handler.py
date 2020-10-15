@@ -485,6 +485,8 @@ def valid_zip_file(file, task_id, script_name):
 
 
 def update_script_version(task_id):
+    if re.search(r"\d(\d{1}).+",task_id).group(1) == "6":
+        return
     task_instance = Upload_TestCase.objects.get(task_id=task_id)
     script_name = task_instance.script_name
     version = task_instance.version
