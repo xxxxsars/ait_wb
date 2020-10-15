@@ -33,6 +33,11 @@ def update_API_view(request):
         script_name = request.POST.get("script_name")
         sample = request.POST.get("sample")
         interactive = request.POST.get("interactive")
+
+        arg_descripts = request.POST.getlist("arg_description")
+        arguments = request.POST.getlist("argument")
+        values = request.POST.getlist("default_value")
+
         task_info = Upload_TestCase.objects.get(task_id=task_id)
 
 
@@ -46,6 +51,17 @@ def update_API_view(request):
             if task_info.script_name != script_name:
                 error_messages.append("Modify the script name must be re-uploaded TestScript.zip.")
 
+        # not interactive will check arguments
+        if interactive != "True":
+            for i, e in enumerate(arguments):
+                argument = arguments[i]
+                if re.search("^_\w+$", argument):
+                    if len(arguments)-1 < i+1:
+                        error_messages.append("Argument had error!")
+                    else:
+                        next_arg = arguments[i+1]
+                        if re.search("^_\w+$", next_arg):
+                            error_messages.append("Argument had error!")
 
         # if had error will return error and not save modify data
         if len(error_messages) > 0:
@@ -95,9 +111,7 @@ def update_API_view(request):
 
             db_args = [a.argument for a in Arguments.objects.filter(task_id=task_info)]
 
-            arg_descripts = request.POST.getlist("arg_description")
-            arguments = request.POST.getlist("argument")
-            values = request.POST.getlist("default_value")
+
 
 
             # if post argument more than database argument will create it.

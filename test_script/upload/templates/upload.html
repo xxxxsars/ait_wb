@@ -187,7 +187,6 @@
 
 
                     } else {
-
                         file_upload.fileupload('send', {
                             files: filesList,
                             paramName: paramNames,
@@ -294,23 +293,26 @@
                             },
 
                             callback: {
-                                message: 'The argument can not be repreated.',
                                 callback: function (value, validator, $field) {
                                     var arg_array = [];
                                     $("input[name='argument']").each(function () {
                                         arg_value = $(this).val();
                                         arg_array.push(arg_value);
                                     });
-
-                                    var count = 0;
+                                    var deplicate_count = 0;
                                     for (var i = 0; i < arg_array.length; i++) {
-                                        count += (arg_array[i] == value);
+                                        deplicate_count += (arg_array[i] == value);
                                     }
 
-                                    if (count > 1) {
-                                        return false
+                                    if (deplicate_count > 1) {
+                                        return {
+                                            valid: false,
+                                            message: 'The argument can not be repreated.'
+                                        }
                                     } else {
-                                        return true
+                                        return {
+                                            valid: true,
+                                        }
                                     }
 
                                 }

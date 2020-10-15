@@ -68,7 +68,6 @@ def upload_API(request):
         values = request.POST.getlist("default_value")
 
 
-
         serial_number = "00"
         try:
             serial_number = get_serial_number(id)
@@ -81,6 +80,22 @@ def upload_API(request):
             err = valid_zip_file(zip_file,id,script_name)
             if len(err) > 0:
                 error_messages += err
+
+        # not interactive will check arguments
+        if interactive != "True":
+            for i, e in enumerate(arguments):
+                argument = arguments[i]
+                if re.search("^_\w+$", argument):
+                    if len(arguments)-1 < i+1:
+                        error_messages.append("Argument had error!")
+                    else:
+                        next_arg = arguments[i+1]
+                        if re.search("^_\w+$", next_arg):
+                            print(1)
+                            error_messages.append("Argument had error!")
+
+
+
 
 
         if len(error_messages) == 0:
