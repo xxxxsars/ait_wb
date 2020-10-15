@@ -147,8 +147,9 @@
                         $("#error_message").append(error_messages);
                         $("#error-dialog").modal('show');
 
-                        //disable download zip
-                        $("#download_script").attr('disabled', 'disabled');
+                        {#//disable download zip#}
+                        {#$("#download_script").attr('disabled', 'disabled');#}
+                        {#$('#update-form').bootstrapValidator('resetForm', true);#}
                     }
 
                 },
@@ -161,6 +162,7 @@
             //without file update
             $("#update_btn").click(function (e) {
                 $('#update-form').bootstrapValidator('validate');
+
 
 
                 //if had updated file will use progress update
@@ -199,8 +201,9 @@
                                 $("#error_message").html(error_messages);
                                 $("#error-dialog").modal('show');
 
-                                //disable download zip
-                                $("#download_script").attr('disabled', 'disabled');
+                                {#//disable download zip#}
+                                {#$("#download_script").attr('disabled', 'disabled');#}
+                                {#$('#update-form').bootstrapValidator('resetForm', true);#}
                             }
 
                         }
