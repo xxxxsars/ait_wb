@@ -18,7 +18,7 @@ from FactoryWeb.settings import *
 from project.restful.serializer import *
 from project.models import *
 from common.handler import handle_path,get_download_file,path_combine,samba_mount,disable_upload_project,token_disable_upload_project
-
+from common.parser import *
 
 # # Create your views here.
 @api_view(["POST"])
@@ -399,6 +399,27 @@ def valid_log_view(request):
 
             token_disable_upload_project(token)
             return JsonResponse({"valid": False,"message":"Please re-download this testScript and test it aging."},status=400)
+
+
+
+@api_view(["POST"])
+@authentication_classes((SessionAuthentication,))
+def upload_view(request):
+    if request.method == "POST":
+        project_name = request.data.get("project_name")
+        part_number = request.data.get("part_number")
+        station_name = request.data.get("station_name")
+        file = request.FILES['file']
+
+        lines = (file.read()).decode("utf-8")
+
+        try:
+            s = script_parser(lines,project_name,part_number,station_name)
+            s.convert_script()
+        except Exception as e:
+            return JsonResponse({"valid": False, "message": str(e)},
+                                status=417)
+        return HttpResponse(status=status.HTTP_200_OK)
 
 @api_view(["GET"])
 @authentication_classes((SessionAuthentication,))

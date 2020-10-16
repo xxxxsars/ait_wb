@@ -67,6 +67,11 @@
 
         });
         $(document).ready(function () {
+            //auto close alert  after 4 seconds.
+            $(".alert").delay(4000).slideUp(200, function () {
+                $(this).alert('close');
+
+            });
 
             //if had datas means posted ,even the result current ,will set the post value to all station input
             {% if datas %}
@@ -96,14 +101,101 @@
             <!--add next page button-->
             {% if datas and errors|trans_not %}
                 console.log("ininin")
-                $("#part-table tbody tr").find('div.input-group').append('<div class="input-group-append"><button type="button" class="btn btn-outline-primary select-script"><i class="fas fa-share"></i></button></div>');
+                $("#part-table tbody tr").find('div.input-group').append('<div class="input-group-append"><button type="button" class="btn btn-outline-primary select-script"><i class="fas fa-share"></i></button><button type="button" class="btn btn-outline-success upload-script"><i class="fas fa-file-upload"></i></button> <input type="file" class="file_upload" accept=".ini" style="display: none"></div>');
+
+
                 $(".select-script").click(function () {
                     var project_name = '{{ project_name }}';
                     var part_number = ($(this).closest("tbody").attr("class").split(" ")[2]);
                     var station_name = $(this).closest('tr').find("select").val();
-
                     location.href = '/project/select_script/' + project_name + '/' + part_number + '/' + station_name;
                 });
+
+
+                $("button.upload-script").click(function () {
+                    var project_name = '{{ project_name }}';
+                    var part_number = ($(this).closest("tbody").attr("class").split(" ")[2]);
+                    var station_name = $(this).closest('tr').find("select").val();
+
+                    {#location.href = '/project/upload_script/' + project_name + '/' + part_number + '/' + station_name;#}
+                    var input_upload = $(this).next(".file_upload");
+                    input_upload.click()
+
+
+                    $(".file_upload").change(function () {
+                        var form_data = new FormData();
+                        var file_element = $(this);
+                        var parent_element = $(this).closest(".input-group-append");
+                        var file_data = file_element.prop('files')[0];
+                        form_data.append('project_name', project_name);
+                        form_data.append('part_number', part_number);
+                        form_data.append('station_name', station_name);
+                        form_data.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+
+
+                        form_data.append('file', file_data);
+
+                        $.ajax({
+                            url: "{% url "upload_script" %}",
+                            type: 'POST',
+                            cache: false,
+                            contentType: false,
+                            processData: false,
+                            data: form_data,
+                            success: function (json) {
+                                $("#ajax_message").empty();
+
+                                $("#ajax_message").append(
+                                    '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                                    '<strong>The testScript had been created!</strong>' +
+                                    '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                                    '<span aria-hidden="true">&times;</span>' +
+                                    '</button>' +
+                                    '</div>')
+
+
+                                //auto close alert  after 4 seconds.
+                                $(".alert").delay(4000).slideUp(200, function () {
+                                    $(this).alert('close');
+                                });
+
+                                {#parent_element.find(".select-script").attr("disabled","disabled")#}
+
+                            },
+
+                            error: function (xhr, errmsg, err) {
+
+                                var json = $.parseJSON(xhr.responseText);
+
+                                if (json.valid == false) {
+                                    $("#ajax_message").empty();
+                                    var error_messages = json.message;
+                                    $("#ajax_message").append(
+                                        '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                                        '<strong>' + error_messages + '</strong>' +
+                                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                                        '<span aria-hidden="true">&times;</span>' +
+                                        '</button>' +
+                                        '</div>');
+
+
+                                    //auto close alert  after 4 seconds.
+                                    $(".alert").delay(4000).slideUp(200, function () {
+                                        $(this).alert('close');
+
+                                    });
+
+                                    file_element.val("")
+                                }
+
+                            }
+                        });
+                    })
+
+
+                });
+
+
             {% endif %}
 
             $("#set_station_form").bootstrapValidator({
@@ -217,6 +309,8 @@
         </div>
 
     {% endif %}
+
+    <div id="ajax_message"></div>
 
 
     <form id="set_station_form" enctype="multipart/form-data" method="post" action="">{% csrf_token %}
