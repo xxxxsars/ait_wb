@@ -8,7 +8,7 @@ Author Andy Huang
 import os
 import re
 import json
-
+from common.handler import *
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'FactoryWeb.settings')
 import django
@@ -30,6 +30,8 @@ class script_parser:
         self.pn_obj = Project_PN.objects.filter(project_name=self.prj,part_number=self.pn)
         self.st_obj = Project_Station.objects.filter(station_name=self.st,project_pn_id=self.pn_obj[0])
         self.created_prj_task_id = []
+        self.task_id = []
+        self.username = self.prj_obj.first().owner_user.username
 
     def __check_prj(self):
 
@@ -40,9 +42,34 @@ class script_parser:
         prj_task_obj = Project_task.objects.filter(station_id=self.st_obj[0])
         assert (prj_task_obj.count()==0),"Your test case must be empty."
 
+
+    def clean_content(self):
+        lines = [line + '\n' for line in self.content.split("\n") if not re.search(r"^;", line) and len(line) > 0]
+        content = "".join(lines)
+
+        return content
+
+    def __copy_ini(self,task_id):
+
+            path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            lines = [line + '\n' for line in self.content.split("\n") if not re.search(r"^;", line) ]
+            content = "".join(lines)
+
+            root_path = handle_path(path, "user_project",self.username,self.prj,self.pn,self.st)
+
+            with open(os.path.join(root_path, "testScript.ini"), "w") as f:
+                f.write(content)
+
+            file_info = {"task_list":task_id}
+
+            with open(os.path.join(root_path, "file_info.json"), "w") as f:
+                json.dump(file_info,f)
+
+
     def save_prj_task(self,task_type,task_id,task_name,content):
         task_instance = Upload_TestCase.objects.get(task_id=task_id)
 
+        self.task_id.append(task_id)
         inter_type = ["IMAGE","DIALOG","INPUT","INPUTAREA","CONDITIONDIALOG","CMDDIALOG"]
 
         cmd_reg = re.compile("(cmd|IMAGE|DIALOG|INPUT|INPUTAREA|CONDITIONDIALOG|CMDDIALOG)=(.+)")
@@ -139,9 +166,7 @@ class script_parser:
 
 
         try:
-            lines =[ line+'\n' for line  in self.content.split("\n")  if not re.search(r"^;",line) and len(line)>0]
-            content = "".join(lines)
-
+            content = self.clean_content()
         except Exception as e:
             raise Exception("Read upload testScript.ini failed.")
 
@@ -187,15 +212,14 @@ class script_parser:
                             arg.delete()
                     raise Exception(str(e))
 
-        print(self.created_prj_task_id)
+
 
         order = " ".join([ str(id) for id in self.created_prj_task_id])
         Project_TestScript_order.objects.create(station_name=self.st_obj.first(), part_number=self.pn_obj.first(),
                                                 project_name=self.prj_obj.first(), script_oder=order)
 
 
-
-
+        self.__copy_ini(self.task_id)
 
 
 
