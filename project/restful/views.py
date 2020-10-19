@@ -108,7 +108,7 @@ def submit_project_view(request):
 
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
-def copy_part_nummber_view(request):
+def copy_part_number_view(request):
 
     if request.method == "POST":
         project_name = request.data.get("project_name")

@@ -21,6 +21,6 @@ urlpatterns = [
     url("valid_log/$",valid_log_view,name='valid_log'),
     url("submit_project/$",submit_project_view,name='submit_project'),
     url("copy_project/$",copy_project_view),
-    url("copy_part_number/",copy_part_nummber_view)
+    url("copy_part_number/",copy_part_number_view)
 
 ]
