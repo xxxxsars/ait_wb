@@ -279,7 +279,7 @@
                                     message: 'The task name cannot be empty.'
                                 },
                                 regexp: {
-                                    regexp:  /^[\w|\.|_|\s]+$/,
+                                    regexp: /^[\w|\.|_|\s]+$/,
                                     message: 'The task name is incorrect.'
                                 },
                             }
@@ -410,7 +410,6 @@
                 $("#arg_append").append('<input type="text" name="ajax_saved"  type="hidden">');
 
                 {% if new_prj_task_ids %}
-                    console.log("in")
                     $("#arg_append").append('<input type="text" name="new_prj_task_ids"  type="hidden" value="{{ new_prj_task_ids }}">');
                 {% endif %}
 
@@ -422,7 +421,8 @@
                 $.ajax({
                     type: "POST",
                     url: window.location.href,
-                    data: data, // serializes the form's elements.
+                    data: data, // serializes the form's elements.,
+                    async: false,
                     success: function (data) {
                         $("#saved-message").empty();
 
@@ -441,17 +441,12 @@
 
                     },
                     error: function (xhr, errmsg, err) {
+                        $("#error_message").html(xhr.responseText + "<br>");
+                        $("#error-dialog").modal('show');
 
-
-                        $("#saved-message").empty();
-
-                        $("#saved-message").append(
-                            '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
-                            '<strong>' + xhr.responseText + '</strong>' +
-                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-                            '<span aria-hidden="true">&times;</span>' +
-                            '</button>' +
-                            '</div>')
+                        if (!(xhr.responseText.includes("conflict"))) {
+                            save_count = 0
+                        }
 
                         //auto close alert  after 4 seconds.
                         $(".alert").delay(4000).slideUp(200, function () {
@@ -640,7 +635,7 @@
                         $("#btn-save").attr('disabled', 'disabled');
                     }).on('success.field.bv', function (e, data) {
                         $("#btn-save").removeAttr('disabled');
-                    //if empty not check data else will check
+                        //if empty not check data else will check
                     }).on('keyup', 'input', function () {
                         let inputName = $(this).attr("name");
                         let isCheekInput = jQuery.inArray(inputName, detailInputNames);

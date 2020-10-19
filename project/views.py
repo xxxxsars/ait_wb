@@ -482,7 +482,11 @@ def select_script_view(request, project_name, part_number, station_name):
             testScript_order_list = [info["project_task_id"] for info in project_infos]
             save_testScript_order(project_name, part_number, station_name, [], False)
 
-            ini_content_map = gen_ini_contents(project_infos)
+            try:
+                ini_content_map = gen_ini_contents(project_infos)
+            except Exception as e:
+                return HttpResponseBadRequest(
+                    content=str(e))
 
             # if  will save and change to confirm page (not matter file confilicted )
             save_modify_tasks(request.POST, station_instance, not_dedup_task_ids)
@@ -602,7 +606,11 @@ def modify_script_view(request, project_name, part_number, station_name):
             not_dedup_task_ids = list(
                 set([re.search(r"(\w+)_\d+", prj_id).group(1) for prj_id in (post_data["all_task"][0]).split(",")]))
 
-            ini_content_map = gen_ini_contents(project_infos)
+            try:
+                ini_content_map = gen_ini_contents(project_infos)
+            except Exception as e:
+                return HttpResponseBadRequest(
+                    content=str(e))
 
             # if  will save and change to confirm page (not matter file conflicted )
             save_modify_tasks(request.POST, station_instance, not_dedup_task_ids)
