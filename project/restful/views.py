@@ -416,10 +416,13 @@ def upload_view(request):
         try:
             s = script_parser(lines,project_name,part_number,station_name)
             s.convert_script()
+            ini_content_map = s.get_ini_content_map()
+            task_id = s.get_task_id()
+
         except Exception as e:
             return JsonResponse({"valid": False, "message": str(e)},
                                 status=417)
-        return HttpResponse(status=status.HTTP_200_OK)
+        return JsonResponse( {"ini_content_map":ini_content_map,"task_id":task_id} , status=status.HTTP_200_OK)
 
 @api_view(["GET"])
 @authentication_classes((SessionAuthentication,))

@@ -31,6 +31,7 @@ class script_parser:
         self.st_obj = Project_Station.objects.filter(station_name=self.st,project_pn_id=self.pn_obj[0])
         self.created_prj_task_id = []
         self.task_id = []
+        self.ini_content_map = {}
         self.username = self.prj_obj.first().owner_user.username
 
     def __check_prj(self):
@@ -42,12 +43,6 @@ class script_parser:
         prj_task_obj = Project_task.objects.filter(station_id=self.st_obj[0])
         assert (prj_task_obj.count()==0),"Your test case must be empty."
 
-
-    def clean_content(self):
-        lines = [line + '\n' for line in self.content.split("\n") if not re.search(r"^;", line) and len(line) > 0]
-        content = "".join(lines)
-
-        return content
 
     def __copy_ini(self,task_id):
 
@@ -65,6 +60,26 @@ class script_parser:
             with open(os.path.join(root_path, "file_info.json"), "w") as f:
                 json.dump(file_info,f)
 
+    def __removee_created(self):
+        for id in (self.created_prj_task_id):
+            prj_task_instance = Project_task.objects.get(id=id)
+            prj_task_instance.delete()
+            for arg in (Project_task_argument.objects.filter(project_task_id=id)):
+                arg.delete()
+
+
+    def get_task_id(self):
+        if not self.task_id:
+            self.__removee_created()
+            raise Exception("Task id was empty!")
+
+        return self.task_id
+
+    def get_ini_content_map(self):
+        if not self.ini_content_map:
+            self.__removee_created()
+            raise Exception("ini content map was empty!")
+        return self.ini_content_map
 
     def save_prj_task(self,task_type,task_id,task_name,content):
         task_instance = Upload_TestCase.objects.get(task_id=task_id)
@@ -166,21 +181,23 @@ class script_parser:
 
 
         try:
-            content = self.clean_content()
+            lines = [line + '\n' for line in self.content.split("\n") if not re.search(r"^;", line) and len(line) > 0]
+            content = "".join(lines)
         except Exception as e:
             raise Exception("Read upload testScript.ini failed.")
 
 
-        scrpit_groups = re.split(r"\[.+(AUTO_\d+.+|INTERACTIVE_\d+.+)\]",content)
+        scrpit_groups = re.split(r"(\[.+AUTO_\d+.+|INTERACTIVE_\d+.+\])",content)
 
 
         if len(scrpit_groups) <= 1 :
             raise Exception("Your testScript.ini had error the parser failed.")
 
-        type_reg = re.compile("^(AUTO|INTERACTIVE)_(\d+)_([\w|\s]+)$")
+        type_reg = re.compile("^\[.+(AUTO|INTERACTIVE)_(\d+)_([\w|\s]+)\]$")
 
         content_index = {}
 
+        ini_content = []
         for i,sg in  enumerate( scrpit_groups):
             match = type_reg.search(sg)
             if match:
@@ -202,24 +219,26 @@ class script_parser:
 
                 parser_content = re.sub("\n$","",re.sub(r"^\n","",sg))
 
+                ini_content.append(content_index[i] +"\n"+parser_content+"\n")
+
                 try:
                     self.save_prj_task(scrpit_type,task_id,task_name,parser_content)
                 except Exception as e:
-                    for id in (self.created_prj_task_id):
-                        prj_task_instance = Project_task.objects.get(id= id)
-                        prj_task_instance.delete()
-                        for arg in (Project_task_argument.objects.filter(project_task_id=id)):
-                            arg.delete()
+                    self.__removee_created()
                     raise Exception(str(e))
 
+        try:
+            order = " ".join([ str(id) for id in self.created_prj_task_id])
+            Project_TestScript_order.objects.create(station_name=self.st_obj.first(), part_number=self.pn_obj.first(),
+                                                    project_name=self.prj_obj.first(), script_oder=order)
+            self.task_id = list(set(self.task_id))
+            self.ini_content_map = (dict(zip( self.created_prj_task_id,ini_content)))
 
+            self.__copy_ini(self.task_id)
+        except Exception as e:
+            self.__removee_created()
+            raise Exception(str(e))
 
-        order = " ".join([ str(id) for id in self.created_prj_task_id])
-        Project_TestScript_order.objects.create(station_name=self.st_obj.first(), part_number=self.pn_obj.first(),
-                                                project_name=self.prj_obj.first(), script_oder=order)
-
-
-        self.__copy_ini(self.task_id)
 
 
 

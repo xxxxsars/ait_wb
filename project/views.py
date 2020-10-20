@@ -661,6 +661,37 @@ def modify_script_view(request, project_name, part_number, station_name):
 
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
+def result_ini_view(request, project_name, part_number, station_name,):
+    is_project = True # show "back to list"
+    is_modify = True #upload script not need order
+    token = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(30))  #if modifiied ,it was the tmp.ini name
+    testScript_path = [project_name, part_number, station_name]
+
+    ini_content_map = {}
+    not_dedup_task_ids = []
+    testScript_order_list = []
+
+    ini_reg = re.compile(r"^ini_content_map\[(\d+)\]")
+    task_reg = re.compile(r"^task_id\[(\d+)\]")
+
+    for k,v in (request.POST.dict()).items():
+        ini_match = ini_reg.search(k)
+        task_match =task_reg.search(k)
+
+        if ini_match:
+            ini_id = ini_match.group(1)
+            testScript_order_list.append(ini_id)
+            ini_content_map[ini_id] = v
+
+        if task_match:
+            task_id = v
+            not_dedup_task_ids.append(task_id)
+
+    return render(request, "confirm.html", locals())
+
+
+@api_view(["POST"])
+@authentication_classes((SessionAuthentication,))
 def save_ini_view(request, token):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if request.POST:
@@ -963,7 +994,10 @@ def gen_ini_contents(project_infos):
         # if arg was empty will not add to content
         for i, arg in enumerate(args):
             if re.search("^\-\w+$", arg):
-                next_arg = args[i + 1]
+                try:
+                    next_arg = args[i + 1]
+                except Exception as e:
+                    raise Exception("Your argument had some error ,please modify it.")
                 if next_arg == "":
                     remove_args.append(arg)
                     remove_args.append(next_arg)

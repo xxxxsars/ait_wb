@@ -142,24 +142,33 @@
                             contentType: false,
                             processData: false,
                             data: form_data,
-                            success: function (json) {
+                            success: function (xhr, errmsg, err) {
+
                                 $("#ajax_message").empty();
+                                var url = '/project/result_ini/' + project_name + '/' + part_number + '/' + station_name;
+                                {% comment %}                                $("#ajax_message").append(
+                                                                    '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                                                                    '<strong>The testScript had been created!</strong>' +
+                                                                    '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                                                                    '<span aria-hidden="true">&times;</span>' +
+                                                                    '</button>' +
+                                                                    '</div>')
 
-                                $("#ajax_message").append(
-                                    '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
-                                    '<strong>The testScript had been created!</strong>' +
-                                    '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-                                    '<span aria-hidden="true">&times;</span>' +
-                                    '</button>' +
-                                    '</div>')
 
-
-                                //auto close alert  after 4 seconds.
-                                $(".alert").delay(4000).slideUp(200, function () {
-                                    $(this).alert('close');
-                                });
+                                                                //auto close alert  after 4 seconds.
+                                                                $(".alert").delay(4000).slideUp(200, function () {
+                                                                    $(this).alert('close');
+                                                                });{% endcomment %}
 
                                 {#parent_element.find(".select-script").attr("disabled","disabled")#}
+                                file_element.val("");
+                                 xhr['csrfmiddlewaretoken'] = getCookie('csrftoken');
+                                var post_json = xhr;
+                                console.log(xhr)
+
+                                $.redirect(url,
+                                  post_json,
+                                    "POST",'_blank');
 
                             },
 

@@ -86,7 +86,7 @@
             });
 
             //if on modify page ,it item had been move will create new testScript.ini
-            {% if is_modify and ini_content_map|lookup:"new_prj_task_ids"|length == 0 %}
+            {% if  ini_content_map|lookup:"new_prj_task_ids"|length == 0 %}
                 $('#sort-task').sortable({
                     scroll: false,
                     start: function (event, ui) {
@@ -160,7 +160,6 @@
                     },
                 });
             {% else %}
-
                 if ($("#task").find("li").length != 0) {
                     //disalbe download button
                     $("#btn-download").attr('disabled', true);
@@ -438,6 +437,7 @@
 
     {% if err_message is None %}
         {% if is_modify and ini_content_map|lookup:"new_prj_task_ids"|length == 0 %}
+
             <ul id="sort-task">
                 {% for order_id in testScript_order_list %}
 
@@ -520,10 +520,6 @@
               method="post">{% csrf_token %}
 
 
-
-            {% if is_project %}
-
-            {% endif %}
             <div class="row" id="download-group">
                 <div class="col">
                     <button id="btn-download" type="button" class="btn btn-success btn-lg btn-block"><i
