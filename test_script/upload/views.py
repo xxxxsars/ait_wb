@@ -164,6 +164,15 @@ def handle_uploaded_file(f, task_id):
     with zipfile.ZipFile(source_zip, 'r') as zip_ref:
         zip_ref.extractall(unzip_path)
 
+    if not re.search(r"^3",task_id):
+        # remove user upload global python file
+        global_script = [t.script_name for t in Upload_TestCase.objects.filter(task_id__iregex = r"^3") ]
+        for script in global_script:
+            if script in os.listdir(unzip_path):
+                file_path = path_combine(unzip_path,script)
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+
     # remove zip file
     os.remove(source_zip)
 

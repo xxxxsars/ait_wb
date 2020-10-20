@@ -15,4 +15,5 @@ urlpatterns = [
     url("delete_attach/$",delete_attachment_view),
     url("vil_cre_name/$",valid_create_script_name_view),
     url("vil_mod_name/$",valid_modify_script_name_view),
+    url("vil_script/$",valid_function_view)
 ]

@@ -73,14 +73,16 @@
                 taskID = row.attr("id");
 
                 platform_id = taskID.slice(0, 1);
-
                 if (platform_id == "0") {
                     $(this).append("<i class=\"fab fa-windows  fa-fw\"></i><span>Windows</span>")
                 } else if (platform_id == "1") {
                     $(this).append("<i class=\"fab fa-apple  fa-fw\"></i><span>Mac OS</span>")
-                } else {
-                    $(this).append("<i class=\"fas fa-laptop fa-fw\"></i><span>All</span>")
+                } else if (platform_id == "2") {
+                    $(this).append("<i class=\"fas fa-laptop fa-fw\"></i><span> All</span>")
+                }else if (platform_id == "3") {
+                    $(this).append("<i class=\"fa fa-globe\" aria-hidden=\"true\"></i><span> Global</span>")
                 }
+
 
             })
         });
@@ -432,6 +434,7 @@
                         <option value="0">Windows</option>
                         <option value="1">Mac</option>
                         <option value="2">Windows/Mac</option>
+                        <option value="3">Global</option>
                     </select>
                 </div>
             </form>

@@ -148,6 +148,17 @@ def valid_modify_script_name_view(request):
         else:
             return JsonResponse({"valid": True})
 
+
+@api_view(["GET"])
+@authentication_classes((SessionAuthentication,))
+def valid_function_view(request):
+    if request.GET:
+        script_name = request.GET["script_name"]
+        if script_name in [t.script_name for t in Upload_TestCase.objects.filter(task_id__iregex = r"^3") ]:
+            return JsonResponse({"valid":False})
+        else:
+            return JsonResponse({"valid": True})
+
 def remove_upload_file(task_id):
     path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

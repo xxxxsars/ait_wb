@@ -164,7 +164,6 @@
                 $('#update-form').bootstrapValidator('validate');
 
 
-
                 //if had updated file will use progress update
                 if (filesList.length > 0) {
                     file_update.fileupload('send', {
@@ -232,7 +231,13 @@
                             regexp: {
                                 regexp: /^[\w|_]+\.\w+$/,
                                 message: 'The script name must contains extensions.'
+                            },
+                            remote: {
+                                message: 'Your script name cannot be global function name.',
+                                url: '/testCase/vil_script/',
+                                delay: 1000
                             }
+
 
                         }
                     },
