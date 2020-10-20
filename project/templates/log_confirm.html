@@ -128,7 +128,7 @@
                 form_data.append('project_name', project_name);
                 form_data.append('part_number', part_number);
                 form_data.append('station_name', station_name);
-                form_data.append("token",'{{ token|escapejs }}');
+                form_data.append("token", '{{ token|escapejs }}');
                 form_data.append('csrfmiddlewaretoken', getCookie('csrftoken'));
 
 
@@ -176,20 +176,9 @@
                         if (json.valid == false) {
                             $("#message").empty();
                             var error_messages = json.message;
-                            $("#message").append(
-                                '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
-                                '<strong>' + error_messages + '</strong>' +
-                                '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-                                '<span aria-hidden="true">&times;</span>' +
-                                '</button>' +
-                                '</div>')
+                            $("#error_message").html(error_messages + "<br>");
+                            $("#error-dialog").modal('show');
 
-
-                            //auto close alert  after 4 seconds.
-                            $(".alert").delay(4000).slideUp(200, function () {
-                                $(this).alert('close');
-
-                            });
                             //disable check button
                             btn_obj.hide();
                             add_brn.show();
@@ -251,30 +240,18 @@
                         error: function (xhr, errmsg, err) {
                             $("#message").empty();
                             if (xhr.status == 500) {
-                                $("#message").append(
-                                    '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
-                                    '<strong>' + xhr.statusText + '</strong>' +
-                                    '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-                                    '<span aria-hidden="true">&times;</span>' +
-                                    '</button>' +
-                                    '</div>');
-                            }
-                            else {
+
+                                $("#error_message").html(xhr.statusText + "<br>");
+                                $("#error-dialog").modal('show');
+                            } else {
                                 var json = $.parseJSON(xhr.responseText);
                                 if (json.valid == false) {
                                     var error_messages = json.message;
-                                    $("#message").append(
-                                        '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
-                                        '<strong>' + error_messages + '</strong>' +
-                                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-                                        '<span aria-hidden="true">&times;</span>' +
-                                        '</button>' +
-                                        '</div>');
+                                    $("#error_message").html(error_messages + "<br>");
+                                    $("#error-dialog").modal('show');
                                 }
 
-
                             }
-
 
                         }
                     });

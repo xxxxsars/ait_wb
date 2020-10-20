@@ -23,17 +23,17 @@ class UpdateFileForm(forms.Form):
                                                   "invalid": "Please insert valid script name."})
 
     file = forms.FileField(required=False,
-                           widget=forms.FileInput(attrs={'class': 'custom-file-input', "id": "zip_file"}),
+                           widget=forms.FileInput(attrs={'class': 'custom-file-input', "id": "zip_file","accept":".zip"}),
                            error_messages={'required': 'Please update zip file.',
                                            "invalid": "Please update valid zip file"})
 
     attachment = forms.FileField(widget=forms.FileInput(attrs={'class': 'custom-file-input', "id": "attachment_file"}),
                                  required=False)
     def clean_file(self):
+        print("in this")
         file = self.cleaned_data.get("file", False)
         if file != None:
             if input_zip_file_name.search(str(file)) == None:
-                # print("IN")
                 raise forms.ValidationError("Upload file is no valid zip file.")
 
             try:

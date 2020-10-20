@@ -93,20 +93,8 @@
                                 })
                             },
                             error: function (xhr, errmsg, err) {
-                                $("#message").empty();
-
-                                $("#message").append(
-                                    '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
-                                    '<strong>Changed Project owner user was failed!</strong>' +
-                                    '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-                                    '<span aria-hidden="true">&times;</span>' +
-                                    '</button>' +
-                                    '</div>')
-                                //auto close alert  after 4 seconds.
-                                $(".alert").delay(4000).slideUp(200, function () {
-                                    $(this).alert('close');
-
-                                })
+                                $("#error_message").html("Changed Project owner user was failed!" + "<br>");
+                                $("#error-dialog").modal('show');
                             }
                         });
                     }

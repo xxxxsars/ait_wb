@@ -67,6 +67,13 @@
 
         });
         $(document).ready(function () {
+
+
+            {% if errors %}
+                $("#error_message").html(xhr.responseText + "<br>");
+                $("#error-dialog").modal('show');
+            {% endif %}
+
             //auto close alert  after 4 seconds.
             $(".alert").delay(4000).slideUp(200, function () {
                 $(this).alert('close');
@@ -154,19 +161,19 @@
 
                                 {#parent_element.find(".select-script").attr("disabled","disabled")#}
                                 file_element.val("");
-                                 xhr['csrfmiddlewaretoken'] = getCookie('csrftoken');
+                                xhr['csrfmiddlewaretoken'] = getCookie('csrftoken');
                                 var post_json = xhr;
                                 console.log(xhr)
 
                                 $.redirect(url,
-                                  post_json,
-                                    "POST",'_blank');
+                                    post_json,
+                                    "POST", '_blank');
 
                             },
 
                             error: function (xhr, errmsg, err) {
 
-                              var json = $.parseJSON(xhr.responseText);
+                                var json = $.parseJSON(xhr.responseText);
                                 if (json.valid == false) {
                                     $("#error_message").html(json.message + "<br>");
                                     $("#error-dialog").modal('show');
@@ -271,16 +278,6 @@
 {% block body %}
     <h3>Create [ {{ project_name }} ]</h3>
     <br>
-
-    {% if errors %}
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <strong>{{ errors }}</strong>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-
-    {% endif %}
 
     {% if susessful %}
         <div class="alert alert-success alert-dismissible fade show" role="alert">

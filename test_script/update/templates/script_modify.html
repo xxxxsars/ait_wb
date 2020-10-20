@@ -497,22 +497,6 @@
 
 
 
-    {% if u.errors %}
-        {% for field in u %}
-            {% for error in field.errors %}
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <strong>{{ error|escape }}</strong>
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            {% endfor %}
-        {% endfor %}
-    {% endif %}
-
-
-
-
     {% if susessful %}
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <strong>{{ susessful }}</strong>
@@ -522,16 +506,6 @@
         </div>
     {% endif %}
 
-
-
-    {#    {% if error_message %}#}
-    {#        <div class="alert alert-danger alert-dismissible fade show" role="alert">#}
-    {#            <strong>{{ error_message|escape }}</strong>#}
-    {#            <button type="button" class="close" data-dismiss="alert" aria-label="Close">#}
-    {#                <span aria-hidden="true">&times;</span>#}
-    {#            </button>#}
-    {#        </div>#}
-    {#    {% endif %}#}
 
 
     <form enctype="multipart/form-data" method="post"

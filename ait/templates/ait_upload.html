@@ -150,19 +150,8 @@
 
                     if (json.is_valid == false) {
                         $("#message").empty();
-                        $("#message").append(
-                            '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
-                            '<strong>' + json.message + '</strong>' +
-                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-                            '<span aria-hidden="true">&times;</span>' +
-                            '</button>' +
-                            '</div>');
-
-                        //auto close alert  after 4 seconds.
-                        $(".alert").delay(4000).slideUp(200, function () {
-                            $(this).alert('close');
-
-                        });
+                        $("#error_message").html(json.message + "<br>");
+                        $("#error-dialog").modal('show');
                     }
 
                 },
@@ -222,19 +211,10 @@
                                     $("#message").empty();
 
 
-                                    $("#message").append(
-                                        '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
-                                        '<strong>' + json.message + '</strong>' +
-                                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-                                        '<span aria-hidden="true">&times;</span>' +
-                                        '</button>' +
-                                        '</div>');
+                                    $("#error_message").html(json.message + "<br>");
+                                    $("#error-dialog").modal('show');
 
-                                    //auto close alert  after 4 seconds.
-                                    $(".alert").delay(4000).slideUp(200, function () {
-                                        $(this).alert('close');
 
-                                    })
                                     //disable download zip
                                     $("#download_script").attr('disabled', 'disabled');
                                 }
@@ -254,8 +234,6 @@
 {% block body %}
     <h3>Upload AIT</h3>
     <div id="message">
-
-
 
 
     </div>

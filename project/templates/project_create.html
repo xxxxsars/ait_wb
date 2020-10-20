@@ -71,7 +71,7 @@
                                 error: function (xhr, errmsg, err) {
                                     console.log("part number not in database");
                                     remove_tr.remove();// provide a bit more info about the error to the console
-                                     $("#save_btn").removeAttr('disabled');
+                                    $("#save_btn").removeAttr('disabled');
                                 }
                             });
                         }
@@ -93,6 +93,11 @@
 
         $(document).ready(function () {
 
+
+            {% if errors %}
+                $("#error_message").html(xhr.responseText + "<br>");
+                $("#error-dialog").modal('show');
+            {% endif %}
 
             $("#create_project").bootstrapValidator({
                 message: 'This value is not valid',
@@ -295,7 +300,7 @@
 
                                         error: function (xhr, errmsg, err) {
                                             console.log("part number not in database"); // provide a bit more info about the error to the console
-                                             $("#save_btn").removeAttr('disabled');
+                                            $("#save_btn").removeAttr('disabled');
                                         }
                                     });
                                 }
@@ -340,29 +345,7 @@
 {% block body %}
     <h3>Create Project</h3>
     <br>
-    {% if c.errors %}
 
-        {% for field in c %}
-            {% for error in field.errors %}
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <strong>{{ error|escape }}</strong>
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            {% endfor %}
-        {% endfor %}
-    {% endif %}
-
-
-    {% if errors %}
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <strong>{{ errors }}</strong>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    {% endif %}
 
 
     {% if susessful %}
@@ -441,7 +424,8 @@
             <div class=text-center>
                 <button class="btn btn-outline-primary" type="submit">Save</button>
 
-                <button class="btn btn-outline-primary" type="button" id="set_station">Next <i class="fas fa-share"></i></button>
+                <button class="btn btn-outline-primary" type="button" id="set_station">Next <i class="fas fa-share"></i>
+                </button>
             </div>
         {% else %}
 
