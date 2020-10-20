@@ -69,13 +69,15 @@
             $('#upload-form').bootstrapValidator('enableFieldValidators',
                 'script_name', vailder, 'notEmpty');
 
-            $('#upload-form').bootstrapValidator('enableFieldValidators',
-                'argument', vailder, 'notEmpty');
-            $('#upload-form').bootstrapValidator('enableFieldValidators',
-                'default_value', vailder, 'notEmpty');
+            if ($('#task-table tbody tr').length >1){
+                $('#upload-form').bootstrapValidator('enableFieldValidators',
+                    'argument', vailder, 'notEmpty');
+                $('#upload-form').bootstrapValidator('enableFieldValidators',
+                    'default_value', vailder, 'notEmpty');
 
-            $('#upload-form').bootstrapValidator('enableFieldValidators',
-                'arg_description', vailder, 'notEmpty');
+                $('#upload-form').bootstrapValidator('enableFieldValidators',
+                    'arg_description', vailder, 'notEmpty');
+            }
 
 
             $("#add_argument").attr("disabled", input);
@@ -372,7 +374,7 @@
             $("#remove_argument").click(function (e) {
                 var lastRow = $("#task-table tbody tr").last();
                 {# orginal argument colume cant be remove#}
-                if ($("#task-table  tbody tr").length > 1) {
+                if ($("#task-table  tbody tr").length >= 1) {
 
                     if (lastRow.closest("tr").find('input[name="argument"]').val() != "") {
                         if (confirm("Are you sure to remove this row?")) {
@@ -393,8 +395,6 @@
                         rowCount -= 1;
                         $("#upload_btn").removeAttr('disabled');
                     }
-                } else {
-                    alert("Your must provide one argument!")
                 }
             });
 
@@ -447,9 +447,7 @@
                     <div class="col-sm-8">
                         {{ u.task_id }}
                     </div>
-
                 </div>
-
             </div>
 
 
@@ -461,7 +459,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
 
 
