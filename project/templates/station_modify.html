@@ -15,7 +15,7 @@
           href="{% static "bower_components/datatables.net-dt/css/jquery.dataTables.min.css" %}">
     <link type="text/css" rel="stylesheet"
           href="{% static "bower_components/datatables.net-dt/css/select.dataTables.min.css" %}">
-    <link type="text/css" rel="stylesheet"
+
 
     <link type="text/css" rel="stylesheet"
           href="{% static "bower_components/bootstrapvalidator/dist/css/bootstrapValidator.min.css" %}">
@@ -53,7 +53,7 @@
 
                 var rowCount = $("#part-table tbody").find('select').length;
                 var remove_tr = $(this).closest('tr');
-                 var station_name = $(this).closest('tr').find("select").val();
+                var station_name = $(this).closest('tr').find("select").val();
 
                 if (rowCount > 1) {
                     ajax_del_station(project_name, part_number, station_name, remove_tr)
@@ -89,14 +89,69 @@
 
             <!--add next page button-->
             {% if datas and errors|trans_not %}
-                $("#part-table tbody tr").find('div.input-group').append('<div class="input-group-append"><button type="button" class="btn btn-outline-primary select-script"><i class="fas fa-share"></i></button></div>');
+                $("#part-table tbody tr").find('div.input-group').append('<div class="input-group-append"><button type="button" class="btn btn-outline-primary select-script"><i class="fas fa-share"></i></button><button type="button" class="btn btn-outline-success upload-script"><i class="fas fa-file-upload"></i></button> <input type="file" class="file_upload" accept=".ini" style="display: none"></div>');
                 $(".select-script").click(function () {
                     var project_name = '{{ project_name }}';
                     var part_number = '{{ part_number }}';
-                     var station_name = $(this).closest('tr').find("select").val();
+                    var station_name = $(this).closest('tr').find("select").val();
 
                     location.href = '/project/modify_script/' + project_name + '/' + part_number + '/' + station_name;
                 });
+
+                $("button.upload-script").click(function () {
+                    var project_name = '{{ project_name }}';
+                    var part_number = ($(this).closest("tbody").attr("class").split(" ")[2]);
+                    var station_name = $(this).closest('tr').find("select").val();
+                    var input_upload = $(this).next(".file_upload");
+                    input_upload.click()
+                    $(".file_upload").change(function () {
+                        var form_data = new FormData();
+                        var file_element = $(this);
+                        var parent_element = $(this).closest(".input-group-append");
+                        var file_data = file_element.prop('files')[0];
+                        form_data.append('project_name', project_name);
+                        form_data.append('part_number', part_number);
+                        form_data.append('station_name', station_name);
+                        form_data.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+
+
+                        form_data.append('file', file_data);
+
+                        $.ajax({
+                            url: "{% url "upload_script" %}",
+                            type: 'POST',
+                            cache: false,
+                            contentType: false,
+                            processData: false,
+                            data: form_data,
+                            success: function (xhr, errmsg, err) {
+
+                                $("#ajax_message").empty();
+                                var url = '/project/result_ini/' + project_name + '/' + part_number + '/' + station_name;
+                                file_element.val("");
+                                xhr['csrfmiddlewaretoken'] = getCookie('csrftoken');
+                                var post_json = xhr;
+                                console.log(xhr)
+
+                                $.redirect(url,
+                                    post_json,
+                                    "POST", '_blank');
+
+                            },
+
+                            error: function (xhr, errmsg, err) {
+                                var json = $.parseJSON(xhr.responseText);
+                                if (json.valid == false) {
+                                    $("#error_message").html(json.message + "<br>");
+                                    $("#error-dialog").modal('show');
+                                    file_element.val("")
+                                }
+
+                            }
+                        });
+                    })
+                });
+
             {% endif %}
 
 
@@ -185,7 +240,7 @@
 
             <!--set selected station name-->
             {% for st in st_list %}
-                  $('#station_{{ forloop.counter }} option[value="{{st.station_name}}"]').attr("selected", "selected");
+                $('#station_{{ forloop.counter }} option[value="{{st.station_name}}"]').attr("selected", "selected");
             {% endfor %}
         });
 
@@ -214,7 +269,6 @@
         </div>
 
     {% endif %}
-
 
     <form id="set_station_form" enctype="multipart/form-data" method="post" action="">{% csrf_token %}
         <table class="table  table-hover" id="part-table">
@@ -318,7 +372,7 @@
 
                                     <div style="margin-left: 10%">
 
-                                             <select name="{{ pn_instance.part_number }}"
+                                        <select name="{{ pn_instance.part_number }}"
                                                 id="station_{{ forloop.counter }}"
                                                 class="stations form-control">
                                             <option value="PCBA_FT1">PCBA_FT1</option>

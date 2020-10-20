@@ -242,4 +242,18 @@ class script_parser:
 
 
 
-
+#         for id in (self.created_prj_task_id):
+#             prj_task_instance = Project_task.objects.get(id=id)
+#             prj_task_instance.delete()
+#             for arg in (Project_task_argument.objects.filter(project_task_id=id)):
+#                 arg.delete()
+#
+#
+#
+#
+#
+# if __name__ =="__main__":
+#     with open("/Users/mac/Python/Python_Project/Python/FactoryWeb/common/testScript.ini","r") as fin:
+#         lines = fin.read()
+#         s = script_parser(lines, "2222222", "DEFAULT", "PCBA_FT1")
+#         s.convert_script()
