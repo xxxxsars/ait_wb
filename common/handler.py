@@ -461,6 +461,9 @@ def valid_zip_file(file, task_id, script_name):
         zip_file = zipfile.ZipFile(file)
         files = zip_file.namelist()
 
+        if re.search(r"^3",task_id) and len(files):
+            error_messages.append("Global function only allows one .py file")
+
         if script_name not in files:
             error_messages.append("Your don't have [%s] file" % script_name)
         elif is_modify:

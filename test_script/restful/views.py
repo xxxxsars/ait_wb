@@ -17,7 +17,7 @@ import zipfile, os, shutil, platform
 from test_script.update.forms import *
 from test_script.restful.serializer import *
 
-from common.handler import handle_path,update_script_version
+from common.handler import *
 
 from django.contrib.auth import login
 @api_view(["POST"])
@@ -48,19 +48,26 @@ def script_download_view(request,task_id):
     if request.method == "GET":
         # update  python script version
         update_script_version(task_id)
-        path = handle_path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-                           "upload_files", task_id)
+        upload_path = handle_path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+                           "upload_files")
+        test_case_path = handle_path(upload_path,task_id)
 
-        attach_path = os.path.join(path,'attachment')
+        attach_path = os.path.join(test_case_path,'attachment')
         s = BytesIO()
         zf = zipfile.ZipFile(s, "w", compression=zipfile.ZIP_DEFLATED)
 
         # the array inner dict key is source file path ,value is target file path
-        for root, folders, files in os.walk(path):
+        for root, folders, files in os.walk(test_case_path):
             for sfile in files:
                 if root!= attach_path:
                     aFile = os.path.join(root, sfile)
-                    zf.write(aFile, os.path.relpath(aFile, path))
+                    print(aFile,os.path.relpath(aFile, test_case_path))
+                    zf.write(aFile, os.path.relpath(aFile, test_case_path))
+
+        for m in [[t.task_id ,t.script_name] for t in Upload_TestCase.objects.filter(task_id__iregex=r"^3")]:
+            global_script_path = path_combine(upload_path,m[0],m[1])
+            zf.write(global_script_path,m[1])
+
         zf.close()
         response = HttpResponse(s.getvalue(), content_type='application/x-zip-compressed')
         response['Content-Disposition'] = 'attachment; filename="%s.zip"' % task_id
