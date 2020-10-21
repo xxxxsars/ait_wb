@@ -297,6 +297,12 @@ def get_download_file(owner_user, project_name, part_number, station_name):
             full_file_path = os.path.join(root, f)
             zip_files.append((full_file_path, f))
 
+    # add global script
+    for m in [[t.task_id, t.script_name] for t in Upload_TestCase.objects.filter(task_id__iregex=r"^3")]:
+        global_script_path = path_combine(path,"upload_files", m[0], m[1])
+        target_path = os.path.join(script_path, m[1])
+        zip_files.append((global_script_path,target_path))
+
     return zip_files
 
 
