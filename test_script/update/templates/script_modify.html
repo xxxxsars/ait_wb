@@ -35,6 +35,11 @@
             if (value) {
                 vailder = false;
                 input = true;
+
+
+                $("#image-file").show();
+            } else {
+                $("#image-file").hide();
             }
 
 
@@ -73,7 +78,7 @@
         });
 
         $(document).ready(function () {
-
+            $("#image-file").hide();
 
             var task_id = "{{ task_id |escapejs }}";
 
@@ -568,12 +573,12 @@
         <br>
 
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-12" id="image-file">
                 <div class="input-group">
-                    <label style="padding-top: 1%" class="form-control-label"> Attachment&emsp;</label>
+                    <label style="position: relative;transform: translateY(20%);" class="form-control-label"> Image&emsp;</label>
                     <div class="custom-file">
                         {{ u.attachment }}
-                        <label class="custom-file-label" for="attachment_file">Please Upload attachment</label>
+                        <label class="custom-file-label" for="attachment_file">Please Upload Image dialog file</label>
                     </div>
 
                     {% if task_info.existed_attachment %}
@@ -586,9 +591,9 @@
 
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-12">
                 <div class="input-group hide-group">
-                    <label style="padding-top: 1%" class="form-control-label">TestScript Zip&emsp;</label>
+                    <label  style="position: relative;transform: translateY(20%);" class="form-control-label">TestScript Zip&emsp;</label>
                     <div class="custom-file">
                         {{ u.file }}
                         <label class="custom-file-label" for="zip_file">Please Upload zip file</label>

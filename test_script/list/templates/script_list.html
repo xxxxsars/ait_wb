@@ -79,7 +79,7 @@
                     $(this).append("<i class=\"fab fa-apple  fa-fw\"></i><span>Mac OS</span>")
                 } else if (platform_id == "2") {
                     $(this).append("<i class=\"fas fa-laptop fa-fw\"></i><span> All</span>")
-                }else if (platform_id == "3") {
+                } else if (platform_id == "3") {
                     $(this).append("<i class=\"fa fa-globe\" aria-hidden=\"true\"></i><span> Global</span>")
                 }
 
@@ -205,24 +205,22 @@
 
                 //data tables parameter
                 var table = $('#task-table').DataTable({
-                    "dom": '<"top"i>rt<"bottom"flp><"clear">',
+                    {#"dom": '<"top"i>rt<"bottom"flp><"clear">',#}
                     "autoWidth": true,
                     "scrollX": true,
-
-
-                    {% if datas.count <= 10 %}
-                        "bPaginate": false,
-                    {% endif %}
-                    columnDefs: [{
-                        'targets': 0,
-                        'searchable': false,
-                        'orderable': false,
-                        'width': '1%',
-                        'className': 'dt-body-center',
-                        'render': function (data, type, full, meta) {
-                            return '<input type="checkbox">';
-                        }
-                    },
+                    "iDisplayLength": 50,
+                    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    columnDefs: [
+                        {
+                            'targets': 0,
+                            'searchable': false,
+                            'orderable': false,
+                            'width': '1%',
+                            'className': 'dt-body-center',
+                            'render': function (data, type, full, meta) {
+                                return '<input type="checkbox">';
+                            }
+                        },
                         {
                             "width": "15%",
                             "targets": 3,
@@ -266,6 +264,9 @@
 
                 });
 
+                $('#search-input').keyup(function () {
+                    table.search($(this).val()).draw();
+                });
 
                 function valuesOf(elements) {
                     return $.map(elements, function (element) {
@@ -423,7 +424,7 @@
 
 
     <div class="row">
-        <div class="col">
+        <div class="col-md-2">
             <form class="form-inline" role="form">
                 <div class="form-group">
                     <label for="platform" class="condition-lable">Platform:</label>
@@ -440,7 +441,7 @@
             </form>
         </div>
 
-        <div class="col">
+        <div class="col-md-3">
             <form class="form-inline" role="form">
                 <div class="form-group">
                     <label for="interface" class="condition-lable">Interface:</label>
@@ -462,8 +463,17 @@
             </form>
         </div>
 
+        <div class="col-md-3">
+            <form class="form-inline" role="form">
+                <div class="form-group">
+                    <label for="interface" class="condition-lable" >Search:</label>
+                    <input type="text" class="form-control" id="search-input">
+                </div>
+            </form>
+        </div>
 
-        <div class="col">
+
+        <div class="col-md-4">
             <div class="text-right">
 
                 <button id="clean" type="button" class="btn btn-outline-primary"><i class="fas fa-redo"></i> Clean
@@ -479,6 +489,7 @@
                 {% endif %}
             </div>
         </div>
+
 
     </div>
 
@@ -499,8 +510,6 @@
                 <th>Create_User</th>
                 {% if is_script %}
                     <th style="text-align: center">Action</th>
-                {% else %}
-                    <th style="text-align: center">Attachment</th>
                 {% endif %}
 
             </tr>
@@ -542,14 +551,6 @@
                                             <i class="fas fa-trash"></i></button>
 
 
-                                        <button type="button"
-
-                                                {% if data.task_id in no_att_tasks %}
-                                                disabled  class="btn  btn-outline-secondary dt-attach"
-                                                {% else %}
-                                                class="btn  btn-outline-success dt-attach"
-                                                {% endif %}><i
-                                                class="fas fa-paperclip"></i></button>
                                     </div>
                                 </div>
                             {% else %}
@@ -574,23 +575,6 @@
                             {% endif %}
                         </td>
 
-                    {% else %}
-
-                        <td>
-                            <div class="text-center">
-
-                                <button type="button" data-toggle="tooltip" data-placement="top"
-                                        title="Download attachment"
-
-                                        {% if data.task_id in no_att_tasks %}
-                                        disabled  class="btn  btn-outline-secondary dt-attach"
-                                        {% else %}
-                                        class="btn  btn-outline-success dt-attach"
-                                        {% endif %}><i
-                                        class="fas fa-download"></i></button>
-                            </div>
-
-                        </td>
                     {% endif %}
                 </tr>
             {% endfor %}

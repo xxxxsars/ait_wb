@@ -23,7 +23,7 @@ from common.limit import set_parameter_arg, set_parameter_other, task_id_reg
 from project.forms import *
 from project.models import *
 from project.restful.views import delete_file
-from test_script.list.views import no_attach_tasks
+
 
 
 @login_required(login_url="/user/login")
@@ -405,7 +405,7 @@ def select_script_view(request, project_name, part_number, station_name):
     station_instance = get_station_instacne(project_name, part_number, station_name)
 
     datas = get_script_list()
-    no_att_tasks = no_attach_tasks()
+
 
     # if project name not existed ,will show bad requests
     if (Project.objects.filter(project_name=project_name).exists() == False):
@@ -439,7 +439,7 @@ def select_script_view(request, project_name, part_number, station_name):
             posted_ids = (request.POST["add_task"]).split(",")
             save_modify_tasks(request.POST, station_instance, posted_ids)
 
-            no_att_tasks = no_attach_tasks()
+
             return render(request, "script_list.html", locals())
 
         # handle the "confirm.htnl"  the  conflict file
@@ -568,7 +568,6 @@ def modify_script_view(request, project_name, part_number, station_name):
 
             # if the original argument page paramter had been change will be modify it.
             save_modify_tasks(request.POST, station_instance, posted_ids)
-            no_att_tasks = no_attach_tasks()
             return render(request, "script_list.html", locals())
 
         # handle the "confirm.htnl"  the  conflict file

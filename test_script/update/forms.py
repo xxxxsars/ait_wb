@@ -27,7 +27,7 @@ class UpdateFileForm(forms.Form):
                            error_messages={'required': 'Please update zip file.',
                                            "invalid": "Please update valid zip file"})
 
-    attachment = forms.FileField(widget=forms.FileInput(attrs={'class': 'custom-file-input', "id": "attachment_file"}),
+    attachment = forms.FileField(widget=forms.FileInput(attrs={'class': 'custom-file-input', "id": "attachment_file","accept":"image/*"}),
                                  required=False)
     def clean_file(self):
         print("in this")

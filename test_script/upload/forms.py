@@ -45,7 +45,7 @@ class UploadFileForm(forms.Form):
                            error_messages={'required': 'Please update zip file.',
                                            "invalid": "Please update valid zip file"})
 
-    attachment = forms.FileField(widget=forms.FileInput(attrs={'class': 'form-control custom-file-input', "id": "attachment_file"}),required=False)
+    attachment = forms.FileField(widget=forms.FileInput(attrs={'class': 'form-control custom-file-input', "id": "attachment_file","accept":"image/*"}),required=False)
 
 
 

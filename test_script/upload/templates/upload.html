@@ -55,11 +55,15 @@
 
                 $(".hide-group").each(function () {
                     $(this).hide()
-                })
+                });
+
+                $("#image-file").show();
+
             } else {
                 $(".hide-group").each(function () {
                     $(this).show()
                 })
+                $("#image-file").hide();
             }
 
 
@@ -94,6 +98,9 @@
         }
 
         $(document).ready(function () {
+
+            $("#image-file").hide();
+
             var m = $('#modal-progress');
             var filesList = [],
                 paramNames = [],
@@ -495,20 +502,20 @@
         <br>
 
         <div class="row">
-            <div class="col-md-6">
-                <div class=input-group>
-                    <label style="padding-top: 1%" class="form-control-label"> Attachment&emsp;</label>
+            <div class="col-md-12" id="image-file">
+                <div class="input-group">
+                    <label style="position: relative;transform: translateY(20%);" class="form-control-label"> Image&emsp;</label>
                     <div class="custom-file">
                         {{ u.attachment }}
-                        <label class="custom-file-label" for="attachment_file">Please Upload attachment</label>
+                        <label class="custom-file-label" for="attachment_file">Please Upload Image dialog file</label>
                     </div>
                 </div>
 
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-12">
                 <div class="input-group hide-group">
-                    <label style="padding-top: 1%" class="form-control-label"> TestCase Zip&emsp;</label>
+                    <label  style="position: relative;transform: translateY(20%);" class="form-control-label"> TestCase Zip&emsp;</label>
                     <div class="custom-file">
                         {{ u.file }}
                         <label class="custom-file-label" for="attachment_file">Please Upload zip file</label>
