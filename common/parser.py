@@ -67,6 +67,9 @@ class script_parser:
             for arg in (Project_task_argument.objects.filter(project_task_id=id)):
                 arg.delete()
 
+        for order in  Project_TestScript_order.objects.filter(station_name=self.st_obj.first(), part_number=self.pn_obj.first(),
+                                                    project_name=self.prj_obj.first()):
+            order.delete()
 
     def get_task_id(self):
         if not self.task_id:
@@ -186,9 +189,7 @@ class script_parser:
         except Exception as e:
             raise Exception("Read upload testScript.ini failed.")
 
-
-        scrpit_groups = re.split(r"(\[.+AUTO_\d+.+|INTERACTIVE_\d+.+\])",content)
-
+        scrpit_groups = re.split(r"(\[.+\])",content)
 
         if len(scrpit_groups) <= 1 :
             raise Exception("Your testScript.ini had error the parser failed.")
@@ -196,7 +197,6 @@ class script_parser:
         type_reg = re.compile("^\[.+(AUTO|INTERACTIVE)_(\d+)_([\w|\s]+)\]$")
 
         content_index = {}
-
         ini_content = []
         for i,sg in  enumerate( scrpit_groups):
             match = type_reg.search(sg)
@@ -204,9 +204,9 @@ class script_parser:
                 content_index[ i+1] =match.group(0)
                 task_id = match.group(2)
                 if task_id not in db_task:
+                    self.__removee_created()
                     error_msg = f"Your test case id [{task_id}] not match on db"
                     raise Exception(error_msg)
-
 
             if i in list(content_index.keys()):
 
@@ -252,8 +252,3 @@ class script_parser:
 #
 #
 #
-# if __name__ =="__main__":
-#     with open("/Users/mac/Python/Python_Project/Python/FactoryWeb/common/testScript.ini","r") as fin:
-#         lines = fin.read()
-#         s = script_parser(lines, "2222222", "DEFAULT", "PCBA_FT1")
-#         s.convert_script()

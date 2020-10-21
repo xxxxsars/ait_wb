@@ -86,7 +86,7 @@
             });
 
             //if on modify page ,it item had been move will create new testScript.ini
-            {% if  ini_content_map|lookup:"new_prj_task_ids"|length == 0 %}
+            {% if is_modify and  ini_content_map|lookup:"new_prj_task_ids"|length == 0 %}
                 $('#sort-task').sortable({
                     scroll: false,
                     start: function (event, ui) {
