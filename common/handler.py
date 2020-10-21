@@ -269,30 +269,37 @@ def get_download_file(owner_user, project_name, part_number, station_name):
         file_path = handle_path(path, "upload_files", task_id)
         attach_path = handle_path(file_path, "attachment")
 
-        for dirpath, _, filenames in os.walk(file_path):
-            for f in filenames:
+        #add interactive images
+        if re.search(r"\d(\d{1}).+", task_id).group(1) == "6":
+            for dirpath, _, filenames in os.walk(attach_path):
+                for f in filenames:
+                    full_file_path = os.path.abspath(os.path.join(dirpath, f))
+                    zip_files.append((full_file_path, os.path.join("ImageRes",f)))
+        else:
+            for dirpath, _, filenames in os.walk(file_path):
+                for f in filenames:
 
-                full_file_path = os.path.abspath(os.path.join(dirpath, f))
-                check_target_path = os.path.relpath(full_file_path, file_path)
+                    full_file_path = os.path.abspath(os.path.join(dirpath, f))
+                    check_target_path = os.path.relpath(full_file_path, file_path)
 
-                if dirpath != attach_path and check_target_path not in compressed_file:
+                    if dirpath != attach_path and check_target_path not in compressed_file:
 
-                    target_path = os.path.join(script_path, check_target_path)
+                        target_path = os.path.join(script_path, check_target_path)
 
-                    if chose_files != None:
-                        # check the file in the conflict files list and add a choose file to the zip file
-                        if check_target_path in list(chose_files.keys()):
-                            if full_file_path in chose_files_path:
+                        if chose_files != None:
+                            # check the file in the conflict files list and add a choose file to the zip file
+                            if check_target_path in list(chose_files.keys()):
+                                if full_file_path in chose_files_path:
+                                    zip_files.append((full_file_path, target_path))
+                                    compressed_file.append(check_target_path)
+                            # append other not conflict files
+                            else:
                                 zip_files.append((full_file_path, target_path))
                                 compressed_file.append(check_target_path)
-                        # append other not conflict files
                         else:
+
                             zip_files.append((full_file_path, target_path))
                             compressed_file.append(check_target_path)
-                    else:
-
-                        zip_files.append((full_file_path, target_path))
-                        compressed_file.append(check_target_path)
 
     zip_files.append((os.path.join(project_path, "testScript.ini"), "testScript.ini"))
     for root, folders, files in os.walk(config_path):
