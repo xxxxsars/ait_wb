@@ -222,7 +222,10 @@ def get_attach_name(task_id):
     attach_path = os.path.join(handle_path(path, "upload_files", task_id), "attachment")
 
     if os.path.exists(attach_path):
-        return os.listdir(attach_path)[0]
+        files =  os.listdir(attach_path)
+        if len(files)>0:
+            return files[0]
+
     return ""
 
 
@@ -325,7 +328,8 @@ def get_script_list():
             if re.search("^-\w{1}", arg.default_value) == None:
                 usage_content += "-%s\n&nbsp;&nbsp;&nbsp;&nbsp;%s\n" % (arg.argument, arg.description)
 
-        task_map["useage"] = "Sample:\n%s\n\nUsage:\n%s" % (instance.sample, usage_content)
+        # task_map["useage"] = "Sample:\n%s\n\nUsage:\n%s" % (instance.sample, usage_content)
+        task_map["useage"] = "Sample:\n%s"%(instance.sample)
         datas.append(task_map)
     return datas
 
