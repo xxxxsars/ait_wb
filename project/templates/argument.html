@@ -422,7 +422,6 @@
                     type: "POST",
                     url: window.location.href,
                     data: data, // serializes the form's elements.,
-                    async: false,
                     success: function (data) {
                         $("#saved-message").empty();
 
@@ -443,10 +442,6 @@
                     error: function (xhr, errmsg, err) {
                         $("#error_message").html(xhr.responseText + "<br>");
                         $("#error-dialog").modal('show');
-
-                        if (!(xhr.responseText.includes("conflict"))) {
-                            save_count = 0
-                        }
 
                         //auto close alert  after 4 seconds.
                         $(".alert").delay(4000).slideUp(200, function () {
