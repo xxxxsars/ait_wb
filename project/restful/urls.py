@@ -14,12 +14,19 @@ urlpatterns = [
     url("station_delete/$", DeleteProjectStationView),
     url("get_stored/$", get_script_sorted_view),
     url("modify_user/$", modify_owner_user_view),
+
     url("download_script/(?P<project_name>\w{7})/(?P<part_number>\w+)/(?P<station_name>\w+)/$",download_view),
     url("upload_script/$", upload_view,name='upload_script'),
+
     url("valid_project_name/$", valid_projectt_name_view),
     url("valid_part_number/$", valid_part_number_view),
+
     url("valid_log/$",valid_log_view,name='valid_log'),
+    url("keep_station/",keep_station_view),
+
+
     url("submit_project/$",submit_project_view,name='submit_project'),
+
     url("copy_project/$",copy_project_view),
     url("copy_part_number/",copy_part_number_view)
 

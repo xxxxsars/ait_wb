@@ -26,13 +26,7 @@ from project.restful.views import delete_file
 
 
 
-@login_required(login_url="/user/login")
-def upload_log_view(request):
-    is_project = True
-    project_name = request.POST['project_name']
-    instances = [p for p in Project_Upload_time.objects.filter(project_name=project_name) if p.had_upload]
 
-    return render(request, "upload_log.html", locals())
 
 
 @login_required(login_url="/usr/login")
@@ -61,23 +55,22 @@ def log_confirm_view(request, project_name):
             if st_object.exists():
                 for st_id, st in enumerate(st_object):
                     st_dict = model_to_dict(st)
-
-                    # get station task list from order table and  project_task table
-                    task_order_instances = Project_TestScript_order.objects.filter(project_name=p, part_number=pn,
-                                                                                   station_name=st)
-                    if task_order_instances.exists():
-                        task_order_list = (task_order_instances[0].script_oder).split(" ")
-                        task_list = [str(p.id) for p in Project_task.objects.filter(station_id=st)]
-                        # check order and current project task list have any difference
-                        ini_not_saved = len(([i for i in task_list + task_order_list if
-                                              i not in task_list or i not in task_order_list])) > 0
-
-                        if ini_not_saved:
-                            st_dict["download"] = False
-                        else:
-                            st_dict["download"] = True
-                    else:
-                        st_dict["download"] = False
+                    # # get station task list from order table and  project_task table
+                    # task_order_instances = Project_TestScript_order.objects.filter(project_name=p, part_number=pn,
+                    #                                                                station_name=st)
+                    # if task_order_instances.exists():
+                    #     task_order_list = (task_order_instances[0].script_oder).split(" ")
+                    #     task_list = [str(p.id) for p in Project_task.objects.filter(station_id=st)]
+                    #     # check order and current project task list have any difference
+                    #     ini_not_saved = len(([i for i in task_list + task_order_list if
+                    #                           i not in task_list or i not in task_order_list])) > 0
+                    #
+                    #     if ini_not_saved:
+                    #         st_dict["download"] = False
+                    #     else:
+                    #         st_dict["download"] = True
+                    # else:
+                    #     st_dict["download"] = False
 
                     st_list.append(st_dict)
 

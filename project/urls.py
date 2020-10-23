@@ -20,7 +20,7 @@ urlpatterns = [
     url("^modify_script/(?P<project_name>\w{7})/(?P<part_number>\w+)/(?P<station_name>\w+)/$", modify_script_view, ),
 
     url("^log_confirm/(?P<project_name>\w{7})/$",log_confirm_view),
-    url("^upload_log/$",upload_log_view),
+
 
 
 ]

@@ -122,6 +122,7 @@
                             location.href = "/project/modify_project/" + project_name
 
                         } else if (action == "Upload") {
+                            console.log("123123")
                             location.href = "/project/log_confirm/" + project_name
                         } else if (action == "Copy") {
                             var dtRow = $(this).closest('tr');
@@ -669,7 +670,7 @@
                 <th>Onwer User</th>
             {% endif %}
             <th>Create Time</th>
-            <th>Last Upload Time</th>
+            <th>Allow Upload</th>
             <th style="text-align: right">
                 <div style="padding-right: 10%"> Action</div>
             </th>
@@ -714,7 +715,8 @@
                         {{ prj|lookup:"date"|date:'Y-m-d h:i A' }}
                     </td>
 
-                    <td>
+                    <!--disable upload information -->
+                    {% comment %}   <td>
                         {% if prj|lookup:"upload_date" == "Not Uploaded" %}
                             <div class="text-danger h5 status" style="padding-left: 20%"><i class="fas fa-times"></i>
                             </div>
@@ -731,33 +733,32 @@
 
                         {% endif %}
 
+                    </td>{% endcomment %}
+
+                    <td>
+                        <div class="text-danger h5 status" style="padding-left: 20%"><i class="fas fa-times"></i></div>
                     </td>
+
                     <td>
                         <div class="dropdown text-right">
-
                             <button class="btn btn-success dropdown-toggle" type="button"
                                     id="btnItemsDemo"
-                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-
-                                Action
-
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action
                             </button>
 
                             <div class="dropdown-menu dropdown-project" aria-labelledby="btnItemsDemo">
-                                <button class="dropdown-item" data-target="#prj-dialog" type="button"><a
+
+
+                                <button class="dropdown-item" data-target="#prj-dialog" type="button"
+                                        {% if prj|lookup:"allow_upload"|trans_not %}  style="text-decoration:line-through" disabled  {% endif %}><a
                                         data-toggle="modal" data-target="#prj-dialog">Copy</a></button>
 
                                 <button class="dropdown-item" type="button">Edit</button>
 
                                 <button class="dropdown-item" type="button">Delete</button>
 
+                                <button class="dropdown-item" type="button"{% if prj|lookup:"allow_upload"|trans_not %}  style="text-decoration:line-through"  disabled  {% endif %}>Upload</button>
 
-
-                                {% if  prj|lookup:"allow_upload" %}
-                                    <button class="dropdown-item" type="button">Upload</button>
-                                {% else %}
-                                    <button class="dropdown-item" type="button" disabled>Upload</button>
-                                {% endif %}
                             </div>
 
                         </div>
@@ -784,13 +785,12 @@
 
                                 <div class="dropdown-menu dropdown-partnumber" aria-labelledby="btnItemsDemo">
 
-                                    <button class="dropdown-item" type="button"><a
+                                    <button class="dropdown-item" type="button"
+                                            {% if prj|lookup:"allow_upload"|trans_not %}  style="text-decoration:line-through"  disabled  {% endif %}><a
                                             data-toggle="modal" data-target="#part-dialog">Copy</a></button>
                                     <button class="dropdown-item" type="button">Edit</button>
 
                                     <button class="dropdown-item" type="button">Delete</button>
-
-
                                 </div>
 
                             </div>
@@ -828,11 +828,10 @@
                                         <button class="dropdown-item" type="button">Delete</button>
 
 
-                                        {% if  st|lookup:"download" == False %}
-                                            <button class="dropdown-item" type="button" disabled>Download</button>
-                                        {% else %}
-                                            <button class="dropdown-item" type="button">Download</button>
-                                        {% endif %}
+                                        <button class="dropdown-item" type="button"
+                                                {% if  st|lookup:"download"|trans_not %} style="text-decoration:line-through" disabled {% endif %}>Download
+                                        </button>
+
                                     </div>
 
                                 </div>

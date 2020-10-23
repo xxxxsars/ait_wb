@@ -24,6 +24,7 @@ class Project_PN(models.Model):
 class Project_Station(models.Model):
     project_pn_id = models.ForeignKey(Project_PN, on_delete=models.CASCADE)
     station_name = models.CharField(max_length=255)
+    version =  models.CharField(max_length=50,null=True)
 
     class Mega:
         db_table = "project_station"

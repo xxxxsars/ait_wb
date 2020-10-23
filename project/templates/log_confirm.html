@@ -19,7 +19,7 @@
 
     <script src="{% static "bower_components/bootstrap-select/dist/js/bootstrap-select.min.js" %}"></script>
 
-    <script src="{% static "bower_components/semantic/dist/semantic.min.js" %}"></script>
+    {#    <script src="{% static "bower_components/semantic/dist/semantic.min.js" %}"></script>#}
 
 
 {% endblock %}
@@ -51,6 +51,7 @@
         function check_all_task() {
             var error_count = 0;
             $(".status").each(function () {
+
                 if ($(this).hasClass('text-danger')) {
                     error_count += 1;
                 }
@@ -58,9 +59,9 @@
 
 
             if (error_count <= 0) {
-                $("#submit_project").attr("disabled", false)
+                $(".btn-action").attr("disabled", false)
             } else {
-                $("#submit_project").attr("disabled", true)
+                $(".btn-action").attr("disabled", true)
             }
         }
 
@@ -88,31 +89,31 @@
                 if ($(this).val()) {
                     var closet_div = $(this).parent("div");
                     var check_btn = closet_div.find(".btn-check");
-                    var add_brn = closet_div.find(".btn-upload");
+                    var add_btn = closet_div.find(".btn-upload");
 
                     if (check_btn.length <= 0) {
-                        add_brn.hide();
+                        add_btn.hide();
                         closet_div.append("<button class=\"btn btn-outline-success btn-check\" type=\"button\"><i\ class=\"fas fa-check\"></i> Confirm</button>\n")
 
 
                     } else {
                         if ((check_btn.is(":hidden"))) {
-                            add_brn.hide();
+                            add_btn.hide();
                             check_btn.show()
                         }
                     }
                 }
-
-
             });
 
 
             $(document).on('click', '.btn-check', function () {
                 var btn_obj = $(this);
                 var closet_div = $(this).parent("div");
-                var add_brn = closet_div.find(".btn-upload");
+                var add_btn = closet_div.find(".btn-upload");
+                var keep_btn = closet_div.find(".btn-keep");
                 var tr = $(this).closest('tr');
                 var status_field = tr.find('td').last();
+
 
 
                 cls_array = tr.attr("class").split(" ");
@@ -152,7 +153,8 @@
                             '</div>')
 
                         btn_obj.hide();
-                        add_brn.show();
+                        add_btn.show();
+                        keep_btn.attr("disabled",false);
 
                         //clean status and set success icon
                         status_field.html("");
@@ -172,7 +174,6 @@
                     error: function (xhr, errmsg, err) {
 
                         var json = $.parseJSON(xhr.responseText);
-
                         if (json.valid == false) {
                             $("#message").empty();
                             var error_messages = json.message;
@@ -181,7 +182,7 @@
 
                             //disable check button
                             btn_obj.hide();
-                            add_brn.show();
+                            add_btn.show();
 
                             //if all task not pass will lock submit button
                             $("#submit_project").attr("disabled", true);
@@ -198,7 +199,20 @@
             });
 
 
-            $("#submit_project").click(function () {
+
+
+            $(".btn-keep").click(function () {
+                console.log("keep station")
+            })
+
+
+            $("#keep_project").click(function () {
+                console.log("keep project")
+            })
+
+
+            /**
+             $("#submit_project").click(function () {
                 var error_count = 0;
                 $(".status").each(function () {
                     if ($(this).hasClass('text-danger')) {
@@ -261,7 +275,7 @@
                 }
 
             })
-
+             **/
 
         });
     </script>
@@ -277,11 +291,10 @@
     <table class="tree table  table-hover" id="project_table">
         <thead>
         <tr>
-            <th>Station Name
-            </th>
-
-            <th class="text-right" style="padding-right: 4%">Action</th>
-            <th class="text-center">Status</th>
+            <th style="width:35%">Station Name</th>
+            <th style="width:20%">TestScript Version</th>
+            <th style="width:25%" class="text-center">Action</th>
+            <th style="width:10%" class="text-center">Status</th>
 
         </tr>
         </thead>
@@ -309,13 +322,20 @@
                         <td>{{ st|lookup:"station_name" }}
 
                         </td>
-
+                        <td>{% if  st|lookup:"version" %}  {{ st|lookup:"version" }}  {% else %}
+                            <div class="text-danger h5" style="padding-left: 35%"><i class="fas fa-times"></i>
+                            </div>   {% endif %}</td>
                         <td>
 
-                            <div class="text-right">
+                            <div class="text-center">
+                                <button class="btn btn-outline-primary btn-keep" type="button" data-toggle="tooltip"
+                                        data-placement="bottom" title="Keep Current Station Vesrsion" disabled><i
+                                        class="fas fa-save"></i> Keep
+                                </button>
 
-                                <button class="btn btn-outline-primary btn-upload" type="button"><i
-                                        class="fas fa-plus"></i> Add Log
+                                <button class="btn btn-outline-success btn-upload" type="button" data-toggle="tooltip"
+                                        data-placement="bottom" title="Add Test Log "><i
+                                        class="fas fa-plus"></i> Log
                                 </button>
                                 <input type="file" class="file_upload" accept=".log" style="display: none">
                             </div>
@@ -337,10 +357,17 @@
 
 
     <div class="text-center">
-        <button id="submit_project" class="btn btn-outline-primary" type="button" disabled><i class="fas fa-save"></i>
-            Submit Project
+
+        <button id="keep_project" class="btn btn-outline-primary btn-action" type="button" disabled><i
+                class="fas fa-save"></i>
+            Keep Project
+        </button>
+
+        <button id="download_project" class="btn btn-outline-success" type="button"><i class="fas fa-download"></i>
+            Latest Project
         </button>
     </div>
+
 
 
 {% endblock %}

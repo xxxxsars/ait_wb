@@ -307,99 +307,50 @@ def get_script_sorted_view(request):
 def valid_log_view(request):
     if request.method == "POST":
 
-        project_name = request.data.get("project_name")
-        part_number = request.data.get("part_number")
-        station_name = request.data.get("station_name")
+        prj = request.data.get("project_name")
+        pn = request.data.get("part_number")
+        st = request.data.get("station_name")
         token = request.data.get("token")
-
 
         if 'file' not in request.FILES:
             return JsonResponse({"valid": False, "message": "Please select the log file."}, status=400)
         file = request.FILES['file']
 
-        task_id_line_inedx = []
-        task_names = []
-        task_ids = []
-        compare_task_name = []
-
-        station_instance = get_station_instacne(project_name,part_number,station_name)
 
 
-        lines = file.readlines()
-        valid_reg = re.compile(r"\[([\w|\s]+) -.+\]-+>\s(\w+).+$")
-        station_regex = re.compile("\*.+Station Name\s*\?*(\w+)")
-        test_id_regex = re.compile('Test case Id:\s*\[(\d{6})\]')
+        try:
+            content = (file.read()).decode("utf-8")
+        except Exception as e:
+            return JsonResponse({"valid": False, "message": "Your test log can't be read."},status=400)
 
-        station_match_count=0
-        for index,byte_line in enumerate(lines):
-            line = byte_line.decode("utf-8")
-            # check station name
-            station_match = (station_regex.search(line))
-            if station_match:
-                station_match_count+=1
-                log_station = station_match.group(1)
-                if log_station != station_name:
-                    token_disable_upload_project(token)
-                    return JsonResponse({"valid": False,"message":"The log file station name not compared."},status=400)
+        try:
+            check_log(prj,pn,st,content)
+        except Exception as e:
+            err_msg = str(e)
+            return JsonResponse({"valid": False, "message": err_msg}, status=400)
 
 
 
-            # check log the all task was passed
-            matched = valid_reg.search(line)
-            if matched:
-                if matched.group(2) =="PASS":
-                    # add pass task name to list
-                    task_names.append((matched.group(1).strip()))
-                    task_id_line_inedx.append(index+1)
 
-                else:
-                    token_disable_upload_project(token)
-                    return JsonResponse({"valid": False,"message":"The testCase '%s' was failed."%matched.group(1).strip()},status=400)
-
-            if index in task_id_line_inedx:
-                # add pass task id to list
-                test_id_match = test_id_regex.search(line)
-                if test_id_match:
-                        task_ids.append(test_id_match.group(1))
-
-        if station_match_count <=0:
-            token_disable_upload_project(token)
-            return JsonResponse({"valid": False, "message": "Can't find log station name."},status=400)
+        #token_disable_upload_project(token)
 
 
-        # check testScript order
-        task_id_map = {p.id: p.task_name for p in Project_task.objects.filter(station_id=station_instance)}
-        sort_task_name_id = Project_TestScript_order.objects.get(station_name=station_instance).script_oder.split(" ")
+        # #save the passed project and allow the project to upload
+        # instance, created = Project_Upload_time.objects.get_or_create(token=token, project_name=Project.objects.get(
+        #     project_name=prj))
+        # instance.allow_upload = True
+        # instance.save()
 
-        for id in sort_task_name_id:
-            compare_task_name.append((task_id_map[int(id)]).strip())
+        return JsonResponse({"valid": True, "message": "The log file was passed."})
 
-        # check testCase id
-        compare_task_id = [instance.task_id.task_id  for instance in
-                           Project_task.objects.filter(station_id=station_instance)]
 
-        # check task name
-        if task_names == compare_task_name :
 
-            #check task id
-            sort_compare_task_id = [int(i) for i in compare_task_id]
-            sort_task_ids = [int(i) for i in task_ids]
+@api_view(["POST"])
+@authentication_classes((SessionAuthentication,))
+def keep_station_view(request):
 
-            sort_compare_task_id.sort()
-            sort_task_ids.sort()
-            if sort_compare_task_id == sort_task_ids:
-                # create log pass message to project_upload_time and set "allow_upload" to the "True"
-                # only all upload but not had been uploaded to samba so the username was "none"
-                instance,created = Project_Upload_time.objects.get_or_create(token=token,project_name =Project.objects.get(project_name=project_name))
-                instance.allow_upload = True
-                instance.save()
 
-                return JsonResponse({"valid": True,"message":"The log file was passed."})
-        else:
-
-            token_disable_upload_project(token)
-            return JsonResponse({"valid": False,"message":"Please re-download this testScript and test it aging."},status=400)
-
+    return JsonResponse({"valid": True, "message": "The log file was passed."})
 
 
 @api_view(["POST"])
@@ -579,3 +530,73 @@ def copy_files(source_path,target_path):
             if os.path.exists(file_root) ==False:
                 os.makedirs(file_root)
             shutil.copyfile(source_file,target_file)
+
+
+def check_log(post_prj, post_pn, post_st,content):
+    try:
+        st_instance = get_station_instacne(post_prj, post_pn, post_st)
+    except Exception as e:
+        raise Exception("Your station not existed.")
+
+    prj_task_instance = Project_task.objects.filter(station_id=st_instance)
+
+    task_map = {p.task_id_id: p.task_name for p in prj_task_instance}
+    if not task_map:
+        raise Exception("Your project station was empty.")
+
+    order_instance = Project_TestScript_order.objects.filter(station_name=st_instance)
+    if not order_instance:
+        raise Exception("Your project station was be created finish.")
+
+    db_order = [int(id) for id in order_instance.first().script_oder.split(" ")]
+
+    # lines = file.read()
+
+    st_reg = re.compile("Station Name.*(PCBA_FT\d{1}|ASSY_PCBA\d+|ASSY_FT\d+|ASSY_OBA_FT\d+)")
+    result_reg = re.compile(r"Test Result.+\[(.+)\].+(fail|pass)", re.IGNORECASE)
+    id_reg = re.compile('Test case Id.+(\d{6})')
+    log_ids = []
+
+    st_groups = [g for g in re.split("\*{2,}", content) if g]
+
+    if len(st_groups) < 2:
+        raise Exception("Get station information had error.")
+
+    st = st_reg.findall(st_groups[0])
+
+    if post_st not in st:
+        raise Exception("Your station name does not match the database.")
+
+    task_groups = [g for g in re.split("End -+", st_groups[1]) if g]
+
+    for tg in task_groups:
+        id_match = id_reg.search(tg)
+        if id_match:
+            id = id_match.group(1)
+        else:
+            id = ""
+        if id:
+            log_ids.append(id)
+
+        for task_name, result in (result_reg.findall(tg)):
+            # check had fail result.
+            if result == "Fail":
+                raise Exception(f"Your task id [{id}] was failed.")
+
+            # check test case id
+            if id not in list(task_map.keys()):
+                raise Exception(f"Your test case id [{id}] was not on this station.")
+
+            # check test case name
+            if task_name not in list(task_map.values()):
+                raise Exception(f"Your test case name [{task_name}] was not on this station.")
+
+    # compare order
+    log_task_order = []
+    for log_id in log_ids:
+        for p in prj_task_instance:
+            if log_id == p.task_id_id:
+                log_task_order.append(p.id)
+    print(log_task_order, db_order)
+    if log_task_order != db_order:
+        raise Exception("Your test case id does not match the database")
