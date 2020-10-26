@@ -38,9 +38,11 @@ def log_confirm_view(request, project_name):
     project_structure = []
 
     p = Project.objects.get(project_name=project_name)
+    allow_download = Project_Upload_time.objects.filter(project_name = project_name).exists()
+
 
     project_dict = {"project_id": 'prj_%d' % 0, "project_name": p.project_name,
-                    "owner_user": p.owner_user.username, "date": p.time}
+                    "owner_user": p.owner_user.username, "date": p.time,"allow_download":allow_download}
     pn_list = []
 
     pn_object = Project_PN.objects.filter(project_name=project_name)
@@ -79,6 +81,7 @@ def log_confirm_view(request, project_name):
     project_dict["pn_list"] = pn_list
     project_structure.append(project_dict)
 
+    print(project_structure)
     return render(request, "log_confirm.html", locals())
 
 
@@ -685,6 +688,7 @@ def result_ini_view(request, project_name, part_number, station_name,):
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
 def save_ini_view(request, token):
+
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if request.POST:
         # if testScript not been resorted will only provide file download service
@@ -692,6 +696,7 @@ def save_ini_view(request, token):
 
             # save new testScript.ini
             with open(os.path.join(handle_path(path, "user_project"), "%s.ini" % token), "w") as f:
+                print(os.path.join(handle_path(path, "user_project"), "%s.ini" % token))
                 # add space line for every testCase
                 new_content = ""
                 for line in (request.POST["ini_content"].split("\n")):
@@ -725,6 +730,7 @@ def save_token_ini(token, username, project_name, part_number, station_name):
     ini_path = os.path.join(handle_path(path, "user_project"), "%s.ini" % token)
     shutil.copy2(ini_path, os.path.join(dest_path, "testScript.ini"))
     os.remove(ini_path)
+    update_ini_version(project_name, part_number, station_name)
 
 
 def save_task_files(token, username, project_name, part_number, station_name, task_list, chose_files=None):

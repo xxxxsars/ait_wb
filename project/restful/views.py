@@ -348,9 +348,53 @@ def valid_log_view(request):
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
 def keep_station_view(request):
+    prj = request.data.get("project_name")
+    pn = request.data.get("part_number")
+    st = request.data.get("station_name")
 
 
-    return JsonResponse({"valid": True, "message": "The log file was passed."})
+    station_instance = get_station_instacne(prj, pn, st)
+    owner_user = station_instance.project_pn_id.project_name.owner_user.username
+    path =  os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    target_path = handle_path(path, "user_project", owner_user, prj, pn, st,"keep")
+
+    script_path = []
+
+    try:
+        shutil.rmtree(target_path, ignore_errors=True)
+        files = get_download_file(owner_user, prj, pn, st)
+        for f in files:
+            dest = path_combine(target_path,f[1])
+            path = os.path.dirname(dest)
+            if  not os.path.exists(path):
+                os.makedirs(path)
+
+            source = f[0]
+            target = path_combine(target_path,f[1])
+
+            if (os.path.basename(source) =="testScript.ini"):
+                script_path.append(source)
+                script_path.append(target)
+
+            shutil.copy2(source,target)
+
+    except Exception as e:
+        return JsonResponse({"valid": False, "message": "There is an error in the saving station file."}, status=400)
+
+
+    old_version = station_instance.version
+    new_version  =  get_ini_version(old_version)
+    station_instance.version = new_version
+    station_instance.save()
+    update_ini_version(prj,pn,st)
+
+    try:
+        #if updated version will re-copy testScript.ini to keep folder
+        shutil.copy2(script_path[0], script_path[1])
+    except Exception as e:
+        return JsonResponse({"valid": False, "message": "There is an error in keeping testScript.ini file."}, status=400)
+
+    return JsonResponse({"valid": True, "message": "The log file was passed.","version":new_version})
 
 
 @api_view(["POST"])
@@ -600,3 +644,23 @@ def check_log(post_prj, post_pn, post_st,content):
     print(log_task_order, db_order)
     if log_task_order != db_order:
         raise Exception("Your test case id does not match the database")
+
+
+def get_ini_version(version):
+    if not version:
+        final_version = "1.0.0"
+    else:
+        cut_ver = [int(v) for v in re.split("\.", version)]
+        if (cut_ver[-1] < 99):
+            cut_ver[-1] = cut_ver[-1] + 1
+
+        else:
+            cut_ver[-1] = 0
+            cut_ver[1] = cut_ver[1] + 1
+
+        if cut_ver[1] > 99:
+            cut_ver[1] = 0
+            cut_ver[0] = cut_ver[0] + 1
+        final_version = ".".join([str(v) for v in cut_ver])
+
+    return final_version

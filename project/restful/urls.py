@@ -22,7 +22,7 @@ urlpatterns = [
     url("valid_part_number/$", valid_part_number_view),
 
     url("valid_log/$",valid_log_view,name='valid_log'),
-    url("keep_station/",keep_station_view),
+    url("keep_station/",keep_station_view,name="keep_station"),
 
 
     url("submit_project/$",submit_project_view,name='submit_project'),

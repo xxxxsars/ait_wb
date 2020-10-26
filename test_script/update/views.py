@@ -94,7 +94,7 @@ def update_API_view(request):
             if (is_modify and len(error_messages)<=0 and "file" in request.FILES):
                 task_info.modify_user = request.user.username
                 try:
-                    new_version = update_version(task_info.version)
+                    new_version = get_script_version(task_info.version)
                 except ValueError as e:
                     err = [str(e)]
                     return JsonResponse({'is_valid': False, "error": err}, status=417)
@@ -178,7 +178,7 @@ def modify_index_view(request, task_id, message=None):
 
     return render(request, "script_modify.html", locals())
 
-def update_version(version:str) ->str:
+def get_script_version(version:str) ->str:
     regex = re.compile(r"^(\d){1}\.(\d{2})$")
 
     matched = regex.search(version)

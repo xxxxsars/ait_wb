@@ -372,28 +372,6 @@ def get_serial_number(task_id):
     return serial
 
 
-def update_version(version: str) -> str:
-    regex = re.compile(r"^(\d){1}\.(\d{2})$")
-
-    matched = regex.search(version)
-    if matched:
-        first_number = int(matched.group(1))
-        second_number = int(matched.group(2))
-
-        if second_number + 1 >= 99:
-            first_number += 1
-            second_number = 1
-
-            if first_number > 9:
-                raise ValueError("Limit number of edits has been exceeded")
-
-        else:
-            second_number += 1
-
-        return "%d.%02d" % (first_number, second_number)
-    else:
-        raise ValueError("Version content is not match")
-
 
 def samba_mount():
     samba_ip = SAMBA_IP
@@ -522,43 +500,159 @@ def update_script_version(task_id):
 
     with open(file_path, "r+") as fin:
         lines = fin.readlines()
-
         version_parameter = f"script_version = \"{version}\"  \n"
         print_version = f"print('script version : {version}')\n"
-        if re.search(r"^#version.+", lines[0]):
-            lines[0] = version_parameter
-        elif re.search(r"^script_version =.+", lines[0]) == None:
+        try:
+            if re.search(r"^#version.+", lines[0]):
+                lines[0] = version_parameter
+            elif re.search(r"^script_version =.+", lines[0]) == None:
+                lines.insert(0, version_parameter)
+            else:
+                lines[0] = version_parameter
+        #if empty file add to top line
+        except Exception as e:
             lines.insert(0, version_parameter)
-        else:
-            lines[0] = version_parameter
-
-        if re.search(r"^print\('script version.+", lines[1]) == None:
+        try:
+            if re.search(r"^print\('script version.+", lines[1]) == None:
+                lines.insert(1, print_version)
+            else:
+                lines[1] = print_version
+        #if empty file add to second line
+        except Exception as e:
             lines.insert(1, print_version)
-        else:
-            lines[1] = print_version
 
     with open(file_path, "w") as fout:
         fout.writelines(lines)
 
 
+
+
+def update_ini_version(prj, pn, st):
+    prj_instance = Project.objects.get(project_name=prj)
+    pn_instance = Project_PN.objects.get(project_name=prj_instance, part_number=pn)
+    st_instance = Project_Station.objects.get(project_pn_id=pn_instance, station_name=st)
+    owner_user = st_instance.project_pn_id.project_name.owner_user.username
+    version = st_instance.version
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    project_path = handle_path(path, "user_project", owner_user, prj, pn, st)
+
+
+    ini_path = path_combine(project_path,"testScript.ini")
+
+    try:
+        f_ver_reg = re.compile(r"\[FORMAT_VERSION_(\d+)\]")
+        t_ver_reg = re.compile(r"\[TESTSCRIPT_VERSION_(.+)\]")
+        with open(ini_path,"r") as fin:
+            content = fin.read()
+            f_match = f_ver_reg.search(content)
+            t_match = t_ver_reg.search(content)
+            if f_match is None:
+                content = ("[FORMAT_VERSION_2]\n") +content
+
+            #if had been checked log will append the version
+            if version:
+                if t_match is None:
+                    content = f"[TESTSCRIPT_VERSION_{version}]\n"+content
+                elif t_match:
+                    print(f"[TESTSCRIPT_VERSION_{version}]")
+                    content = t_ver_reg.sub(f"[TESTSCRIPT_VERSION_{version}]",content)
+
+        with open(ini_path, "w") as fout:
+            fout.write(content)
+
+
+
+
+    except Exception as e:
+        raise  Exception(f"An error occurred while opening the '{ini_path}' file." )
+
+
+
+
 if __name__ == "__main__":
-    # from test_script.upload.models import *
-    #
-    #
-    # root_path = "/Users/mac/Python/Python_Project/Python/FactoryWeb/upload_files"
-    # for tc in Upload_TestCase.objects.all():
-    #
-    #     path = path_combine(root_path,tc.task_id,tc.script_name)
-    #
-    #     if os.path.exists(path) ==False:
-    #         print(tc.id)
 
-    col = [
-        [0, 1, 2],
-        [3, 4, 5]
-    ]
+    update_ini_version("9EH3U3L","DEFAULT","PCBA_FT5")
 
 
-    for c in col:
-        for j in c:
-            print(j)
+
+
+
+
+
+
+
+
+    # station_match_count = 0
+    # for index, byte_line in enumerate(lines):
+    #     # line = byte_line.decode("utf-8")
+    #     line = byte_line
+    #     # check station name
+    #     station_match = (station_regex.search(line))
+    #
+    #     if station_match:
+    #         station_match_count += 1
+    #         log_station = station_match.group(1)
+    #         print(log_station)
+            # if log_station != station_name:
+            #     token_disable_upload_project(token)
+            #     return JsonResponse({"valid": False, "message": "The log file station name not compared."}, status=400)
+
+        # check log the all task was passed
+    #     matched = valid_reg.search(line)
+    #
+    #     if matched:
+    #         if matched.group(2) == "PASS":
+    #             # add pass task name to list
+    #             task_names.append((matched.group(1).strip()))
+    #             task_id_line_inedx.append(index + 1)
+    #
+    #         else:
+    #             token_disable_upload_project(token)
+    #             return JsonResponse(
+    #                 {"valid": False, "message": "The testCase '%s' was failed." % matched.group(1).strip()}, status=400)
+    #
+    #     if index in task_id_line_inedx:
+    #         # add pass task id to list
+    #         test_id_match = test_id_regex.search(line)
+    #         if test_id_match:
+    #             task_ids.append(test_id_match.group(1))
+    #
+    # if station_match_count <= 0:
+    #     token_disable_upload_project(token)
+    #     return JsonResponse({"valid": False, "message": "Can't find log station name."}, status=400)
+    #
+    # # check testScript order
+    # task_id_map = {p.id: p.task_name for p in Project_task.objects.filter(station_id=station_instance)}
+    # sort_task_name_id = Project_TestScript_order.objects.get(station_name=station_instance).script_oder.split(" ")
+    #
+    # for id in sort_task_name_id:
+    #     compare_task_name.append((task_id_map[int(id)]).strip())
+    #
+    # # check testCase id
+    # compare_task_id = [instance.task_id.task_id for instance in
+    #                    Project_task.objects.filter(station_id=station_instance)]
+    #
+    # # check task name
+    # if task_names == compare_task_name:
+    #
+    #     # check task id
+    #     sort_compare_task_id = [int(i) for i in compare_task_id]
+    #     sort_task_ids = [int(i) for i in task_ids]
+    #
+    #     sort_compare_task_id.sort()
+    #     sort_task_ids.sort()
+    #     if sort_compare_task_id == sort_task_ids:
+    #         # create log pass message to project_upload_time and set "allow_upload" to the "True"
+    #         # only all upload but not had been uploaded to samba so the username was "none"
+    #         instance, created = Project_Upload_time.objects.get_or_create(token=token, project_name=Project.objects.get(
+    #             project_name=project_name))
+    #         instance.allow_upload = True
+    #         instance.save()
+    #
+    #         return JsonResponse({"valid": True, "message": "The log file was passed."})
+    # else:
+    #
+    #     token_disable_upload_project(token)
+    #     return JsonResponse({"valid": False, "message": "Please re-download this testScript and test it aging."},
+    #                         status=400)
+
