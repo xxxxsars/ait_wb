@@ -261,6 +261,7 @@
 
                     data: {
                         "project_name": {{ project_name }},
+                        token: '{{ token |escapejs }}',
                         'csrfmiddlewaretoken': getCookie('csrftoken')
                     },
 

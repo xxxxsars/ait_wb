@@ -327,17 +327,7 @@ def valid_log_view(request):
             err_msg = str(e)
             return JsonResponse({"valid": False, "message": err_msg}, status=400)
 
-
-
-
         #token_disable_upload_project(token)
-
-
-        # #save the passed project and allow the project to upload
-        # instance, created = Project_Upload_time.objects.get_or_create(token=token, project_name=Project.objects.get(
-        #     project_name=prj))
-        # instance.allow_upload = True
-        # instance.save()
 
         return JsonResponse({"valid": True, "message": "The log file was passed."})
 
@@ -363,6 +353,8 @@ def keep_station_view(request):
 @authentication_classes((SessionAuthentication,))
 def keep_project_view(request):
     prj = request.data.get("project_name")
+    token = request.data.get("token")
+
     pns = Project_PN.objects.filter(project_name=prj)
     version_data = {}
 
@@ -377,6 +369,13 @@ def keep_project_view(request):
             except Exception as e:
                 err_msg = str(e)
                 return JsonResponse({"valid": False, "message": err_msg}, status=417)
+
+    # #save the passed project and allow the project to upload
+    instance, created = Project_Upload_time.objects.get_or_create(token=token, project_name=Project.objects.get(
+        project_name=prj))
+    instance.allow_upload = True
+    instance.save()
+
 
     return JsonResponse({"valid": True, "message": "Keep Project Successfully!","version_data":version_data})
 

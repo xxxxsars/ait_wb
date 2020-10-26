@@ -83,7 +83,7 @@ def list_project_view(request):
     project_structure = []
     for prj_id, p in enumerate(datas):
         project_name = p.project_name
-        allow_upload = False
+        allow_confirm_log = False
         upload_date = "Not Uploaded"
 
         filter_instances = [instance for instance in Project_Upload_time.objects.filter(project_name=p) if
@@ -91,8 +91,10 @@ def list_project_view(request):
         if len(filter_instances) > 0:
             upload_date = filter_instances[-1].time
 
+
+
         project_dict = {"project_id": 'prj_%d' % prj_id, "project_name": p.project_name,
-                        "owner_user": p.owner_user.username, "date": p.time, "upload_date": upload_date}
+                        "owner_user": p.owner_user.username, "date": p.time, "upload_date": upload_date,"allow_upload":Project_Upload_time.objects.filter(project_name=p,allow_upload=True).exists()}
 
         pn_list = []
 
@@ -121,20 +123,20 @@ def list_project_view(request):
 
                             if ini_not_saved:
                                 st_dict["download"] = False
-                                allow_upload = False
+                                allow_confirm_log = False
                             else:
                                 st_dict["download"] = True
-                                allow_upload = True
+                                allow_confirm_log = True
                         else:
                             st_dict["download"] = False
-                            allow_upload = False
+                            allow_confirm_log = False
 
                         st_list.append(st_dict)
 
                 pn_dict["st_list"] = st_list
 
         project_dict["pn_list"] = pn_list
-        project_dict["allow_upload"] = allow_upload
+        project_dict["allow_confirm_log"] = allow_confirm_log
         project_structure.append(project_dict)
 
     return render(request, "project_list.html", locals())
