@@ -122,7 +122,6 @@ def copy_part_number_view(request):
 
 
         for st in Project_Station.objects.filter(project_pn_id=pn_instance):
-            print(st.station_name)
             new_st = Project_Station.objects.create(project_pn_id=new_pn, station_name=st.station_name)
 
             new_task_id = []
@@ -146,7 +145,6 @@ def copy_part_number_view(request):
             task_order = Project_TestScript_order.objects.get(station_name=st, part_number=pn_instance,
                                                               project_name=prj_instance).script_oder.split(" ")
             new_order = set_task_order(task_order, new_task_id)
-            print(new_order)
             Project_TestScript_order.objects.create(station_name=new_st, part_number=new_pn,
                                                     project_name=prj_instance, script_oder=new_order)
 
@@ -344,7 +342,6 @@ def valid_log_view(request):
         return JsonResponse({"valid": True, "message": "The log file was passed."})
 
 
-
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
 def keep_station_view(request):
@@ -352,50 +349,36 @@ def keep_station_view(request):
     pn = request.data.get("part_number")
     st = request.data.get("station_name")
 
-
-    station_instance = get_station_instacne(prj, pn, st)
-    owner_user = station_instance.project_pn_id.project_name.owner_user.username
-    path =  os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    target_path = handle_path(path, "user_project", owner_user, prj, pn, st,"keep")
-
-    script_path = []
-
     try:
-        shutil.rmtree(target_path, ignore_errors=True)
-        files = get_download_file(owner_user, prj, pn, st)
-        for f in files:
-            dest = path_combine(target_path,f[1])
-            path = os.path.dirname(dest)
-            if  not os.path.exists(path):
-                os.makedirs(path)
-
-            source = f[0]
-            target = path_combine(target_path,f[1])
-
-            if (os.path.basename(source) =="testScript.ini"):
-                script_path.append(source)
-                script_path.append(target)
-
-            shutil.copy2(source,target)
-
+       new_version = keep_station(prj,pn,st)
     except Exception as e:
-        return JsonResponse({"valid": False, "message": "There is an error in the saving station file."}, status=400)
+        err_msg = str(e)
+        return JsonResponse({"valid": False, "message":err_msg}, status=417)
 
 
-    old_version = station_instance.version
-    new_version  =  get_ini_version(old_version)
-    station_instance.version = new_version
-    station_instance.save()
-    update_ini_version(prj,pn,st)
+    return JsonResponse({"valid": True, "message": "Keep Station Successfully!","version":new_version})
 
-    try:
-        #if updated version will re-copy testScript.ini to keep folder
-        shutil.copy2(script_path[0], script_path[1])
-    except Exception as e:
-        return JsonResponse({"valid": False, "message": "There is an error in keeping testScript.ini file."}, status=400)
 
-    return JsonResponse({"valid": True, "message": "The log file was passed.","version":new_version})
+@api_view(["POST"])
+@authentication_classes((SessionAuthentication,))
+def keep_project_view(request):
+    prj = request.data.get("project_name")
+    pns = Project_PN.objects.filter(project_name=prj)
+    version_data = {}
 
+    for p in pns:
+        pn = p.part_number
+        sts = Project_Station.objects.filter(project_pn_id=p)
+        for s in sts:
+            st = s.station_name
+            try:
+                new_version = keep_station(prj,pn,st)
+                version_data[f"{prj}_{pn}_{st}"] = new_version
+            except Exception as e:
+                err_msg = str(e)
+                return JsonResponse({"valid": False, "message": err_msg}, status=417)
+
+    return JsonResponse({"valid": True, "message": "Keep Project Successfully!","version_data":version_data})
 
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
@@ -490,9 +473,6 @@ def valid_projectt_name_view(request):
             return JsonResponse({"valid":False})
         else:
             return JsonResponse({"valid": True})
-
-
-
 
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))
@@ -641,7 +621,6 @@ def check_log(post_prj, post_pn, post_st,content):
         for p in prj_task_instance:
             if log_id == p.task_id_id:
                 log_task_order.append(p.id)
-    print(log_task_order, db_order)
     if log_task_order != db_order:
         raise Exception("Your test case id does not match the database")
 
@@ -664,3 +643,49 @@ def get_ini_version(version):
         final_version = ".".join([str(v) for v in cut_ver])
 
     return final_version
+
+def keep_station(prj, pn, st):
+    station_instance = get_station_instacne(prj, pn, st)
+    owner_user = station_instance.project_pn_id.project_name.owner_user.username
+    path =  os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    target_path = handle_path(path, "user_project", owner_user, prj, pn, st,"keep")
+
+    prj_struct = f"[{prj}/{pn}/{st}]"
+
+    script_path = []
+
+    try:
+        shutil.rmtree(target_path, ignore_errors=True)
+        files = get_download_file(owner_user, prj, pn, st)
+        for f in files:
+            dest = path_combine(target_path,f[1])
+            path = os.path.dirname(dest)
+            if  not os.path.exists(path):
+                os.makedirs(path)
+
+            source = f[0]
+            target = path_combine(target_path,f[1])
+
+            if (os.path.basename(source) =="testScript.ini"):
+                script_path.append(source)
+                script_path.append(target)
+
+            shutil.copy2(source,target)
+
+    except Exception as e:
+       raise Exception (f"There is an error in the saving {prj_struct} station file.")
+
+
+    old_version = station_instance.version
+    new_version  =  get_ini_version(old_version)
+    station_instance.version = new_version
+    station_instance.save()
+    update_ini_version(prj,pn,st)
+
+    try:
+        #if updated version will re-copy testScript.ini to keep folder
+        shutil.copy2(script_path[0], script_path[1])
+    except Exception as e:
+        raise Exception(f"There is an error in keeping {prj_struct} testScript.ini file.")
+
+    return new_version

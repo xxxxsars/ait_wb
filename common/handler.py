@@ -554,7 +554,6 @@ def update_ini_version(prj, pn, st):
                 if t_match is None:
                     content = f"[TESTSCRIPT_VERSION_{version}]\n"+content
                 elif t_match:
-                    print(f"[TESTSCRIPT_VERSION_{version}]")
                     content = t_ver_reg.sub(f"[TESTSCRIPT_VERSION_{version}]",content)
 
         with open(ini_path, "w") as fout:

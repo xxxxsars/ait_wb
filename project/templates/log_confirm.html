@@ -115,7 +115,6 @@
                 var status_field = tr.find('td').last();
 
 
-
                 cls_array = tr.attr("class").split(" ");
 
                 var project_name = cls_array[0];
@@ -199,13 +198,10 @@
 
 
             $(".btn-keep").click(function () {
-                console.log("keep station")
-
                 var keep_btn = $(this);
                 var tr = $(this).closest('tr');
                 var cls_array = tr.attr("class").split(" ");
-                var version_element =  tr.find('td:eq(1)');
-
+                var version_element = tr.find('td:eq(1)');
 
 
                 $.ajax({
@@ -249,10 +245,6 @@
                             $("#error_message").html(error_messages + "<br>");
                             $("#error-dialog").modal('show');
 
-                            //disable check button
-                            btn_obj.hide();
-                            add_btn.show();
-
                         }
 
                     }
@@ -263,7 +255,65 @@
 
 
             $("#keep_project").click(function () {
-                console.log("keep project")
+                $.ajax({
+                    url: "{% url "keep_project" %}",
+                    type: 'POST',
+
+                    data: {
+                        "project_name": {{ project_name }},
+                        'csrfmiddlewaretoken': getCookie('csrftoken')
+                    },
+
+                    success: function (json) {
+                        $("#message").empty();
+
+                        $("#message").append(
+                            '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                            '<strong>Keep Station Successfully!</strong>' +
+                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                            '<span aria-hidden="true">&times;</span>' +
+                            '</button>' +
+                            '</div>');
+                        //auto close alert  after 4 seconds.
+                        $(".alert").delay(4000).slideUp(200, function () {
+                            $(this).alert('close');
+
+                        });
+
+
+                        $("#project_table tbody").find("tr").each(function () {
+                            var cls_array = $(this).attr("class").split(" ");
+
+
+                            var ver_element = $(this).find('td:eq(1)');
+                            if (ver_element.length) {
+                                var version_key = cls_array[0] + "_" + cls_array[1] + "_" + cls_array[2];
+                                ver_element.text(json.version_data[version_key])
+                            }
+
+                            $(this).find(".btn-keep").attr("disabled", true);
+
+                        });
+
+                        $("#keep_project").attr("disabled", true);
+
+                    },
+
+                    error: function (xhr, errmsg, err) {
+
+                        var json = $.parseJSON(xhr.responseText);
+                        if (json.valid == false) {
+                            $("#message").empty();
+                            var error_messages = json.message;
+                            $("#error_message").html(error_messages + "<br>");
+                            $("#error-dialog").modal('show');
+
+                        }
+
+                    }
+                });
+
+
             });
 
 
@@ -412,10 +462,10 @@
 
     <div class="text-center">
 
-        <button id="keep_project" class="btn btn-outline-primary btn-action" type="button" disabled><i
-                class="fas fa-save"></i>
-            Keep Project
-        </button>
+                <button id="keep_project" class="btn btn-outline-primary btn-action" type="button" disabled><i
+                        class="fas fa-save"></i>
+                    Keep Project
+                </button>
 
 
         <button id="download_project" class="btn btn-outline-success" type="button"  {% for prj in project_structure %}

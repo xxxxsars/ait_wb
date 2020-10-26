@@ -23,7 +23,7 @@ urlpatterns = [
 
     url("valid_log/$",valid_log_view,name='valid_log'),
     url("keep_station/",keep_station_view,name="keep_station"),
-
+    url("keep_project/",keep_project_view,name="keep_project"),
 
     url("submit_project/$",submit_project_view,name='submit_project'),
 
