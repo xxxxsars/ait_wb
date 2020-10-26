@@ -201,6 +201,7 @@
             $(".btn-keep").click(function () {
                 console.log("keep station")
 
+                var keep_btn = $(this);
                 var tr = $(this).closest('tr');
                 var cls_array = tr.attr("class").split(" ");
                 var version_element =  tr.find('td:eq(1)');
@@ -235,6 +236,8 @@
                         });
 
                         version_element.text(json.version);
+                        keep_btn.tooltip('hide');
+                        keep_btn.attr("disabled", true);
                     },
 
                     error: function (xhr, errmsg, err) {
