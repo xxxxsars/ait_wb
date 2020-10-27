@@ -433,10 +433,14 @@
                         <td>
 
                             <div class="text-center">
-                                <button class="btn btn-outline-primary btn-keep" type="button" data-toggle="tooltip"
-                                        data-placement="bottom" title="Keep Current Station Vesrsion" disabled><i
-                                        class="fas fa-save"></i> Keep
-                                </button>
+
+                                {% if  prj|lookup:"allow_download" %}
+                                    <button class="btn btn-outline-primary btn-keep" type="button" data-toggle="tooltip"
+                                            data-placement="bottom" title="Keep Current Station Vesrsion" disabled><i
+                                            class="fas fa-save"></i> Keep
+                                    </button>
+                                {% endif %}
+
 
                                 <button class="btn btn-outline-success btn-upload" type="button" data-toggle="tooltip"
                                         data-placement="bottom" title="Add Test Log "><i
@@ -463,10 +467,10 @@
 
     <div class="text-center">
 
-                <button id="keep_project" class="btn btn-outline-primary btn-action" type="button" disabled><i
-                        class="fas fa-save"></i>
-                    Keep Project
-                </button>
+        <button id="keep_project" class="btn btn-outline-primary btn-action" type="button" disabled><i
+                class="fas fa-save"></i>
+            Keep Project
+        </button>
 
 
         <button id="download_project" class="btn btn-outline-success" type="button"  {% for prj in project_structure %}
@@ -474,7 +478,7 @@
                 disabled
             {% endif %}
         {% endfor %}><i class="fas fa-download"></i>
-            Latest Project
+            Latest keep Project
         </button>
     </div>
 
