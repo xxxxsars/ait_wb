@@ -338,6 +338,7 @@ def keep_station_view(request):
     prj = request.data.get("project_name")
     pn = request.data.get("part_number")
     st = request.data.get("station_name")
+    token = request.data.get("token")
 
     try:
        new_version = keep_station(prj,pn,st)
@@ -345,6 +346,12 @@ def keep_station_view(request):
         err_msg = str(e)
         return JsonResponse({"valid": False, "message":err_msg}, status=417)
 
+
+    # #save the passed project and allow the project to upload
+    instance, created = Project_Upload_time.objects.get_or_create(token=token, project_name=Project.objects.get(
+        project_name=prj))
+    instance.allow_upload = True
+    instance.save()
 
     return JsonResponse({"valid": True, "message": "Keep Station Successfully!","version":new_version})
 
@@ -378,6 +385,41 @@ def keep_project_view(request):
 
 
     return JsonResponse({"valid": True, "message": "Keep Project Successfully!","version_data":version_data})
+
+
+@api_view(["GET"])
+@authentication_classes((SessionAuthentication,))
+def download_project_view(request,project_name):
+    if request.method == "GET":
+        prj = project_name
+        user = Project.objects.get(project_name=prj).owner_user.username
+
+        s = BytesIO()
+        zf = zipfile.ZipFile(s, "w", compression=zipfile.ZIP_DEFLATED)
+        pns = Project_PN.objects.filter(project_name=prj)
+        print(pns)
+
+        for p in pns:
+            pn = p.part_number
+            sts = Project_Station.objects.filter(project_pn_id=p)
+            for st in sts:
+                st = st.station_name
+                print(user,prj,pn,st)
+                files = get_keep_files(user,prj,pn,st)
+                for f in files:
+
+                    thread = threading.Thread(target=lambda zf, f: zf.write(f[0], f[1]), args=(zf, f))
+                    thread.start()
+                    thread.join()
+
+        zf.close()
+        response = HttpResponse(s.getvalue(), content_type='application/x-zip-compressed')
+        response['Content-Disposition'] = 'attachment; filename="%s.zip"' % datetime.datetime.now().strftime(
+            '%Y-%m-%d_%H-%M-%S')
+        response['Content-Length'] = s.tell()
+
+        return response
+
 
 @api_view(["POST"])
 @authentication_classes((SessionAuthentication,))

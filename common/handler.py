@@ -316,6 +316,20 @@ def get_download_file(owner_user, project_name, part_number, station_name):
     return zip_files
 
 
+def get_keep_files(owner_user, project_name, part_number, station_name):
+    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    project_path = path_combine(path, "user_project", owner_user, project_name, part_number, station_name,"keep")
+
+    zip_files = []
+    for root, folders, files in os.walk(project_path):
+        for f in files:
+            full_file_path = os.path.join(root, f)
+            target_path =  re.sub("keep","",os.path.relpath(full_file_path, path_combine(path, "user_project", owner_user)))
+            zip_files.append((full_file_path,target_path))
+
+    return zip_files
+
+
 def get_script_list():
     task_instances = Upload_TestCase.objects.all()
     datas = []
@@ -428,9 +442,9 @@ def samba_mount():
 def disable_upload_project(project_name):
     up_instances = Project_Upload_time.objects.filter(project_name=project_name)
     if up_instances.exists():
-        last_instance = up_instances.latest('time')
-        last_instance.allow_upload = False
-        last_instance.save()
+        for up in up_instances:
+            up.allow_upload = False
+            up.save()
 
 
 def token_disable_upload_project(token):
@@ -547,7 +561,7 @@ def update_ini_version(prj, pn, st):
             f_match = f_ver_reg.search(content)
             t_match = t_ver_reg.search(content)
             if f_match is None:
-                content = ("[FORMAT_VERSION_2]\n") +content
+                content = ("[FORMAT_VERSION_2]\n\n") +content
 
             #if had been checked log will append the version
             if version:

@@ -212,6 +212,7 @@
                         "project_name": cls_array[0],
                         "part_number": cls_array[1],
                         "station_name": cls_array[2],
+                         "token": '{{ token |escapejs }}',
                         'csrfmiddlewaretoken': getCookie('csrftoken')
                     },
 
@@ -261,7 +262,7 @@
 
                     data: {
                         "project_name": {{ project_name }},
-                        token: '{{ token |escapejs }}',
+                        "token": '{{ token |escapejs }}',
                         'csrfmiddlewaretoken': getCookie('csrftoken')
                     },
 
@@ -297,6 +298,7 @@
                         });
 
                         $("#keep_project").attr("disabled", true);
+                        $("#download_project").attr("disabled", false);
 
                     },
 
@@ -315,6 +317,13 @@
                 });
 
 
+            });
+
+
+            $("#download_project").click(function () {
+                    var project_name = "{{ project_name }}";
+                     ajax_loading("Please waiting , Compressed all script to zip file and download it...");
+                     ajax_download("/project/download_project/" + project_name );
             });
 
 

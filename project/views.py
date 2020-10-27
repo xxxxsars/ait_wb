@@ -677,10 +677,8 @@ def save_ini_view(request, token):
     if request.POST:
         # if testScript not been resorted will only provide file download service
         if 'save_ini' in request.POST:
-
             # save new testScript.ini
             with open(os.path.join(handle_path(path, "user_project"), "%s.ini" % token), "w") as f:
-                print(os.path.join(handle_path(path, "user_project"), "%s.ini" % token))
                 # add space line for every testCase
                 new_content = ""
                 for line in (request.POST["ini_content"].split("\n")):
@@ -719,10 +717,19 @@ def save_token_ini(token, username, project_name, part_number, station_name):
 
 def save_task_files(token, username, project_name, part_number, station_name, task_list, chose_files=None):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    config_path = handle_path(path, "project", "ait_config")
-    script_path = "TestScriptRes"
+
     dest_path = handle_path(path, "user_project", username, project_name, part_number, station_name)
-    shutil.rmtree(dest_path)
+    keep_path = handle_path(path, "user_project", username, project_name, part_number, station_name,"keep")
+
+    for root, dirs, files in os.walk(dest_path):
+        if keep_path not in root :
+            for f in files:
+                print(os.path.join(root, f))
+                os.unlink(os.path.join(root, f))
+            for d in dirs:
+                if keep_path not in os.path.join(root, d):
+                    shutil.rmtree(os.path.join(root, d))
+
 
     if not os.path.exists(dest_path):
         os.makedirs(dest_path)
