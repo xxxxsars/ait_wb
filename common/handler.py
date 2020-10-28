@@ -469,7 +469,6 @@ def disable_upload_project(project_name):
             up.save()
 
 
-
 def valid_zip_file(file, task_id, script_name):
     error_messages = []
     is_modify = True
@@ -600,7 +599,10 @@ def update_ini_version(prj, pn, st):
 
 if __name__ == "__main__":
 
-    update_ini_version("9EH3U3L","DEFAULT","PCBA_FT5")
+    for i in range(10):
+        if i == 5:
+            continue
+        print(i)
 
 
 
@@ -611,77 +613,4 @@ if __name__ == "__main__":
 
 
 
-    # station_match_count = 0
-    # for index, byte_line in enumerate(lines):
-    #     # line = byte_line.decode("utf-8")
-    #     line = byte_line
-    #     # check station name
-    #     station_match = (station_regex.search(line))
-    #
-    #     if station_match:
-    #         station_match_count += 1
-    #         log_station = station_match.group(1)
-    #         print(log_station)
-            # if log_station != station_name:
-            #     token_disable_upload_project(token)
-            #     return JsonResponse({"valid": False, "message": "The log file station name not compared."}, status=400)
-
-        # check log the all task was passed
-    #     matched = valid_reg.search(line)
-    #
-    #     if matched:
-    #         if matched.group(2) == "PASS":
-    #             # add pass task name to list
-    #             task_names.append((matched.group(1).strip()))
-    #             task_id_line_inedx.append(index + 1)
-    #
-    #         else:
-    #             token_disable_upload_project(token)
-    #             return JsonResponse(
-    #                 {"valid": False, "message": "The testCase '%s' was failed." % matched.group(1).strip()}, status=400)
-    #
-    #     if index in task_id_line_inedx:
-    #         # add pass task id to list
-    #         test_id_match = test_id_regex.search(line)
-    #         if test_id_match:
-    #             task_ids.append(test_id_match.group(1))
-    #
-    # if station_match_count <= 0:
-    #     token_disable_upload_project(token)
-    #     return JsonResponse({"valid": False, "message": "Can't find log station name."}, status=400)
-    #
-    # # check testScript order
-    # task_id_map = {p.id: p.task_name for p in Project_task.objects.filter(station_id=station_instance)}
-    # sort_task_name_id = Project_TestScript_order.objects.get(station_name=station_instance).script_oder.split(" ")
-    #
-    # for id in sort_task_name_id:
-    #     compare_task_name.append((task_id_map[int(id)]).strip())
-    #
-    # # check testCase id
-    # compare_task_id = [instance.task_id.task_id for instance in
-    #                    Project_task.objects.filter(station_id=station_instance)]
-    #
-    # # check task name
-    # if task_names == compare_task_name:
-    #
-    #     # check task id
-    #     sort_compare_task_id = [int(i) for i in compare_task_id]
-    #     sort_task_ids = [int(i) for i in task_ids]
-    #
-    #     sort_compare_task_id.sort()
-    #     sort_task_ids.sort()
-    #     if sort_compare_task_id == sort_task_ids:
-    #         # create log pass message to project_upload_time and set "allow_upload" to the "True"
-    #         # only all upload but not had been uploaded to samba so the username was "none"
-    #         instance, created = Project_Upload_time.objects.get_or_create(token=token, project_name=Project.objects.get(
-    #             project_name=project_name))
-    #         instance.allow_upload = True
-    #         instance.save()
-    #
-    #         return JsonResponse({"valid": True, "message": "The log file was passed."})
-    # else:
-    #
-    #     token_disable_upload_project(token)
-    #     return JsonResponse({"valid": False, "message": "Please re-download this testScript and test it aging."},
-    #                         status=400)
 

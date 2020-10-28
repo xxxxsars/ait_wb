@@ -212,7 +212,7 @@ def DeleteProjectStationView(request):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         station_instance.delete()
-        disable_upload_project(project_name)
+        #disable_upload_project(project_name)
 
         delete_file(owner_user, project_name, part_number, station_name)
         #
@@ -236,7 +236,7 @@ def DeleteProjectPNView(request):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         pn_instance.delete()
-        disable_upload_project(project_name)
+        #disable_upload_project(project_name)
 
         delete_file(owner_user, project_name, part_number)
         return Response(status=status.HTTP_200_OK)
@@ -500,7 +500,7 @@ class DeleteProjectTaskView(viewsets.ModelViewSet):
             project_order_instance.save()
 
         self.perform_destroy(instance)
-        disable_upload_project(project_name)
+        #disable_upload_project(project_name)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(["GET"])

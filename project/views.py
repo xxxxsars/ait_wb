@@ -259,13 +259,13 @@ def modify_project_view(request, project_name, message=None):
                 # no matter project modify should handle PartNumber
                 modify_part_number(post_project_name, post_part_numbers)
                 message = "Modify Project successfully!"
-                disable_upload_project(project_name)
+                #disable_upload_project(project_name)
 
                 return redirect("/project/modify_project/%s/%s" % (post_project_name, message))
             # no matter project modify should handle PartNumber
             modify_part_number(post_project_name, post_part_numbers)
             susessful = "Modify Project successfully!"
-            disable_upload_project(project_name)
+            #disable_upload_project(project_name)
             return render(request, "project_modify.html", locals())
 
         else:
@@ -371,7 +371,7 @@ def modify_station_view(request, project_name, part_number):
 
         modify_station_name(project_name, part_number, post_stations)
         susessful = "Modify Station Name successfully!"
-        disable_upload_project(project_name)
+        #disable_upload_project(project_name)
 
     return render(request, "station_modify.html", locals())
 
@@ -538,7 +538,7 @@ def modify_script_view(request, project_name, part_number, station_name):
                 # if will save project_task and project_task_argument ,the data get from default value
                 new_prj_task_ids = save_add_tasks(add_task_ids, station_instance)
             prj_task_li = get_station_tasks(project_name, part_number, station_name)
-            disable_upload_project(project_name)
+            #disable_upload_project(project_name)
             return render(request, "argument.html", locals())
 
         # handle the select new task action
@@ -597,7 +597,7 @@ def modify_script_view(request, project_name, part_number, station_name):
             # if on "confirm page" will save testScript ordering and return order list
             sorted_list = [info["project_task_id"] for info in project_infos]
             testScript_order_list = save_testScript_order(project_name, part_number, station_name, sorted_list, False)
-            disable_upload_project(project_name)
+            #disable_upload_project(project_name)
 
             # if ajax call will check conflict file
             if 'ajax_saved' in request.POST:
@@ -701,7 +701,7 @@ def save_ini_view(request, token):
             # save the new order to db
             sorted_list = request.POST.getlist("sroted_list[]")
             save_testScript_order(project_name, part_number, station_name, sorted_list, True)
-            disable_upload_project(project_name)
+            #disable_upload_project(project_name)
 
         return HttpResponse(status=200)
 
