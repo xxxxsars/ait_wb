@@ -469,13 +469,6 @@ def disable_upload_project(project_name):
             up.save()
 
 
-def token_disable_upload_project(token):
-    existed = Project_Upload_time.objects.filter(token=token).exists()
-    if existed:
-        instance = Project_Upload_time.objects.get(token=token)
-        instance.allow_upload = False
-        instance.save()
-
 
 def valid_zip_file(file, task_id, script_name):
     error_messages = []

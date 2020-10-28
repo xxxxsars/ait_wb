@@ -327,7 +327,6 @@ def valid_log_view(request):
             err_msg = str(e)
             return JsonResponse({"valid": False, "message": err_msg}, status=400)
 
-        #token_disable_upload_project(token)
 
         return JsonResponse({"valid": True, "message": "The log file was passed."})
 

@@ -151,8 +151,7 @@
                             '</div>')
 
                         btn_obj.hide();
-                        add_btn.show();
-                        keep_btn.attr("disabled", false);
+                        keep_btn.show();
 
                         //clean status and set success icon
                         status_field.html("");
@@ -182,12 +181,6 @@
                             btn_obj.hide();
                             add_btn.show();
 
-                            //if all task not pass will lock submit button
-                            $("#submit_project").attr("disabled", true);
-
-                            //clean status and set failed icon
-                            status_field.html("");
-                            status_field.append("<div class=\"text-center text-danger h5 status\"><i class=\"fas fa-minus-circle\"></i></div>")
 
                         }
 
@@ -200,6 +193,7 @@
             $(".btn-keep").click(function () {
                 var keep_btn = $(this);
                 var tr = $(this).closest('tr');
+                var add_btn = (tr.find(".btn-upload"));
                 var cls_array = tr.attr("class").split(" ");
                 var version_element = tr.find('td:eq(1)');
 
@@ -234,7 +228,9 @@
 
                         version_element.text(json.version);
                         keep_btn.tooltip('hide');
-                        keep_btn.attr("disabled", true);
+                        add_btn.show();
+                        keep_btn.hide();
+                        $("#download_project").show();
                     },
 
                     error: function (xhr, errmsg, err) {
@@ -248,70 +244,8 @@
 
                         }
 
-                    }
-                });
-
-
-            });
-
-
-            $("#keep_project").click(function () {
-                $.ajax({
-                    url: "{% url "keep_project" %}",
-                    type: 'POST',
-
-                    data: {
-                        "project_name": {{ project_name }},
-                        "token": '{{ token |escapejs }}',
-                        'csrfmiddlewaretoken': getCookie('csrftoken')
-                    },
-
-                    success: function (json) {
-                        $("#message").empty();
-
-                        $("#message").append(
-                            '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
-                            '<strong>Keep Station Successfully!</strong>' +
-                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-                            '<span aria-hidden="true">&times;</span>' +
-                            '</button>' +
-                            '</div>');
-                        //auto close alert  after 4 seconds.
-                        $(".alert").delay(4000).slideUp(200, function () {
-                            $(this).alert('close');
-
-                        });
-
-
-                        $("#project_table tbody").find("tr").each(function () {
-                            var cls_array = $(this).attr("class").split(" ");
-
-
-                            var ver_element = $(this).find('td:eq(1)');
-                            if (ver_element.length) {
-                                var version_key = cls_array[0] + "_" + cls_array[1] + "_" + cls_array[2];
-                                ver_element.text(json.version_data[version_key])
-                            }
-
-                            $(this).find(".btn-keep").attr("disabled", true);
-
-                        });
-
-                        $("#keep_project").attr("disabled", true);
-                        $("#download_project").attr("disabled", false);
-
-                    },
-
-                    error: function (xhr, errmsg, err) {
-
-                        var json = $.parseJSON(xhr.responseText);
-                        if (json.valid == false) {
-                            $("#message").empty();
-                            var error_messages = json.message;
-                            $("#error_message").html(error_messages + "<br>");
-                            $("#error-dialog").modal('show');
-
-                        }
+                        add_btn.show();
+                        keep_btn.hide();
 
                     }
                 });
@@ -326,10 +260,10 @@
 
 
             $("#download_script").click(function () {
-                 let script_version = $("#select-version").val();
-                 var project_name = "{{ project_name }}";
+                let script_version = $("#select-version").val();
+                var project_name = "{{ project_name }}";
                 ajax_loading("Please waiting , Compressed all script to zip file and download it...");
-                ajax_download("/project/download_project/" + project_name +"/" +script_version);
+                ajax_download("/project/download_project/" + project_name + "/" + script_version);
 
             });
 
@@ -423,8 +357,8 @@
                                 <label class="col-sm-4 col-form-label" for="version">TestScript Version:</label>
                                 <div class="col-sm-8">
                                     <select class="form-control" id="select-version">
-                                        <option value="old">Old Version</option>
-                                        <option value="new">New Version</option>
+                                        <option value="old">Version 1</option>
+                                        <option value="new">Version 2</option>
                                     </select>
                                 </div>
                             </div>
@@ -488,13 +422,11 @@
                         <td>
 
                             <div class="text-center">
-
-                                {% if  prj|lookup:"allow_download" %}
-                                    <button class="btn btn-outline-primary btn-keep" type="button" data-toggle="tooltip"
-                                            data-placement="bottom" title="Keep Current Station Vesrsion" disabled><i
-                                            class="fas fa-save"></i> Keep
-                                    </button>
-                                {% endif %}
+                                <button class="btn btn-outline-primary btn-keep" type="button" data-toggle="tooltip"
+                                        data-placement="bottom" title="Keep Current Station Vesrsion"
+                                        style="display:none"><i
+                                        class="fas fa-save"></i> Keep
+                                </button>
 
 
                                 <button class="btn btn-outline-success btn-upload" type="button" data-toggle="tooltip"
@@ -507,7 +439,7 @@
                         </td>
 
                         <td>
-                            <div class="text-center text-danger h5 status"><i class="fas fa-minus-circle"></i></div>
+                            {% if  st|lookup:"version" %}   <div class="text-center text-success h5 status"><i class="fas fa-check-circle"></i></div>  {% else %} <div class="text-center text-danger h5 status"><i class="fas fa-times-circle"></i></div>{% endif %}
                         </td>
                     </tr>
                 {% endfor %}
@@ -522,18 +454,13 @@
 
     <div class="text-center">
 
-        <button id="keep_project" class="btn btn-outline-primary btn-action" type="button" disabled><i
-                class="fas fa-save"></i>
-            Keep Project
-        </button>
-
 
         <button id="download_project" class="btn btn-outline-success" type="button"  {% for prj in project_structure %}
             {% if  prj|lookup:"allow_download"|trans_not %}
-                disabled
+                style="display: none"
             {% endif %}
         {% endfor %}><i class="fas fa-download"></i>
-            Latest keep Project
+            Download Project
         </button>
     </div>
 
