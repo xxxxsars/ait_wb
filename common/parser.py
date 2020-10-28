@@ -8,7 +8,6 @@ Author Andy Huang
 import os
 import re
 import json
-from common.handler import *
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'FactoryWeb.settings')
 import django
@@ -18,7 +17,7 @@ django.setup()
 from test_script.upload.models import *
 from project.models import *
 
-class script_parser:
+class upload_script_parser:
     def __init__(self,content,prj,pn,st):
 
         self.content = content
@@ -242,13 +241,154 @@ class script_parser:
 
 
 
-#         for id in (self.created_prj_task_id):
-#             prj_task_instance = Project_task.objects.get(id=id)
-#             prj_task_instance.delete()
-#             for arg in (Project_task_argument.objects.filter(project_task_id=id)):
-#                 arg.delete()
-#
-#
-#
-#
-#
+
+
+class new_script_parser:
+    def __init__(self,path:str):
+
+        #Define the cmd index
+        self.__CMD = 0
+        self.__TIMEOUT = 1
+        self.__CMD_CONDITION =2
+        self.__RETRY = 3
+        self.__SLEEP = 4
+        self.__RETRY_WAIT = 5
+
+        #Define the interactive index
+        self.__TITLE = 0
+        self.__CONTENT = 1
+        self.__LINES = 2
+        self.__IMAGE = 3
+        self.__INTER_CONDITION = 4
+
+        #Initial in / out streaming
+        self.path = path
+        self.fin = open(path,'r')
+        self.fout =  open(path+"_new",'w')
+
+    def __del__(self):
+        self.fin.close()
+        self.fout.close()
+
+
+    def __convert_cmd(self,type:str,value:str):
+
+        result = ""
+        cut_cmd = value.split(";")
+        try:
+            cmd =  re.sub( '"',"'" ,cut_cmd[self.__CMD])
+            timeout = cut_cmd[self.__TIMEOUT]
+            condition = cut_cmd[self.__CMD_CONDITION]
+            retry = cut_cmd[self.__RETRY]
+            sleep = cut_cmd[self.__SLEEP]
+        except Exception as e:
+            raise Exception("Cut command had error:"+str(e))
+
+
+        if type=="AUTO":
+            result += "CMD=" + cmd +"\n"
+            result += "TIMEOUT=" + timeout+ "\n"
+            result += "CONDITION=" + condition + "\n"
+            result += "RETRY=" + retry +"\n"
+            result += "SLEEP=" + sleep
+        elif type == "INTERACTIVE":
+
+            result_json = {"CMD":cmd,"TIMEOUT":timeout,"CONDITION":condition,"RETRY":retry,"SLEEP":sleep}
+            if len(cut_cmd) >5:
+                result_json["RETRY_WAIT"] = cut_cmd[self.__RETRY_WAIT]
+            result = "CMD=" + json.dumps(result_json)
+
+        return result
+
+    def __convert_interactive(self,type:str,value:str):
+
+        try:
+            result = ""
+            cut_cmd = value.split(";")
+            result += "TITLE=" + cut_cmd[self.__TITLE] +"\n"
+            result += "CONTEXT=" + cut_cmd[self.__CONTENT]+ "\n"
+
+            if type == "INPUTAREA":
+                result += "LINES=" + cut_cmd[self.__LINES] + "\n"
+            elif type =="DIALOG":
+                result += "CONDITION=Y"
+
+            if (len(cut_cmd)>=4):
+                if cut_cmd[self.__IMAGE]:
+                    result += "IMAGE=" + cut_cmd[self.__IMAGE] + "\n"
+                if type == "CONDITIONDIALOG":
+                    result += "CONDITION=" + cut_cmd[self.__INTER_CONDITION] + "\n"
+                elif type=="IMAGE":
+                    result += "CONDITION=Y"
+
+
+        except Exception as e:
+            raise Exception("Convert interactive test case had error:"+str(e))
+
+        result = re.sub("\n$", "", result)
+
+        return result
+
+    def convert_script(self):
+        try:
+            content = self.fin.read()
+            lines = content.split("\n")
+        except Exception as e:
+            raise Exception("Your old testScript.ini was empty.")
+
+        scrpit_groups = re.split(r"\[.+(AUTO|INTERACTIVE).+\]",content)
+        cmd_reg =re.compile("(cmd|IMAGE|DIALOG|INPUT|INPUTAREA|CONDITIONDIALOG|CMDDIALOG)=(.+)")
+
+        convert_map = []
+
+        content_index = {}
+        for i,sg in  enumerate( scrpit_groups):
+            if re.search("^(AUTO|INTERACTIVE)$",sg):
+                content_index[ i+1] =sg
+
+            if i in list(content_index.keys()):
+                scrpit_type = content_index[i]
+
+                for line in  sg.split("\n"):
+
+                    if cmd_reg.match(line):
+                        trans_result = {"origin":line}
+                        g = cmd_reg.search(line)
+                        content_type = g.group(1)
+                        value = g.group(2)
+
+                        # print(content_type, value)
+                        if content_type =="cmd":
+                            trans_result["convert"] = self.__convert_cmd(scrpit_type,value)
+                        else:
+                            trans_result["convert"] = self.__convert_interactive(content_type,value)
+                        convert_map.append(trans_result)
+
+        # write to  file
+        for line in lines:
+            for map in convert_map:
+                # if the line compare the map ,will convert to new line
+                if line == map["origin"]:
+                    line = (map["convert"])
+            else:
+                # criteria will ignore it
+                if re.search("^criteria.+",line):
+                    line =""
+                self.fout.write(line+"\n")
+
+
+
+def handle_path(root_path, *args):
+    result_path = ""
+    for arg in args:
+        if re.search(r'\.\w+$', arg) != None:
+            raise AttributeError("Your args not allow the file with extension name,only allow folder")
+        if result_path == "":
+            result_path = os.path.join(root_path, arg)
+        else:
+            result_path = os.path.join(result_path, arg)
+    if not os.path.exists(result_path):
+        print("handle_path create new folder", result_path)
+        os.makedirs(result_path)
+
+    return result_path

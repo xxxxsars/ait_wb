@@ -59,6 +59,7 @@
 
 
         $(function () {
+
             $(".change-user").each(function () {
 
                 $(this).click(function () {
@@ -115,7 +116,7 @@
 
                         project_name = cls_array[0];
 
-                        var action = $(this).text();
+                        var action = $(this).val();
 
                         if (action == "Edit") {
 
@@ -189,7 +190,7 @@
 
                         project_name = cls_array[0];
                         part_number = cls_array[1];
-                        var action = $(this).text();
+                        var action = $(this).val();
 
                         if (action == "Edit") {
 
@@ -271,7 +272,7 @@
                         project_name = cls_array[0];
                         part_number = cls_array[1];
                         station_name = cls_array[2];
-                        var action = $(this).text();
+                        var action = $(this).val();
 
                         if (action == "Edit") {
 
@@ -302,9 +303,7 @@
                             }
 
                         } else if (action == "Download") {
-                            ajax_loading("Please waiting , Compressed all script to zip file and download it...");
-                            ajax_download("/project/download_script/" + project_name + "/" + part_number + "/" + station_name);
-
+                              $("#select-dialog").modal("show");
                         }
                     })
                 })
@@ -335,6 +334,8 @@
 
 
         $(document).ready(function () {
+
+
 
             $('.tree').treegrid({});
             $('.tree').treegrid("collapseAll");
@@ -381,7 +382,9 @@
                                 console.log("Remove failed part number copy successfully")
                             }
                         });
-                        $("#part-error-dialog").modal('show');
+
+                        $("#error_message").html("Copy Part number had some error!" + "<br>");
+                        $("#error-dialog").modal('show');
                     }
                 });
 
@@ -484,7 +487,8 @@
                         });
 
 
-                        $("#prj-error-dialog").modal('show');
+                        $("#error_message").html("Copy Project had some error!" + "<br>");
+                        $("#error-dialog").modal('show');
                     }
                 });
             });
@@ -523,6 +527,17 @@
                 .on('success.field.bv', function (e, data) {
                     $("#copy_prj_btn").removeAttr('disabled');
                 })
+
+
+            $("#download_script").click(function () {
+
+
+                let script_version = $("#select-version").val();
+                  console.log(project_name,part_number,station_name,script_version)
+                ajax_loading("Please waiting , Compressed all script to zip file and download it...");
+                ajax_download("/project/download_script/" + project_name + "/" + part_number + "/" + station_name+ "/" + script_version);
+
+            })
         });
     </script>
 {% endblock %}
@@ -534,25 +549,6 @@
 
     <!--copy project dialog -->
     <div class="container">
-        <div id="prj-error-dialog" class="modal fade" tabindex="-1" role="dialog"
-             aria-labelledby="exampleModalCenterTitle"
-             aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalCenterTitle">Error</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        Copy project had some error!
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
         <div class="modal fade" id="prj-dialog" role="dialog">
             <div class="modal-dialog">
 
@@ -594,23 +590,6 @@
 
     <!--copy part number dialog -->
     <div class="container">
-        <div id="part-error-dialog" class="modal fade" tabindex="-1" role="dialog"
-             aria-labelledby="exampleModalCenterTitle"
-             aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalCenterTitle">Error</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        Copy Part number had some error!
-                    </div>
-                </div>
-            </div>
-        </div>
 
 
         <div class="modal fade" id="part-dialog" role="dialog">
@@ -647,6 +626,51 @@
         </div>
     </div>
     <!--End copy project dialog -->
+
+
+    <!--select download version dialog -->
+    <div class="container">
+
+
+        <div class="modal fade" id="select-dialog" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+
+                    <form id="copy_part_form" enctype="multipart/form-data" method="post" action="">{% csrf_token %}
+                        <div class="modal-body">
+
+
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="version">TestScript Version:</label>
+                                <div class="col-sm-8">
+                                    <select class="form-control" id="select-version">
+                                        <option value="old">Old Version</option>
+                                        <option value="new">New Version</option>
+                                    </select>
+                                </div>
+                            </div>
+
+
+                        </div>
+
+
+                        <div class="modal-footer">
+                            <button id="download_script" type="button" class="btn btn-success" data-dismiss="modal">
+                                Download
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!--End select download version dialog -->
+
 
 
 
@@ -736,11 +760,13 @@
 
                     <td>
 
-                          {% if prj|lookup:"allow_upload" %}
-                                  <div class="text-success h5 status" style="padding-left: 20%"><i class="fas fa-check"></i></div>
-                           {% else %}
-                               <div class="text-danger h5 status" style="padding-left: 20%"><i class="fas fa-times"></i></div>
-                          {% endif  %}
+                        {% if prj|lookup:"allow_upload" %}
+                            <div class="text-success h5 status" style="padding-left: 20%"><i class="fas fa-check"></i>
+                            </div>
+                        {% else %}
+                            <div class="text-danger h5 status" style="padding-left: 20%"><i class="fas fa-times"></i>
+                            </div>
+                        {% endif %}
 
                     </td>
 
@@ -748,21 +774,27 @@
                         <div class="dropdown text-right">
                             <button class="btn btn-success dropdown-toggle" type="button"
                                     id="btnItemsDemo"
-                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" value="Action">
+                                Action
                             </button>
 
                             <div class="dropdown-menu dropdown-project" aria-labelledby="btnItemsDemo">
 
 
                                 <button class="dropdown-item" data-target="#prj-dialog" type="button"
-                                        {% if prj|lookup:"allow_confirm_log"|trans_not %}  style="text-decoration:line-through" disabled  {% endif %}><a
-                                        data-toggle="modal" data-target="#prj-dialog">Copy</a></button>
+                                        {% if prj|lookup:"allow_confirm_log"|trans_not %}
+                                        style="text-decoration:line-through" disabled  {% endif %}><a
+                                        data-toggle="modal" data-target="#prj-dialog" value="Copy">Copy</a></button>
 
-                                <button class="dropdown-item" type="button">Edit</button>
+                                <button class="dropdown-item" type="button" value="Edit">Edit</button>
 
-                                <button class="dropdown-item" type="button">Delete</button>
+                                <button class="dropdown-item" type="button" value="Delete">Delete</button>
 
-                                <button class="dropdown-item" type="button"{% if prj|lookup:"allow_confirm_log"|trans_not %}  style="text-decoration:line-through"  disabled  {% endif %}>Confirm</button>
+                                <button class="dropdown-item" type="button"
+                                        {% if prj|lookup:"allow_confirm_log"|trans_not %}
+                                        style="text-decoration:line-through"  disabled  {% endif %} value="Confirm">
+                                    Confirm
+                                </button>
 
                             </div>
 
@@ -782,7 +814,8 @@
                             <div class="dropdown text-right">
 
                                 <button class="btn btn-success dropdown-toggle" type="button" id="btnItemsDemo"
-                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                        value="Action">
 
                                     Action
 
@@ -791,11 +824,13 @@
                                 <div class="dropdown-menu dropdown-partnumber" aria-labelledby="btnItemsDemo">
 
                                     <button class="dropdown-item" type="button"
-                                            {% if prj|lookup:"allow_upload"|trans_not %}  style="text-decoration:line-through"  disabled  {% endif %}><a
-                                            data-toggle="modal" data-target="#part-dialog">Copy</a></button>
-                                    <button class="dropdown-item" type="button">Edit</button>
+                                            {% if prj|lookup:"allow_confirm_log"|trans_not %}
+                                            style="text-decoration:line-through"  disabled  {% endif %}><a
+                                            data-toggle="modal" data-target="#part-dialog" value="Copy">Copy</a>
+                                    </button>
+                                    <button class="dropdown-item" type="button" value="Edit">Edit</button>
 
-                                    <button class="dropdown-item" type="button">Delete</button>
+                                    <button class="dropdown-item" type="button" value="Delete">Delete</button>
                                 </div>
 
                             </div>
@@ -820,7 +855,8 @@
                                 <div class="dropdown text-right">
 
                                     <button class="btn btn-success dropdown-toggle" type="button" id="btnItemsDemo"
-                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                            value="Action">
 
                                         Action
 
@@ -828,13 +864,16 @@
 
                                     <div class="dropdown-menu dropdown-station" aria-labelledby="btnItemsDemo">
 
-                                        <button class="dropdown-item" type="button">Edit</button>
+                                        <button class="dropdown-item" type="button" value="Edit">Edit</button>
 
-                                        <button class="dropdown-item" type="button">Delete</button>
+                                        <button class="dropdown-item" type="button" value="Delete">Delete</button>
 
 
                                         <button class="dropdown-item" type="button"
-                                                {% if  st|lookup:"download"|trans_not %} style="text-decoration:line-through" disabled {% endif %}>Download</button>
+                                                {% if  st|lookup:"download"|trans_not %}
+                                                style="text-decoration:line-through" disabled {% endif %}
+                                                value="Download">Download
+                                        </button>
 
                                     </div>
 

@@ -23,7 +23,7 @@ from common.limit import set_parameter_arg, set_parameter_other, task_id_reg
 from project.forms import *
 from project.models import *
 from project.restful.views import delete_file
-
+from common.parser import new_script_parser
 
 
 
@@ -72,7 +72,7 @@ def list_project_view(request):
     is_project = True
 
     username = request.user.username
-    user_list = [u.username for u in User.objects.all()]
+    user_list = [u.username for u in User.objects.all() if u.username !="none"]
     if request.user.is_staff:
         datas = Project.objects.all()
 
@@ -710,9 +710,14 @@ def save_token_ini(token, username, project_name, part_number, station_name):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     dest_path = handle_path(path, "user_project", username, project_name, part_number, station_name)
     ini_path = os.path.join(handle_path(path, "user_project"), "%s.ini" % token)
+
     shutil.copy2(ini_path, os.path.join(dest_path, "testScript.ini"))
     os.remove(ini_path)
     update_ini_version(project_name, part_number, station_name)
+
+
+
+
 
 
 def save_task_files(token, username, project_name, part_number, station_name, task_list, chose_files=None):
@@ -724,7 +729,6 @@ def save_task_files(token, username, project_name, part_number, station_name, ta
     for root, dirs, files in os.walk(dest_path):
         if keep_path not in root :
             for f in files:
-                print(os.path.join(root, f))
                 os.unlink(os.path.join(root, f))
             for d in dirs:
                 if keep_path not in os.path.join(root, d):

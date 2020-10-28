@@ -266,16 +266,24 @@
             $("#btn-download").click(function () {
                 //remove save_ini tag ,it will not save file only download
                 $("#save_ini").remove();
-                var info = {{ testScript_path |safe }};
-                project_name = info[0];
-                part_number = info[1];
-                station_name = info[2];
-
-                ajax_loading("Please waiting , Compressed all script to zip file and download it...");
-                ajax_download("/project/download_script/" + project_name + "/" + part_number + "/" + station_name);
-
+                $("#select-dialog").modal("show");
 
             });
+
+
+            $("#download_script").click(function () {
+
+                let info = {{ testScript_path |safe }};
+                let project_name = info[0];
+                let part_number = info[1];
+                let station_name = info[2];
+                let script_version = $("#select-version").val();
+                console.log(project_name, part_number, station_name, script_version)
+                ajax_loading("Please waiting , Compressed all script to zip file and download it...");
+                ajax_download("/project/download_script/" + project_name + "/" + part_number + "/" + station_name + "/" + script_version);
+
+            })
+
 
             $("#btn-select").click(function () {
                 var info = {{ testScript_path |safe }};
@@ -381,6 +389,50 @@
 
 
 {% block body %}
+
+
+    <!--select download version dialog -->
+    <div class="container">
+
+
+        <div class="modal fade" id="select-dialog" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+
+                    <form id="copy_part_form" enctype="multipart/form-data" method="post" action="">{% csrf_token %}
+                        <div class="modal-body">
+
+
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="version">TestScript Version:</label>
+                                <div class="col-sm-8">
+                                    <select class="form-control" id="select-version">
+                                        <option value="old">Old Version</option>
+                                        <option value="new">New Version</option>
+                                    </select>
+                                </div>
+                            </div>
+
+
+                        </div>
+
+
+                        <div class="modal-footer">
+                            <button id="download_script" type="button" class="btn btn-success" data-dismiss="modal">
+                                Download
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!--End select download version dialog -->
 
 
     {% if err_message is None %}

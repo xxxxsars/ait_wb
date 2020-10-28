@@ -15,7 +15,7 @@ urlpatterns = [
     url("get_stored/$", get_script_sorted_view),
     url("modify_user/$", modify_owner_user_view),
 
-    url("download_script/(?P<project_name>\w{7})/(?P<part_number>\w+)/(?P<station_name>\w+)/$",download_view),
+    url("download_script/(?P<project_name>\w{7})/(?P<part_number>\w+)/(?P<station_name>\w+)/(?P<script_version>\w+)/$",download_view),
     url("upload_script/$", upload_view,name='upload_script'),
 
     url("valid_project_name/$", valid_projectt_name_view),
@@ -24,7 +24,7 @@ urlpatterns = [
     url("valid_log/$",valid_log_view,name='valid_log'),
     url("keep_station/",keep_station_view,name="keep_station"),
     url("keep_project/",keep_project_view,name="keep_project"),
-    url("download_project/(?P<project_name>\w+)/$",download_project_view),
+    url("download_project/(?P<project_name>\w+)/(?P<script_version>\w+)/$",download_project_view),
 
     url("submit_project/$",submit_project_view,name='submit_project'),
 

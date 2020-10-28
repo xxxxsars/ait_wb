@@ -17,7 +17,7 @@ from io import StringIO,BytesIO
 from FactoryWeb.settings import *
 from project.restful.serializer import *
 from project.models import *
-from common.handler import handle_path,get_download_file,path_combine,samba_mount,disable_upload_project,token_disable_upload_project
+from common.handler import *
 from common.parser import *
 
 # # Create your views here.
@@ -64,7 +64,7 @@ def submit_project_view(request):
                 part_number = pn.part_number
                 station_name = st.station_name
 
-                file_list = get_download_file(owner_user,project_name,part_number,station_name)
+                file_list = get_download_file(owner_user,project_name,part_number,station_name,"old")
                 for source_path,target in file_list:
                     target_path = path_combine(p,tmp_folder_name,part_number,station_name)
 
@@ -389,7 +389,7 @@ def keep_project_view(request):
 
 @api_view(["GET"])
 @authentication_classes((SessionAuthentication,))
-def download_project_view(request,project_name):
+def download_project_view(request,project_name,script_version):
     if request.method == "GET":
         prj = project_name
         user = Project.objects.get(project_name=prj).owner_user.username
@@ -404,8 +404,7 @@ def download_project_view(request,project_name):
             sts = Project_Station.objects.filter(project_pn_id=p)
             for st in sts:
                 st = st.station_name
-                print(user,prj,pn,st)
-                files = get_keep_files(user,prj,pn,st)
+                files = get_keep_files(user,prj,pn,st,script_version)
                 for f in files:
 
                     thread = threading.Thread(target=lambda zf, f: zf.write(f[0], f[1]), args=(zf, f))
@@ -433,7 +432,7 @@ def upload_view(request):
         lines = (file.read()).decode("utf-8")
 
         try:
-            s = script_parser(lines,project_name,part_number,station_name)
+            s = upload_script_parser(lines,project_name,part_number,station_name)
             s.convert_script()
             ini_content_map = s.get_ini_content_map()
             task_id = s.get_task_id()
@@ -445,7 +444,7 @@ def upload_view(request):
 
 @api_view(["GET"])
 @authentication_classes((SessionAuthentication,))
-def download_view(request,project_name,part_number,station_name):
+def download_view(request,project_name,part_number,station_name,script_version):
     if request.method == "GET":
         station_instance = get_station_instacne(project_name, part_number, station_name)
         owner_user =station_instance.project_pn_id.project_name.owner_user.username
@@ -453,7 +452,7 @@ def download_view(request,project_name,part_number,station_name):
         s = BytesIO()
         zf = zipfile.ZipFile(s, "w", compression=zipfile.ZIP_DEFLATED)
 
-        files = get_download_file(owner_user,project_name, part_number, station_name)
+        files = get_download_file(owner_user,project_name, part_number, station_name,script_version)
         # the array inner dict key is source file path ,value is target file path
         for f in files:
             thread = threading.Thread(target=lambda zf,f: zf.write(f[0], f[1]), args=(zf, f))
@@ -697,7 +696,7 @@ def keep_station(prj, pn, st):
 
     try:
         shutil.rmtree(target_path, ignore_errors=True)
-        files = get_download_file(owner_user, prj, pn, st)
+        files = get_download_file(owner_user, prj, pn, st,"all")
         for f in files:
             dest = path_combine(target_path,f[1])
             path = os.path.dirname(dest)
@@ -707,9 +706,9 @@ def keep_station(prj, pn, st):
             source = f[0]
             target = path_combine(target_path,f[1])
 
-            if (os.path.basename(source) =="testScript.ini"):
-                script_path.append(source)
-                script_path.append(target)
+            # update testScript version will re-new it.
+            if ("testScript.ini" in os.path.basename(source) ):
+                script_path.append([source,target])
 
             shutil.copy2(source,target)
 
@@ -725,7 +724,8 @@ def keep_station(prj, pn, st):
 
     try:
         #if updated version will re-copy testScript.ini to keep folder
-        shutil.copy2(script_path[0], script_path[1])
+        for s in script_path:
+            shutil.copy2(s[0], s[1])
     except Exception as e:
         raise Exception(f"There is an error in keeping {prj_struct} testScript.ini file.")
 

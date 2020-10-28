@@ -25,6 +25,7 @@ from rest_framework import exceptions
 from FactoryWeb.settings import *
 from project.models import *
 import re
+from common.parser import new_script_parser
 
 # handle clare conflicted "common.py" file
 def replace_conflict_file():
@@ -242,7 +243,7 @@ def get_modify_time(task_id):
     return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(updata_file_path)))
 
 
-def get_download_file(owner_user, project_name, part_number, station_name):
+def get_download_file(owner_user, project_name, part_number, station_name,script_version):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     config_path = handle_path(path, "project", "ait_config")
     project_path = handle_path(path, "user_project", owner_user, project_name, part_number, station_name)
@@ -301,7 +302,14 @@ def get_download_file(owner_user, project_name, part_number, station_name):
                             zip_files.append((full_file_path, target_path))
                             compressed_file.append(check_target_path)
 
-    zip_files.append((os.path.join(project_path, "testScript.ini"), "testScript.ini"))
+    if script_version =="new":
+        zip_files.append((os.path.join(project_path, "testScript.ini_new"), "testScript.ini"))
+    elif script_version =="all":
+        zip_files.append((os.path.join(project_path, "testScript.ini_new"), "testScript.ini_new"))
+        zip_files.append((os.path.join(project_path, "testScript.ini"), "testScript.ini"))
+    else:
+        zip_files.append((os.path.join(project_path, "testScript.ini"), "testScript.ini"))
+
     for root, folders, files in os.walk(config_path):
         for f in files:
             full_file_path = os.path.join(root, f)
@@ -316,16 +324,30 @@ def get_download_file(owner_user, project_name, part_number, station_name):
     return zip_files
 
 
-def get_keep_files(owner_user, project_name, part_number, station_name):
+def get_keep_files(owner_user, project_name, part_number, station_name,script_version):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     project_path = path_combine(path, "user_project", owner_user, project_name, part_number, station_name,"keep")
 
     zip_files = []
     for root, folders, files in os.walk(project_path):
         for f in files:
+
+            # if user select new will ignore testScript.ini
+            if script_version =="new" and f =="testScript.ini":
+                continue
+            #if user select old will ignore testScript.ini_new
+            elif script_version =="old" and f =="testScript.ini_new":
+                continue
+
+            #change file name
             full_file_path = os.path.join(root, f)
-            target_path =  re.sub("keep","",os.path.relpath(full_file_path, path_combine(path, "user_project", owner_user)))
-            zip_files.append((full_file_path,target_path))
+            if "testScript.ini_new" in full_file_path:
+                target_path =  re.sub("keep","",os.path.relpath(full_file_path, path_combine(path, "user_project", owner_user)))
+                zip_files.append((full_file_path,re.sub("testScript.ini_new","testScript.ini",target_path)))
+
+            else:
+                target_path =  re.sub("keep","",os.path.relpath(full_file_path, path_combine(path, "user_project", owner_user)))
+                zip_files.append((full_file_path,target_path))
 
     return zip_files
 
@@ -573,7 +595,8 @@ def update_ini_version(prj, pn, st):
         with open(ini_path, "w") as fout:
             fout.write(content)
 
-
+        s = new_script_parser(ini_path)
+        s.convert_script()
 
 
     except Exception as e:
