@@ -112,8 +112,8 @@
                 $(this).find(".dropdown-item").each(function () {
                     $(this).click(function () {
                         var dtRow = $(this).closest('tr');
-                        cls_array = (dtRow.attr("class").split(" "));
 
+                        cls_array = (dtRow.attr("class").split(" "));
                         project_name = cls_array[0];
 
                         var action = $(this).val();
@@ -647,8 +647,8 @@
                                 <label class="col-sm-4 col-form-label" for="version">TestScript Version:</label>
                                 <div class="col-sm-8">
                                     <select class="form-control" id="select-version">
-                                        <option value="old">Old Version</option>
-                                        <option value="new">New Version</option>
+                                        <option value="old">Version 1</option>
+                                        <option value="new">Version 2</option>
                                     </select>
                                 </div>
                             </div>
@@ -783,8 +783,8 @@
 
                                 <button class="dropdown-item" data-target="#prj-dialog" type="button"
                                         {% if prj|lookup:"allow_confirm_log"|trans_not %}
-                                        style="text-decoration:line-through" disabled  {% endif %}><a
-                                        data-toggle="modal" data-target="#prj-dialog" value="Copy">Copy</a></button>
+                                        style="text-decoration:line-through" disabled  {% endif %} value="Copy"><a
+                                        data-toggle="modal" data-target="#prj-dialog" >Copy</a></button>
 
                                 <button class="dropdown-item" type="button" value="Edit">Edit</button>
 
@@ -825,8 +825,8 @@
 
                                     <button class="dropdown-item" type="button"
                                             {% if prj|lookup:"allow_confirm_log"|trans_not %}
-                                            style="text-decoration:line-through"  disabled  {% endif %}><a
-                                            data-toggle="modal" data-target="#part-dialog" value="Copy">Copy</a>
+                                            style="text-decoration:line-through"  disabled  {% endif %} value="Copy" ><a
+                                            data-toggle="modal" data-target="#part-dialog">Copy</a>
                                     </button>
                                     <button class="dropdown-item" type="button" value="Edit">Edit</button>
 
