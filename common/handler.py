@@ -575,7 +575,7 @@ def update_ini_version(prj, pn, st):
             f_match = f_ver_reg.search(content)
             t_match = t_ver_reg.search(content)
             if f_match is None:
-                content = ("[FORMAT_VERSION_2]\n\n") +content
+                content = ("[FORMAT_VERSION_1]\n\n") +content
 
             #if had been checked log will append the version
             if version:
@@ -599,13 +599,21 @@ def update_ini_version(prj, pn, st):
 
 if __name__ == "__main__":
 
-    for i in range(10):
-        if i == 5:
-            continue
-        print(i)
+    pjr_instances = Project.objects.all()
 
+    for prj_instance in pjr_instances:
+        prj = prj_instance.project_name
+        pn_instances = Project_PN.objects.filter(project_name=prj)
 
-
+        for pn_instance in pn_instances:
+            pn = pn_instance.part_number
+            st_instances = Project_Station.objects.filter(project_pn_id=pn_instance)
+            for st_instance in st_instances:
+                st = st_instance.station_name
+                try:
+                    update_ini_version(prj,pn,st)
+                except Exception as e:
+                    print(e,prj,pn,st)
 
 
 

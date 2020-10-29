@@ -336,6 +336,7 @@ class new_script_parser:
         except Exception as e:
             raise Exception("Your old testScript.ini was empty.")
 
+        f_ver_reg = re.compile(r"\[FORMAT_VERSION_(\d+)\]")
         scrpit_groups = re.split(r"\[.+(AUTO|INTERACTIVE).+\]",content)
         cmd_reg =re.compile("(cmd|IMAGE|DIALOG|INPUT|INPUTAREA|CONDITIONDIALOG|CMDDIALOG)=(.+)")
 
@@ -374,6 +375,10 @@ class new_script_parser:
                 # criteria will ignore it
                 if re.search("^criteria.+",line):
                     line =""
+
+                #replace format to ver.2
+                if f_ver_reg.search(line):
+                    line = f_ver_reg.sub("[FORMAT_VERSION_2]",line)
                 self.fout.write(line+"\n")
 
 
