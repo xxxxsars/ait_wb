@@ -61,7 +61,6 @@ def script_download_view(request,task_id):
             for sfile in files:
                 if root!= attach_path:
                     aFile = os.path.join(root, sfile)
-                    print(aFile,os.path.relpath(aFile, test_case_path))
                     zf.write(aFile, os.path.relpath(aFile, test_case_path))
 
         for m in [[t.task_id ,t.script_name] for t in Upload_TestCase.objects.filter(task_id__iregex=r"^3")]:

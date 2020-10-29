@@ -262,8 +262,8 @@
             $("#download_script").click(function () {
                 let script_version = $("#select-version").val();
                 var project_name = "{{ project_name }}";
-                ajax_loading("Please waiting , Compressed all script to zip file and download it...");
-                ajax_download("/project/download_project/" + project_name + "/" + script_version);
+
+                window.open("/project/download_project/" + project_name + "/" + script_version);
 
             });
 

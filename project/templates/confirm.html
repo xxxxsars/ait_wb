@@ -278,9 +278,7 @@
                 let part_number = info[1];
                 let station_name = info[2];
                 let script_version = $("#select-version").val();
-                console.log(project_name, part_number, station_name, script_version)
-                ajax_loading("Please waiting , Compressed all script to zip file and download it...");
-                ajax_download("/project/download_script/" + project_name + "/" + part_number + "/" + station_name + "/" + script_version);
+                window.open("/project/download_script/" + project_name + "/" + part_number + "/" + station_name + "/" + script_version);
 
             })
 

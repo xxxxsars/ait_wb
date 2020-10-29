@@ -30,7 +30,6 @@ class UpdateFileForm(forms.Form):
     attachment = forms.FileField(widget=forms.FileInput(attrs={'class': 'custom-file-input', "id": "attachment_file","accept":"image/*"}),
                                  required=False)
     def clean_file(self):
-        print("in this")
         file = self.cleaned_data.get("file", False)
         if file != None:
             if input_zip_file_name.search(str(file)) == None:

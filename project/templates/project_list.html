@@ -303,7 +303,7 @@
                             }
 
                         } else if (action == "Download") {
-                              $("#select-dialog").modal("show");
+                            $("#select-dialog").modal("show");
                         }
                     })
                 })
@@ -535,7 +535,7 @@
                 let script_version = $("#select-version").val();
                   console.log(project_name,part_number,station_name,script_version)
                 ajax_loading("Please waiting , Compressed all script to zip file and download it...");
-                ajax_download("/project/download_script/" + project_name + "/" + part_number + "/" + station_name+ "/" + script_version);
+                window.open("/project/download_script/" + project_name + "/" + part_number + "/" + station_name+ "/" + script_version);
 
             })
         });
@@ -784,7 +784,7 @@
                                 <button class="dropdown-item" data-target="#prj-dialog" type="button"
                                         {% if prj|lookup:"allow_confirm_log"|trans_not %}
                                         style="text-decoration:line-through" disabled  {% endif %} value="Copy"><a
-                                        data-toggle="modal" data-target="#prj-dialog" >Copy</a></button>
+                                        data-toggle="modal" data-target="#prj-dialog">Copy</a></button>
 
                                 <button class="dropdown-item" type="button" value="Edit">Edit</button>
 
@@ -825,7 +825,7 @@
 
                                     <button class="dropdown-item" type="button"
                                             {% if prj|lookup:"allow_confirm_log"|trans_not %}
-                                            style="text-decoration:line-through"  disabled  {% endif %} value="Copy" ><a
+                                            style="text-decoration:line-through"  disabled  {% endif %} value="Copy"><a
                                             data-toggle="modal" data-target="#part-dialog">Copy</a>
                                     </button>
                                     <button class="dropdown-item" type="button" value="Edit">Edit</button>
