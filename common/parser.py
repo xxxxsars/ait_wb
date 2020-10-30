@@ -35,9 +35,9 @@ class upload_script_parser:
 
     def __check_prj(self):
 
-        assert (self.prj_obj.count() >=1) ,"Your project not been created or saved."
-        assert (self.pn_obj.count() >=1),"Your project part number not been created or saved ."
-        assert (self.st_obj.count()>=1),"Your station not been created or saved."
+        assert (self.prj_obj.count() >=1) ,"Your project has not been created or saved."
+        assert (self.pn_obj.count() >=1),"Your project part number has not been created or saved ."
+        assert (self.st_obj.count()>=1),"Your station has not been created or saved."
 
         prj_task_obj = Project_task.objects.filter(station_id=self.st_obj[0])
         assert (prj_task_obj.count()==0),"Your test case must be empty."
@@ -116,7 +116,7 @@ class upload_script_parser:
                 type_map[content_type] = value
 
 
-        assert len(type_map) <= 2, f"Your testScript.ini the test case id: {task_id} had error."
+        assert len(type_map) > 0, f"Your testScript.ini the test case id: {task_id} had error."
 
         type_list = [t for t in type_map.keys()  ]
 
@@ -153,17 +153,43 @@ class upload_script_parser:
                                                   interactive=inter, rule=rule,
                                                   priority=priority)
         self.created_prj_task_id.append( prj_task.id)
-
-
-
-        cmd_split = [ s for s in  re.split("(\".+\")|\s",cmd)  if s][1:]
-
+        cmd_split = [ s for s in  re.split('''('.*?'|".*?"|\S+)''',cmd)  if re.search("\w",s)][1:]
         arg_obj = Arguments.objects.filter(task_id=task_id)
 
-        if len(cmd_split) != arg_obj.count():
-            # Project_task.objects.get(id= prj_task.id).delete()
-            err_msg = f"Your testScript.ini the test case id: {task_id} argument not compare database."
+        # check parameter
+        if len(cmd_split) > arg_obj.count():
+            print(cmd_split,[a.default_value for a in arg_obj])
+            err_msg = f"Your testScript.ini the test case id: {task_id} has more parameters than the database."
             raise Exception(err_msg)
+
+        key_value_arg = [a.default_value for a in arg_obj if re.match(r"^-.+", a.default_value) and re.match(r"_.+", a.argument)]
+
+        if key_value_arg:
+            if len(cmd_split)%2:
+               err_msg = f"Your testScript.ini the test case id: {task_id} with key-value parameters does not match the database."
+               raise Exception(err_msg)
+            #if key-value parameter was empty will append the empty value
+            else:
+                # print(task_id,cmd_split, [a.default_value for a in arg_obj])
+                for i,arg in enumerate( [a.default_value for a in arg_obj]):
+                    if re.match(r"^-.+",arg):
+                        try:
+                            cmd_split[i]
+                        except Exception as e:
+                            cmd_split.insert(i, arg)
+                            cmd_split.insert(i + 1, "")
+
+                        if (arg != cmd_split[i]):
+                            cmd_split.insert(i,arg)
+                            cmd_split.insert(i+1,"")
+
+            # if convert the cmd_split ,it count must compare the db argument count.
+            assert len(cmd_split) == arg_obj.count(), f"Your testScript.ini the test case id: {task_id} parameters does not match the database."
+
+        #if not key-value parameter and cmd paramters less than db will ingore some parameters
+        if len(cmd_split) < arg_obj.count():
+            arg_obj= arg_obj[:len(cmd_split)]
+
 
 
         for i,arg in  enumerate(arg_obj):
@@ -187,6 +213,14 @@ class upload_script_parser:
             content = "".join(lines)
         except Exception as e:
             raise Exception("Read upload testScript.ini failed.")
+
+
+        # check testScript version
+        for line in lines:
+            match = re.search(r"\[FORMAT_VERSION_(\d+)\]", line)
+            if match:
+                if match.group(1) == "2":
+                    raise Exception("TestScript.ini version 2 not support upload.")
 
         scrpit_groups = re.split(r"(\[.+\])",content)
 
@@ -221,6 +255,7 @@ class upload_script_parser:
                 ini_content.append(content_index[i] +"\n"+parser_content+"\n")
 
                 try:
+                    # print(scrpit_type,task_id,task_name,parser_content)
                     self.save_prj_task(scrpit_type,task_id,task_name,parser_content)
                 except Exception as e:
                     self.__removee_created()
@@ -237,7 +272,6 @@ class upload_script_parser:
         except Exception as e:
             self.__removee_created()
             raise Exception(str(e))
-
 
 
 
