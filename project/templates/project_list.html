@@ -130,6 +130,7 @@
                             project_name = cls_array[0];
                             $('#source_prj_name').html(project_name);
                             $('#copy_prj_form').bootstrapValidator('resetForm', true);
+                            $("#copy_prj_btn").attr("disabled", true);
                         } else if (action == "Delete") {
                             if (confirm("Are you sure to delete this row?")) {
 
@@ -206,6 +207,7 @@
                             $("#part_part_number").html(part_number);
 
                             $('#copy_part_form').bootstrapValidator('resetForm', true);
+                            $("#copy_part_btn").attr("disabled", true);
 
                         } else if (action == "Delete") {
 
@@ -334,7 +336,6 @@
 
 
         $(document).ready(function () {
-
 
 
             $('.tree').treegrid({});
@@ -533,9 +534,9 @@
 
 
                 let script_version = $("#select-version").val();
-                  console.log(project_name,part_number,station_name,script_version)
+                console.log(project_name, part_number, station_name, script_version)
                 ajax_loading("Please waiting , Compressed all script to zip file and download it...");
-                window.open("/project/download_script/" + project_name + "/" + part_number + "/" + station_name+ "/" + script_version);
+                window.open("/project/download_script/" + project_name + "/" + part_number + "/" + station_name + "/" + script_version);
 
             })
         });
@@ -567,12 +568,13 @@
 
                                 <div class="col-sm-9">
                                     <input type="text" name="project_name" class="form-control" maxlength="255"
-                                           required="">
+                                           required>
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button id="copy_prj_btn" type="button" class="btn btn-success" data-dismiss="modal">Start
+                            <button id="copy_prj_btn" type="button" class="btn btn-success" data-dismiss="modal"
+                                    disabled>Start
                                 Copy
                             </button>
                         </div>
@@ -609,12 +611,13 @@
 
                                 <div class="col-sm-9">
                                     <input type="text" name="part_number" class="form-control" maxlength="255"
-                                           required="">
+                                           required>
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button id="copy_part_btn" type="button" class="btn btn-success" data-dismiss="modal">Start
+                            <button id="copy_part_btn" type="button" class="btn btn-success" data-dismiss="modal"
+                                    disabled>Start
                                 Copy
                             </button>
                         </div>
