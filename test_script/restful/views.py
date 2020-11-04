@@ -94,6 +94,13 @@ def DeleteArgumentView(request, format=None):
 
         arg_obj = task_args.get(argument=argument)
         arg_obj.delete()
+
+        try:
+            update_ini_task(task_id)
+        except Exception as e:
+            print(e)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
         return Response(status=status.HTTP_200_OK)
 
 class DeleteTestCaseView(viewsets.ModelViewSet):

@@ -223,8 +223,8 @@ def get_attach_name(task_id):
     attach_path = os.path.join(handle_path(path, "upload_files", task_id), "attachment")
 
     if os.path.exists(attach_path):
-        files =  os.listdir(attach_path)
-        if len(files)>0:
+        files = os.listdir(attach_path)
+        if len(files) > 0:
             return files[0]
 
     return ""
@@ -243,7 +243,7 @@ def get_modify_time(task_id):
     return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(updata_file_path)))
 
 
-def get_download_file(owner_user, project_name, part_number, station_name,script_version):
+def get_download_file(owner_user, project_name, part_number, station_name, script_version):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     config_path = handle_path(path, "project", "ait_config")
     project_path = handle_path(path, "user_project", owner_user, project_name, part_number, station_name)
@@ -270,12 +270,12 @@ def get_download_file(owner_user, project_name, part_number, station_name,script
         file_path = handle_path(path, "upload_files", task_id)
         attach_path = handle_path(file_path, "attachment")
 
-        #add interactive images
+        # add interactive images
         if re.search(r"\d(\d{1}).+", task_id).group(1) == "6":
             for dirpath, _, filenames in os.walk(attach_path):
                 for f in filenames:
                     full_file_path = os.path.abspath(os.path.join(dirpath, f))
-                    zip_files.append((full_file_path, os.path.join("ImageRes",f)))
+                    zip_files.append((full_file_path, os.path.join("ImageRes", f)))
         else:
             for dirpath, _, filenames in os.walk(file_path):
                 for f in filenames:
@@ -302,9 +302,9 @@ def get_download_file(owner_user, project_name, part_number, station_name,script
                             zip_files.append((full_file_path, target_path))
                             compressed_file.append(check_target_path)
 
-    if script_version =="new":
+    if script_version == "new":
         zip_files.append((os.path.join(project_path, "testScript.ini_new"), "testScript.ini"))
-    elif script_version =="all":
+    elif script_version == "all":
         zip_files.append((os.path.join(project_path, "testScript.ini_new"), "testScript.ini_new"))
         zip_files.append((os.path.join(project_path, "testScript.ini"), "testScript.ini"))
     else:
@@ -317,37 +317,39 @@ def get_download_file(owner_user, project_name, part_number, station_name,script
 
     # add global script
     for m in [[t.task_id, t.script_name] for t in Upload_TestCase.objects.filter(task_id__iregex=r"^3")]:
-        global_script_path = path_combine(path,"upload_files", m[0], m[1])
+        global_script_path = path_combine(path, "upload_files", m[0], m[1])
         target_path = os.path.join(script_path, m[1])
-        zip_files.append((global_script_path,target_path))
+        zip_files.append((global_script_path, target_path))
 
     return zip_files
 
 
-def get_keep_files(owner_user, project_name, part_number, station_name,script_version):
+def get_keep_files(owner_user, project_name, part_number, station_name, script_version):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    project_path = path_combine(path, "user_project", owner_user, project_name, part_number, station_name,"keep")
+    project_path = path_combine(path, "user_project", owner_user, project_name, part_number, station_name, "keep")
 
     zip_files = []
     for root, folders, files in os.walk(project_path):
         for f in files:
 
             # if user select new will ignore testScript.ini
-            if script_version =="new" and f =="testScript.ini":
+            if script_version == "new" and f == "testScript.ini":
                 continue
-            #if user select old will ignore testScript.ini_new
-            elif script_version =="old" and f =="testScript.ini_new":
+            # if user select old will ignore testScript.ini_new
+            elif script_version == "old" and f == "testScript.ini_new":
                 continue
 
-            #change file name
+            # change file name
             full_file_path = os.path.join(root, f)
             if "testScript.ini_new" in full_file_path:
-                target_path =  re.sub("keep","",os.path.relpath(full_file_path, path_combine(path, "user_project", owner_user)))
-                zip_files.append((full_file_path,re.sub("testScript.ini_new","testScript.ini",target_path)))
+                target_path = re.sub("keep", "",
+                                     os.path.relpath(full_file_path, path_combine(path, "user_project", owner_user)))
+                zip_files.append((full_file_path, re.sub("testScript.ini_new", "testScript.ini", target_path)))
 
             else:
-                target_path =  re.sub("keep","",os.path.relpath(full_file_path, path_combine(path, "user_project", owner_user)))
-                zip_files.append((full_file_path,target_path))
+                target_path = re.sub("keep", "",
+                                     os.path.relpath(full_file_path, path_combine(path, "user_project", owner_user)))
+                zip_files.append((full_file_path, target_path))
 
     return zip_files
 
@@ -368,11 +370,11 @@ def get_script_list():
 
         usage_content = ""
         for arg in arg_instances:
-            if re.search("^-\w{1}", arg.default_value) == None:
+            if re.search("^-\w+", arg.default_value) == None:
                 usage_content += "-%s\n&nbsp;&nbsp;&nbsp;&nbsp;%s\n" % (arg.argument, arg.description)
 
         # task_map["useage"] = "Sample:\n%s\n\nUsage:\n%s" % (instance.sample, usage_content)
-        task_map["useage"] = "Sample:\n%s"%(instance.sample)
+        task_map["useage"] = "Sample:\n%s" % (instance.sample)
         datas.append(task_map)
     return datas
 
@@ -406,7 +408,6 @@ def get_serial_number(task_id):
     serial = "%02d" % serial_number
 
     return serial
-
 
 
 def samba_mount():
@@ -469,6 +470,63 @@ def disable_upload_project(project_name):
             up.save()
 
 
+def gen_ini_contents(project_infos):
+    new_prj_task_ids = []
+
+    ini_map = {}
+    for prj_info in (project_infos):
+        project_task_id = prj_info["project_task_id"]
+        task_id = prj_info["task_id"]
+
+        interactive = "AUTO"
+        if prj_info['interactive'] != 'auto':
+            interactive = "INTERACTIVE"
+
+        title = "[0_%s_%s_%s]\n" % (interactive, task_id, prj_info["task_name"])
+        script_path = r'cmd=TestScriptRes\\%s' % prj_info["script_name"]
+        arg_str = " ".join([arg for arg in prj_info["args"]])
+        args = prj_info["args"]
+        remove_args = []
+        # if arg was empty will not add to content
+        for i, arg in enumerate(args):
+            if re.search("^\-\w+$", arg):
+                try:
+                    next_arg = args[i + 1]
+                except Exception as e:
+                    raise Exception("Your argument had some error ,please modify it.")
+                if next_arg == "":
+                    remove_args.append(arg)
+                    remove_args.append(next_arg)
+        if len(args) > 0:
+            for r_arg in remove_args:
+                args.remove(r_arg)
+        arg_str = " ".join([arg for arg in args])
+
+        # if was interactive item the content will be emptied
+        if task_id[1] != "6":
+            content = "%s %s;%s;%s;%s;%s\ncriteria=%s\n" % (
+                script_path, arg_str, prj_info["timeout"], prj_info["exitcode"], prj_info["retry"], prj_info["sleep"],
+                prj_info["criteria"])
+        else:
+            content = "criteria=%s\n" % prj_info["criteria"]
+
+        if prj_info['interactive'] != 'auto':
+            rule = "%s=%s" % ((prj_info['interactive']).upper(), prj_info['rule'])
+
+            if prj_info['priority'] == "interactive":
+                ini_map[project_task_id] = title + rule + "\n" + content
+            else:
+                ini_map[project_task_id] = title + content + rule
+
+        elif prj_info['interactive'] == 'auto':
+            ini_map[project_task_id] = title + content
+
+        if prj_info["new_task"]:
+            new_prj_task_ids.append(prj_info["project_task_id"])
+    ini_map["new_prj_task_ids"] = new_prj_task_ids
+
+    return ini_map
+
 def valid_zip_file(file, task_id, script_name):
     error_messages = []
     is_modify = True
@@ -484,10 +542,9 @@ def valid_zip_file(file, task_id, script_name):
         zip_file = zipfile.ZipFile(file)
         files = zip_file.namelist()
 
-
-        if re.search(r"^3",task_id):
-            invalid_file =[f for f in files if re.search(r"^(.(?<!%s))*$"%script_name,f)]
-            if len(invalid_file) >0:
+        if re.search(r"^3", task_id):
+            invalid_file = [f for f in files if re.search(r"^(.(?<!%s))*$" % script_name, f)]
+            if len(invalid_file) > 0:
                 error_messages.append("Global function only allows one .py file")
 
         if script_name not in files:
@@ -537,7 +594,7 @@ def update_script_version(task_id):
                 lines.insert(0, version_parameter)
             else:
                 lines[0] = version_parameter
-        #if empty file add to top line
+        # if empty file add to top line
         except Exception as e:
             lines.insert(0, version_parameter)
         try:
@@ -545,14 +602,12 @@ def update_script_version(task_id):
                 lines.insert(1, print_version)
             else:
                 lines[1] = print_version
-        #if empty file add to second line
+        # if empty file add to second line
         except Exception as e:
             lines.insert(1, print_version)
 
     with open(file_path, "w") as fout:
         fout.writelines(lines)
-
-
 
 
 def update_ini_version(prj, pn, st):
@@ -564,61 +619,115 @@ def update_ini_version(prj, pn, st):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     project_path = handle_path(path, "user_project", owner_user, prj, pn, st)
 
-
-    ini_path = path_combine(project_path,"testScript.ini")
+    ini_path = path_combine(project_path, "testScript.ini")
 
     try:
         f_ver_reg = re.compile(r"\[FORMAT_VERSION_(\d+)\]")
         t_ver_reg = re.compile(r"\[TESTSCRIPT_VERSION_(.+)\]")
-        with open(ini_path,"r") as fin:
+        with open(ini_path, "r") as fin:
             content = fin.read()
             f_match = f_ver_reg.search(content)
             t_match = t_ver_reg.search(content)
             if f_match is None:
-                content = ("[FORMAT_VERSION_1]\n\n") +content
+                content = ("[FORMAT_VERSION_1]\n\n") + content
 
-            #if had been checked log will append the version
+            # if had been checked log will append the version
             if version:
                 if t_match is None:
-                    content = f"[TESTSCRIPT_VERSION_{version}]\n"+content
+                    content = f"[TESTSCRIPT_VERSION_{version}]\n" + content
                 elif t_match:
-                    content = t_ver_reg.sub(f"[TESTSCRIPT_VERSION_{version}]",content)
+                    content = t_ver_reg.sub(f"[TESTSCRIPT_VERSION_{version}]", content)
 
         with open(ini_path, "w") as fout:
             fout.write(content)
 
+        # create format 2 testScript.ini
         s = new_script_parser(ini_path)
         s.convert_script()
 
 
     except Exception as e:
-        raise  Exception(f"An error occurred while opening the '{ini_path}' file." )
+        raise Exception(f"An error occurred while opening the '{ini_path}' file.")
+
+
+def update_ini_task(task_id):
+    type_reg = re.compile("^\[.+(AUTO|INTERACTIVE)_(\d+)_([\w|\s]+)\]$")
+    task_instance = Upload_TestCase.objects.get(task_id=task_id)
+    for prj_task_instance in Project_task.objects.filter(task_id=task_instance):
+        p_instance = prj_task_instance.station_id.project_pn_id.project_name
+
+        st = prj_task_instance.station_id.station_name
+        pn = prj_task_instance.station_id.project_pn_id.part_number
+        owner= p_instance.owner_user.username
+        prj =p_instance.project_name
+
+        path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        ini_path = path_combine(path, "user_project", owner, prj, pn, st,"testScript.ini")
+
+        try:
+            new_content = (gen_ini_contents([{'task_id': task_instance.task_id, 'script_name': task_instance.script_name,
+                          'project_task_id': prj_task_instance.id, 'new_task': False,
+                          'task_name': task_instance.task_name, 'timeout': prj_task_instance.timeout,
+                          'exitcode': prj_task_instance.exit_code, 'retry': prj_task_instance.retry_count,
+                          'sleep': prj_task_instance.sleep_time,
+                          'criteria': prj_task_instance.criteria, 'interactive': prj_task_instance.interactive,
+                          'rule': prj_task_instance.rule,
+                          'priority': prj_task_instance.priority, 'args': [p.default_value for p in Project_task_argument.objects.filter(task_id=task_instance)]}]))[prj_task_instance.id]
+        except Exception as e:
+            raise Exception("Automatically update testScript.ini had error (get new content error.)")
+
+        with open(ini_path,'r') as fin :
+            content = (fin.read())
+            scrpit_groups = re.split(r"(\[.+\])", content)
+            for i, sg in enumerate(scrpit_groups):
+                match = type_reg.search(sg)
+                if match:
+                    try:
+                        if match.group(2) == task_id:
+                            new_content_split = [ c  for c in (re.split(r"(\[.+\])", new_content)) if re.search('\w+',c)]
+                            scrpit_groups[i] = new_content_split[0]
+                            scrpit_groups[i+1] = new_content_split[1]+"\n"
+
+
+                    except Exception as e:
+                        raise Exception("Automatically update testScript.ini had error.")
+
+        with open(ini_path,'w') as fout :
+            for line in scrpit_groups:
+                fout.write(line)
+
+        # create format 2 testScript.ini
+        s = new_script_parser(ini_path)
+        s.convert_script()
 
 
 
-
-if __name__ == "__main__":
-
-    pjr_instances = Project.objects.all()
-
-    for prj_instance in pjr_instances:
-        prj = prj_instance.project_name
-        pn_instances = Project_PN.objects.filter(project_name=prj)
-
-        for pn_instance in pn_instances:
-            pn = pn_instance.part_number
-            st_instances = Project_Station.objects.filter(project_pn_id=pn_instance)
-            for st_instance in st_instances:
-                st = st_instance.station_name
-                try:
-                    update_ini_version(prj,pn,st)
-                except Exception as e:
-                    print(e,prj,pn,st)
+    prj_infos = [{'task_id': '090004', 'script_name': 'test.py', 'project_task_id': '8698', 'new_task': False,
+                  'task_name': 'test', 'timeout': '10', 'exitcode': 'exitCode', 'retry': '5', 'sleep': '0',
+                  'criteria': 'PASS', 'interactive': 'image', 'rule': 'title;text;OK;image1.png',
+                  'priority': 'interactive', 'args': ['a', '-b322', 'b']}]
 
 
 
+    # print(gen_ini_contents(prj_infos))
+
+
+    task_id = "090004"
 
 
 
-
-
+    # pjr_instances = Project.objects.all()
+    #
+    # for prj_instance in pjr_instances:
+    #     prj = prj_instance.project_name
+    #     pn_instances = Project_PN.objects.filter(project_name=prj)
+    #
+    #     for pn_instance in pn_instances:
+    #         pn = pn_instance.part_number
+    #         st_instances = Project_Station.objects.filter(project_pn_id=pn_instance)
+    #         for st_instance in st_instances:
+    #             st = st_instance.station_name
+    #             try:
+    #                 update_ini_version(prj,pn,st)
+    #             except Exception as e:
+    #                 print(e,prj,pn,st)

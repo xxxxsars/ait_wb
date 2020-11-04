@@ -97,7 +97,7 @@ def update_API_view(request):
                     new_version = get_script_version(task_info.version)
                 except ValueError as e:
                     err = [str(e)]
-                    return JsonResponse({'is_valid': False, "error": err}, status=417)
+                    return JsonResponse({'is_valid': False, "error": err}, status=500)
                 task_info.version = new_version
                 task_info.time = datetime.datetime.now()
 
@@ -119,6 +119,13 @@ def update_API_view(request):
                 index = len(db_args)
                 new_args =arguments[index::]
 
+                err_arg = [ arg for arg in new_args if arg in db_args]
+
+                if len(err_arg) >0:
+                    err_arg_str = ",".join(err_arg)
+                    err_msg = f"Your arguments [{err_arg_str}] had error, please delete original argument and try again."
+                    return JsonResponse({'is_valid': False, "error":[err_msg] }, status=500)
+
                 for i,arg in  enumerate(new_args):
                     argument = arguments[index+i]
                     description = arg_descripts[index+i]
@@ -133,19 +140,44 @@ def update_API_view(request):
                                                                  station_id=prj_task.station_id, project_task_id=prj_task)
 
 
+
             new_db_args = [a.argument for a in Arguments.objects.filter(task_id=task_info)]
             for i, arg in enumerate(arguments):
                 # if argument had in database will update
                 if arg in db_args or arg != new_db_args[i]:
+                    arg_modify = False
+                    value_modify = False
+
                     arg_info = Arguments.objects.get(task_id=task_info, argument=new_db_args[i])
+                    if arg_info.argument != arguments[i] and re.search("^_\w+$", arg):
+                        arg_modify = True
+
+                    if arg_info.default_value != values[i] and re.search("^-\w+$", values[i]):
+                        value_modify = True
+
+
                     arg_info.argument = arguments[i]
                     arg_info.description = arg_descripts[i]
                     arg_info.default_value = values[i]
                     arg_info.save()
 
+                    # if -[arg] had been modify update prj argument
+                    if arg_modify or value_modify :
+                        prj_args = Project_task_argument.objects.filter(argument= Arguments.objects.get(task_id=task_info, argument=arg))
+                        for p_arg in prj_args:
+                            p_arg.default_value = values[i]
+                            p_arg.save()
+
+
 
             if len(error_messages) == 0:
                 update_script_version(task_id)
+                try:
+                    update_ini_task(task_id)
+                except Exception as e:
+                    return JsonResponse(
+                        {'is_valid': False, "message": list(str(e))}, status=500)
+
                 return JsonResponse(
                     {'is_valid': True, "message": "Update  Test Case ID: [ %s ] was successfully!" % task_id,
                      "task_id": task_id}, status=200)

@@ -967,64 +967,6 @@ def get_station_tasks(project_name, part_number, station_name):
     return sorted_prj_task_li
 
 
-def gen_ini_contents(project_infos):
-    new_prj_task_ids = []
-
-    ini_map = {}
-    for prj_info in (project_infos):
-        project_task_id = prj_info["project_task_id"]
-        task_id = prj_info["task_id"]
-
-        interactive = "AUTO"
-        if prj_info['interactive'] != 'auto':
-            interactive = "INTERACTIVE"
-
-        title = "[0_%s_%s_%s]\n" % (interactive, task_id, prj_info["task_name"])
-        script_path = r'cmd=TestScriptRes\\%s' % prj_info["script_name"]
-        arg_str = " ".join([arg for arg in prj_info["args"]])
-        args = prj_info["args"]
-        remove_args = []
-        # if arg was empty will not add to content
-        for i, arg in enumerate(args):
-            if re.search("^\-\w+$", arg):
-                try:
-                    next_arg = args[i + 1]
-                except Exception as e:
-                    raise Exception("Your argument had some error ,please modify it.")
-                if next_arg == "":
-                    remove_args.append(arg)
-                    remove_args.append(next_arg)
-        if len(args) > 0:
-            for r_arg in remove_args:
-                args.remove(r_arg)
-        arg_str = " ".join([arg for arg in args])
-
-        # if was interactive item the content will be emptied
-        if task_id[1] != "6":
-            content = "%s %s;%s;%s;%s;%s\ncriteria=%s\n" % (
-                script_path, arg_str, prj_info["timeout"], prj_info["exitcode"], prj_info["retry"], prj_info["sleep"],
-                prj_info["criteria"])
-        else:
-            content = "criteria=%s\n" % prj_info["criteria"]
-
-        if prj_info['interactive'] != 'auto':
-            rule = "%s=%s" % ((prj_info['interactive']).upper(), prj_info['rule'])
-
-            if prj_info['priority'] == "interactive":
-                ini_map[project_task_id] = title + rule + "\n" + content
-            else:
-                ini_map[project_task_id] = title + content + rule
-
-        elif prj_info['interactive'] == 'auto':
-            ini_map[project_task_id] = title + content
-
-        if prj_info["new_task"]:
-            new_prj_task_ids.append(prj_info["project_task_id"])
-    ini_map["new_prj_task_ids"] = new_prj_task_ids
-
-    return ini_map
-
-
 # save int will be save before the download page ,it use token to the file name
 def save_ini_contents(ini_map, ini_order_list, token):
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
