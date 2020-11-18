@@ -655,24 +655,34 @@ def update_ini_task(task_id):
     task_instance = Upload_TestCase.objects.get(task_id=task_id)
     for prj_task_instance in Project_task.objects.filter(task_id=task_instance):
         p_instance = prj_task_instance.station_id.project_pn_id.project_name
+        st_instance = prj_task_instance.station_id
 
-        st = prj_task_instance.station_id.station_name
+        st = st_instance.station_name
         pn = prj_task_instance.station_id.project_pn_id.part_number
         owner= p_instance.owner_user.username
         prj =p_instance.project_name
+        prj_task_id = prj_task_instance.id
 
         path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         ini_path = path_combine(path, "user_project", owner, prj, pn, st,"testScript.ini")
+        prj_arg_innstance = Project_task_argument.objects.filter(task_id=task_id, station_id=st_instance,project_task_id=prj_task_id)
+
+
+        # if not save ignore it
+        if  not os.path.exists(ini_path):
+            return
 
         try:
-            new_content = (gen_ini_contents([{'task_id': task_instance.task_id, 'script_name': task_instance.script_name,
-                          'project_task_id': prj_task_instance.id, 'new_task': False,
-                          'task_name': task_instance.task_name, 'timeout': prj_task_instance.timeout,
-                          'exitcode': prj_task_instance.exit_code, 'retry': prj_task_instance.retry_count,
-                          'sleep': prj_task_instance.sleep_time,
-                          'criteria': prj_task_instance.criteria, 'interactive': prj_task_instance.interactive,
-                          'rule': prj_task_instance.rule,
-                          'priority': prj_task_instance.priority, 'args': [p.default_value for p in Project_task_argument.objects.filter(task_id=task_instance)]}]))[prj_task_instance.id]
+            prj_task_map = model_to_dict(prj_task_instance)
+            new_content = (gen_ini_contents([{'task_id': prj_task_map["task_id"], 'script_name': task_instance.script_name,
+                          'project_task_id': prj_task_map["id"], 'new_task': False,
+                          'task_name': prj_task_map["task_name"], 'timeout': prj_task_map["timeout"],
+                          'exitcode': prj_task_map["exit_code"], 'retry': prj_task_map["retry_count"],
+                          'sleep': prj_task_map["sleep_time"],
+                          'criteria': prj_task_map["criteria"], 'interactive': prj_task_map["interactive"],
+                          'rule': prj_task_map["rule"],
+                          'priority': prj_task_map["priority"], 'args': [p_a.default_value for p_a in prj_arg_innstance ]}]))[prj_task_id]
+
         except Exception as e:
             raise Exception("Automatically update testScript.ini had error (get new content error.)")
 
@@ -683,11 +693,17 @@ def update_ini_task(task_id):
                 match = type_reg.search(sg)
                 if match:
                     try:
-                        if match.group(2) == task_id:
-                            new_content_split = [ c  for c in (re.split(r"(\[.+\])", new_content)) if re.search('\w+',c)]
-                            scrpit_groups[i] = new_content_split[0]
-                            scrpit_groups[i+1] = new_content_split[1]+"\n"
+                        ini_tasks = Project_task.objects.filter(station_id=st_instance, task_name=match.group(3),
+                                                                         task_id_id=match.group(2))
 
+                        if (ini_tasks.count() == 0):
+                            scrpit_groups[i] = ""
+                            scrpit_groups[i + 1] = ""+"\n"
+                        else:
+                            if ini_tasks.first().id == prj_task_id:
+                                new_content_split = [ c  for c in (re.split(r"(\[.+\])", new_content)) if re.search('\w+',c)]
+                                scrpit_groups[i] = new_content_split[0]
+                                scrpit_groups[i+1] = new_content_split[1]+"\n"
 
                     except Exception as e:
                         raise Exception("Automatically update testScript.ini had error.")
@@ -701,18 +717,21 @@ def update_ini_task(task_id):
         s.convert_script()
 
 
-
-    prj_infos = [{'task_id': '090004', 'script_name': 'test.py', 'project_task_id': '8698', 'new_task': False,
-                  'task_name': 'test', 'timeout': '10', 'exitcode': 'exitCode', 'retry': '5', 'sleep': '0',
-                  'criteria': 'PASS', 'interactive': 'image', 'rule': 'title;text;OK;image1.png',
-                  'priority': 'interactive', 'args': ['a', '-b322', 'b']}]
+if __name__ == "__main__":
 
 
+    for t in Upload_TestCase.objects.all():
+        update_ini_task(t.task_id)
 
-    # print(gen_ini_contents(prj_infos))
 
+    # for a in Arguments.objects.all():
+    #
+    #    for  prj_a in (Project_task_argument.objects.filter(argument=a)):
+    #         if re.search("\s",prj_a.default_value):
+    #             if re.search(r'^".+"$' ,prj_a.default_value) == None:
+    #                 prj_a.default_value = '"'+prj_a.default_value +'"'
+    #                 prj_a.save()
 
-    task_id = "090004"
 
 
 

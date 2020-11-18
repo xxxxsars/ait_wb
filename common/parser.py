@@ -25,23 +25,24 @@ class upload_script_parser:
         self.pn = pn
         self.st = st
 
-        self.prj_obj = Project.objects.filter(project_name=self.prj)
-        self.pn_obj = Project_PN.objects.filter(project_name=self.prj,part_number=self.pn)
-        self.st_obj = Project_Station.objects.filter(station_name=self.st,project_pn_id=self.pn_obj[0])
+
         self.created_prj_task_id = []
         self.task_id = []
         self.ini_content_map = {}
-        self.username = self.prj_obj.first().owner_user.username
+
 
     def __check_prj(self):
-
-        assert (self.prj_obj.count() >=1) ,"Your project has not been created or saved."
-        assert (self.pn_obj.count() >=1),"Your project part number has not been created or saved ."
+        self.prj_obj = Project.objects.filter(project_name=self.prj)
+        assert (self.prj_obj.count() >= 1), "Your project has not been created or saved."
+        self.pn_obj = Project_PN.objects.filter(project_name=self.prj,part_number=self.pn)
+        assert (self.pn_obj.count() >= 1), "Your project part number has not been created or saved ."
+        self.st_obj = Project_Station.objects.filter(station_name=self.st,project_pn_id=self.pn_obj[0])
         assert (self.st_obj.count()>=1),"Your station has not been created or saved."
 
         prj_task_obj = Project_task.objects.filter(station_id=self.st_obj[0])
         assert (prj_task_obj.count()==0),"Your test case must be empty."
 
+        self.username = self.prj_obj.first().owner_user.username
 
     def __copy_ini(self,task_id):
 
@@ -84,6 +85,9 @@ class upload_script_parser:
         return self.ini_content_map
 
     def save_prj_task(self,task_type,task_id,task_name,content):
+
+        # print(task_type,task_id,task_name,content)
+
         task_instance = Upload_TestCase.objects.get(task_id=task_id)
 
         self.task_id.append(task_id)
@@ -116,34 +120,35 @@ class upload_script_parser:
                 type_map[content_type] = value
 
 
-        assert len(type_map) > 0, f"Your testScript.ini the test case id: {task_id} had error."
+        if re.search(r"^\d6",task_id) == None:
+            assert len(type_map) > 0, f"Your testScript.ini the test case id: {task_id} had error."
 
-        type_list = [t for t in type_map.keys()  ]
+            type_list = [t for t in type_map.keys()  ]
 
 
-        #get first priority ,which was  cmd or interactive
-        if (type_list[0]) !="cmd":
-            priority = "interactive"
+            #get first priority ,which was  cmd or interactive
+            if (type_list[0]) !="cmd":
+                priority = "interactive"
 
-        #get interactive type
-        for t in type_list:
-            if t in inter_type:
-                inter = t.lower()
-                rule = type_map[t]
+            #get interactive type
+            for t in type_list:
+                if t in inter_type:
+                    inter = t.lower()
+                    rule = type_map[t]
 
-        assert inter!=""  , f"Your testScript.ini the test case id: {task_id} title had error."
+            assert inter!=""  , f"Your testScript.ini the test case id: {task_id} title had error."
 
-        if "cmd" in type_list:
-            content_split = (type_map["cmd"]).split(";")
-            try:
-                cmd = content_split[0]
-                timeout = int(content_split[1])
-                exit_code =  content_split[2]
-                retry_count =  int(content_split[3])
-                sleep_time =  int(content_split[3])
-            except Exception as e:
-                err_msg = f"Your testScript.ini the test case id: {task_id} get exit_code/retry_count/sleep_time had error."
-                raise Exception(err_msg)
+            if "cmd" in type_list:
+                content_split = (type_map["cmd"]).split(";")
+                try:
+                    cmd = content_split[0]
+                    timeout = int(content_split[1])
+                    exit_code =  content_split[2]
+                    retry_count =  int(content_split[3])
+                    sleep_time =  int(content_split[3])
+                except Exception as e:
+                    err_msg = f"Your testScript.ini the test case id: {task_id} get exit_code/retry_count/sleep_time had error."
+                    raise Exception(err_msg)
 
         prj_task = Project_task.objects.create(station_id=self.st_obj[0], task_id=task_instance,
                                                   task_name=task_name, timeout=timeout,
@@ -158,7 +163,6 @@ class upload_script_parser:
 
         # check parameter
         if len(cmd_split) > arg_obj.count():
-            print(cmd_split,[a.default_value for a in arg_obj])
             err_msg = f"Your testScript.ini the test case id: {task_id} has more parameters than the database."
             raise Exception(err_msg)
 
@@ -274,6 +278,8 @@ class upload_script_parser:
             raise Exception(str(e))
 
 
+        # todo :remove it
+        self.__removee_created()
 
 
 
