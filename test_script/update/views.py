@@ -161,7 +161,7 @@ def update_API_view(request):
                     arg_info.default_value = values[i]
                     arg_info.save()
 
-                    # if -[arg] had been modify update prj argument
+                    #todo if -[arg] had been modify update prj argument
                     if arg_modify or value_modify :
                         prj_args = Project_task_argument.objects.filter(argument= Arguments.objects.get(task_id=task_info, argument=arg))
                         for p_arg in prj_args:

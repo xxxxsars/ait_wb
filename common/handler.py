@@ -650,7 +650,7 @@ def update_ini_version(prj, pn, st):
         raise Exception(f"An error occurred while opening the '{ini_path}' file.")
 
 
-def update_ini_task(task_id):
+def update_ini_task(task_id,delete=False):
     type_reg = re.compile("^\[.+(AUTO|INTERACTIVE)_(\d+)_([\w|\s]+)\]$")
     task_instance = Upload_TestCase.objects.get(task_id=task_id)
     for prj_task_instance in Project_task.objects.filter(task_id=task_instance):
@@ -702,8 +702,13 @@ def update_ini_task(task_id):
                         else:
                             if ini_tasks.first().id == prj_task_id:
                                 new_content_split = [ c  for c in (re.split(r"(\[.+\])", new_content)) if re.search('\w+',c)]
-                                scrpit_groups[i] = new_content_split[0]
-                                scrpit_groups[i+1] = new_content_split[1]+"\n"
+
+                                if delete:
+                                    scrpit_groups[i] =""
+                                    scrpit_groups[i+1] = "\n"
+                                else:
+                                    scrpit_groups[i] = new_content_split[0]
+                                    scrpit_groups[i+1] = new_content_split[1]+"\n"
 
                     except Exception as e:
                         raise Exception("Automatically update testScript.ini had error.")

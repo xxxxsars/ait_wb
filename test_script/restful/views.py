@@ -119,6 +119,7 @@ class DeleteTestCaseView(viewsets.ModelViewSet):
         if serializer.is_valid():
             task_id = serializer.data["task_id"]
             remove_upload_file(task_id)
+            update_ini_task(task_id,delete=True)
             self.perform_destroy(instance)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
