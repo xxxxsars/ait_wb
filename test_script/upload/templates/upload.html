@@ -165,43 +165,12 @@
                 $('#upload-form').bootstrapValidator('validate');
                 if ($("#upload-form").data('bootstrapValidator').isValid()) {
 
-                    var task_id = $("input[name='task_id']").val();
-                    //if is interactive testCase disable some limit
-                    if (task_id.length == 4 && task_id[1] == "6") {
 
-                        data = $("#upload-form").serialize() + "&interactive=True";
-
-                        $.ajax({
-                            type: "POST",
-                            url: "{% url "testCase_upload" %}",
-                            data: data, // serializes the form's elements.
-                            success: function (data) {
-
-                                location.href = "/testCase/modify/" + data.task_id + "/" + data.message
-
-                            },
-
-                            error: function (data) {
-                                $("#message").empty();
-                                var error_messages = "";
-                                $.each(data.error, function (index, value) {
-                                    rror_messages += value + "<br>";
-                                });
-
-                                $("#error_message").append(error_messages);
-                                $("#error-dialog").modal('show');
-
-                            }
-                        });
-
-
-                    } else {
                         file_upload.fileupload('send', {
                             files: filesList,
                             paramName: paramNames,
 
                         });
-                    }
 
 
                 }
@@ -273,7 +242,7 @@
                                 message: 'The task name is required and cannot be empty.'
                             },
                             regexp: {
-                                regexp:  /^[\w|\.|_|\s]+$/,
+                                regexp: /^[\w|\.|_|\s]+$/,
                                 message: 'The task name is incorrect.'
                             },
                             remote: {
@@ -509,13 +478,15 @@
                         {{ u.attachment }}
                         <label class="custom-file-label" for="attachment_file">Please Upload Image dialog file</label>
                     </div>
+
                 </div>
 
             </div>
 
             <div class="col-md-12">
                 <div class="input-group hide-group">
-                    <label  style="position: relative;transform: translateY(20%);" class="form-control-label"> TestCase Zip&emsp;</label>
+                    <label style="position: relative;transform: translateY(20%);" class="form-control-label"> TestCase
+                        Zip&emsp;</label>
                     <div class="custom-file">
                         {{ u.file }}
                         <label class="custom-file-label" for="attachment_file">Please Upload zip file</label>

@@ -75,14 +75,20 @@ def upload_API(request):
             error = "Upload TestCase ID was gather then 99!"
             error_messages.append(error)
 
+
+        if re.search("^\d6",id):
+            interactive = True
+        else:
+            interactive = False
+
         # not interactive will check upload file
-        if interactive != "True":
+        if not interactive :
             err = valid_zip_file(zip_file,id,script_name)
             if len(err) > 0:
                 error_messages += err
 
         # not interactive will check arguments
-        if interactive != "True":
+        if not interactive :
             for i, e in enumerate(arguments):
                 argument = arguments[i]
                 if re.search("^_\w+$", argument):
@@ -100,7 +106,7 @@ def upload_API(request):
         if len(error_messages) == 0:
             task_id = id + serial_number
 
-            if interactive =="True":
+            if interactive:
                 up = Upload_TestCase.objects.create(task_id=task_id, task_name=task_name, description=task_descript,
                                                     script_name="interactive", sample="", modify_user=user_name,
                                                     create_user=user_name)
@@ -114,7 +120,7 @@ def upload_API(request):
 
                                                     create_user=user_name)
             # not interactive will save arguments
-            if interactive != "True":
+            if not interactive:
                 for i, e in enumerate(arguments):
                     argument = arguments[i]
                     description = arg_descripts[i]
