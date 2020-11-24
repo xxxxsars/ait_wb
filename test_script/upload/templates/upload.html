@@ -56,14 +56,10 @@
                 $(".hide-group").each(function () {
                     $(this).hide()
                 });
-
-                $("#image-file").show();
-
             } else {
                 $(".hide-group").each(function () {
                     $(this).show()
                 })
-                $("#image-file").hide();
             }
 
 
@@ -98,9 +94,6 @@
         }
 
         $(document).ready(function () {
-
-            $("#image-file").hide();
-
             var m = $('#modal-progress');
             var filesList = [],
                 paramNames = [],
@@ -471,7 +464,7 @@
         <br>
 
         <div class="row">
-            <div class="col-md-12" id="image-file">
+            <div class="col-md-6" id="image-file">
                 <div class="input-group">
                     <label style="position: relative;transform: translateY(20%);" class="form-control-label"> Image&emsp;</label>
                     <div class="custom-file">
@@ -483,7 +476,7 @@
 
             </div>
 
-            <div class="col-md-12">
+            <div class="col-md-6">
                 <div class="input-group hide-group">
                     <label style="position: relative;transform: translateY(20%);" class="form-control-label"> TestCase
                         Zip&emsp;</label>

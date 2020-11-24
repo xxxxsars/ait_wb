@@ -271,11 +271,10 @@ def get_download_file(owner_user, project_name, part_number, station_name, scrip
         attach_path = handle_path(file_path, "attachment")
 
         # add interactive images
-        if re.search(r"\d(\d{1}).+", task_id).group(1) == "6":
-            for dirpath, _, filenames in os.walk(attach_path):
-                for f in filenames:
-                    full_file_path = os.path.abspath(os.path.join(dirpath, f))
-                    zip_files.append((full_file_path, os.path.join("ImageRes", f)))
+        for dirpath, _, filenames in os.walk(attach_path):
+            for f in filenames:
+                full_file_path = os.path.abspath(os.path.join(dirpath, f))
+                zip_files.append((full_file_path, os.path.join("ImageRes", f)))
         else:
             for dirpath, _, filenames in os.walk(file_path):
                 for f in filenames:
